@@ -1,24 +1,24 @@
 const express = require("express");
 const cors = require("cors");
 const fs = require("node:fs");
-const { config } = require("dotenv");
-var mongo = require("mongodb").MongoClient;
-require("dotenv/config");
-
-config();
-
 const app = express();
+require("dotenv").config();
+const mongoose = require("mongoose");
+const Location = require("./Location");
 
-mongo.connect(
-  "mongodb+srv://Apilaash:Dinosaurs@16@cluster1.v3kqu.mongodb.net/?",
-  function (err, db) {
-    if (err) throw err;
+const uri = `mongodb+srv://${process.env.USERNAME}:${process.env.PASSWORD}@cluster1.v3kqu.mongodb.net/?appName=Cluster1`;
 
-    console.log(db);
+mongoose.connect(uri);
 
-    db.close();
-  }
-);
+async function run() {
+  var loc = new Location({
+    name: "Mumbai",
+    description: "City of Dreams",
+  });
+  await loc.save();
+  console.log("DONE");
+}
+run();
 
 app.use(cors());
 
