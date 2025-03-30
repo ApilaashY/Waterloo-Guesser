@@ -13,6 +13,16 @@ mongoose.connect(uri);
 
 runUploader();
 
+var allData = {};
+
+async function setupImages() {
+  var data = await Location.find({});
+
+  allData = data;
+}
+
+setupImages();
+
 app.use(cors());
 
 app.get("/", async (req, res) => {
@@ -21,15 +31,10 @@ app.get("/", async (req, res) => {
 
 app.get("/getPhoto", async (req, res) => {
   console.log("GET PHOTO");
-  var data = await Location.findById("67e88876b9404a2bd31f1cec");
-  if (data == null) {
-    res.json({ data: "NO DATA" });
-    return;
-  }
+  var data = allData[(Math.random() * allData.length) | 0];
 
   const b64 = Buffer.from(data["image"]["data"]).toString("base64");
-  // CHANGE THIS IF THE IMAGE YOU ARE WORKING WITH IS .jpg OR WHATEVER
-  const mimeType = "image/jpg"; // e.g., image/png
+  const mimeType = data["image"]["contentType"];
 
   res.json({ image: `data:${mimeType};base64,${b64}` });
 });

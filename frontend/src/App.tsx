@@ -6,22 +6,27 @@ export default function App() {
   }
 
   const [state, setState] = useState<State>({});
+  const [setupDone, setSetupDone] = useState(false);
 
-  useEffect(() => {
+  function requestImage() {
     fetch("http://localhost:8080/getPhoto")
       .then((res) => res.json())
       .then((json) => {
-        console.log(json);
         setState(json);
       });
+  }
+
+  useEffect(() => {
+    if (setupDone) return;
+    setSetupDone(true);
+    requestImage();
   }, []);
 
-  console.log(state);
   return (
     <>
       <h1>Hello</h1>
       <img src={state["image"]} />
-      <button>Click for Picture</button>
+      <button onClick={requestImage}>Click for Picture</button>
     </>
   );
 }
