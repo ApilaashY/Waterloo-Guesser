@@ -5,13 +5,10 @@ const app = express();
 require("dotenv").config();
 const mongoose = require("mongoose");
 const Location = require("./Location");
-const { runUploader } = require("./image-uploader.js");
 
 const uri = `mongodb+srv://${process.env.USERNAME}:${process.env.PASSWORD}@cluster1.v3kqu.mongodb.net/?appName=Cluster1`;
 
 mongoose.connect(uri);
-
-runUploader();
 
 var allData = {};
 

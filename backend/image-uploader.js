@@ -16,6 +16,7 @@ const DATA = [
 async function runUploader() {
   if (!RUN) {
     console.log("UPLOADER DISABLED");
+    console.log("Turn uploader on to upload images");
     return;
   }
 
@@ -36,4 +37,4 @@ async function runUploader() {
   console.log("Location saved");
 }
 
-exports.runUploader = runUploader;
+runUploader();
