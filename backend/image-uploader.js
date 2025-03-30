@@ -14,16 +14,26 @@ const DATA = [
 ];
 
 async function runUploader() {
-  if (!RUN) return;
+  if (!RUN) {
+    console.log("UPLOADER DISABLED");
+    return;
+  }
 
-  var loc = new Location({
-    name: "Mumbai",
-    description: "City of Dreams",
-    image: {
-      data: fs.readFileSync("photos/1.jpg"),
-      contentType: "image/jpeg",
-    },
+  console.log("RUNNING UPLOADER");
+
+  DATA.forEach(async (data) => {
+    var loc = new Location({
+      name: data.name,
+      description: data.description,
+      image: {
+        data: fs.readFileSync(data.image),
+        contentType: "image/jpeg",
+      },
+    });
+
+    await loc.save();
   });
-
-  await loc.save();
+  console.log("Location saved");
 }
+
+exports.runUploader = runUploader;
