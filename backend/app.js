@@ -14,30 +14,35 @@ async function run() {
   var loc = new Location({
     name: "Mumbai",
     description: "City of Dreams",
+    image: {
+      data: fs.readFileSync("photos/1.jpg"),
+      contentType: "image/jpeg",
+    },
   });
   await loc.save();
   console.log("DONE");
 }
-run();
+//run();
 
 app.use(cors());
 
-const folderName = "photos";
-const photos = fs.readdirSync(folderName);
-
-app.get("/", (req, res) => {
-  res.send({ Done: "There" });
+app.get("/", async (req, res) => {
+  res.json({ message: "Hello" });
 });
 
-app.get("/getPhoto", (req, res) => {
-  fs.readFile("photos/" + photos[0], "utf8", (err, data) => {
-    if (err) {
-      console.error(err);
-      return;
-    }
-    res.contentType("image/jpeg"); // Set content type for image
-    res.json({ data });
-  });
+app.get("/getPhoto", async (req, res) => {
+  console.log("GET PHOTO");
+  var data = await Location.findById("67e88876b9404a2bd31f1cec");
+  if (data == null) {
+    res.json({ data: "NO DATA" });
+    return;
+  }
+
+  const b64 = Buffer.from(data["image"]["data"]).toString("base64");
+  // CHANGE THIS IF THE IMAGE YOU ARE WORKING WITH IS .jpg OR WHATEVER
+  const mimeType = "image/jpg"; // e.g., image/png
+
+  res.json({ image: `data:${mimeType};base64,${b64}` });
 });
 
 const PORT = process.env.PORT || 8080;

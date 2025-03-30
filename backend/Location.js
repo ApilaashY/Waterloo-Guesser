@@ -1,9 +1,12 @@
 const mong = require("mongoose");
 
 const locationSchema = new mong.Schema({
-  name: String,
+  name: { type: String, required: true },
   description: String,
-  image: String,
+  image: {
+    data: Buffer,
+    contentType: String,
+  },
   date: {
     type: Date,
     default: Date.now,
