@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import "./App.css";
 
 export default function App() {
   interface State {
@@ -23,10 +24,15 @@ export default function App() {
   }, []);
 
   return (
-    <>
+    <div className="App">
+      <div>
+        <div className="flex">
+          <h1>Hello</h1>
+          <button onClick={requestImage}>Click for Picture</button>
+        </div>
+        <img src={state["image"]} />
+      </div>
       <h1>Hello</h1>
-      <img src={state["image"]} />
-      <button onClick={requestImage}>Click for Picture</button>
-    </>
+    </div>
   );
 }
