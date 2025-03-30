@@ -5,24 +5,13 @@ const app = express();
 require("dotenv").config();
 const mongoose = require("mongoose");
 const Location = require("./Location");
+const { runUploader } = require("./image-uploader");
 
 const uri = `mongodb+srv://${process.env.USERNAME}:${process.env.PASSWORD}@cluster1.v3kqu.mongodb.net/?appName=Cluster1`;
 
 mongoose.connect(uri);
 
-async function run() {
-  var loc = new Location({
-    name: "Mumbai",
-    description: "City of Dreams",
-    image: {
-      data: fs.readFileSync("photos/1.jpg"),
-      contentType: "image/jpeg",
-    },
-  });
-  await loc.save();
-  console.log("DONE");
-}
-//run();
+runUploader();
 
 app.use(cors());
 
