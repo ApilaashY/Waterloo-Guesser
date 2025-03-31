@@ -6,7 +6,7 @@ require("dotenv").config();
 const mongoose = require("mongoose");
 const Location = require("./Location");
 
-const uri = `mongodb+srv://Senth:S0ifRCaFj2XUsopM@cluster1.v3kqu.mongodb.net/?appName=Cluster1`;
+const uri = `mongodb+srv://${process.env.USERNAME}:${process.env.PASSWORD}@cluster1.v3kqu.mongodb.net/?appName=Cluster1`;
 
 mongoose.connect(uri);
 
@@ -27,7 +27,6 @@ app.get("/", async (req, res) => {
 });
 
 app.get("/getPhoto", async (req, res) => {
-  console.log("GET PHOTO");
   var data = allData[(Math.random() * allData.length) | 0];
 
   const b64 = Buffer.from(data["image"]["data"]).toString("base64");
