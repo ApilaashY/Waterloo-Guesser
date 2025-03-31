@@ -1,0 +1,20 @@
+img {
+  max-width: 100%;
+}
+
+img h2 {
+  display: relative;
+  font-size: 1.5rem;
+  margin: 0;
+}
+
+.Box {
+  position: relative;
+}
+
+.InnerBox {
+  top: 10px;
+  left: 20px;
+  position: absolute;
+  background-color: red;
+}

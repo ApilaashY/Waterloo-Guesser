@@ -4,6 +4,14 @@
   grid-template-columns: 1fr 1fr;
 }
 
+@media only screen and (max-width: 600px) {
+  .App {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+}
+
 .App .flex {
   display: flex;
   flex-direction: column;
@@ -11,6 +19,8 @@
   align-items: center;
 }
 
-.App img {
-  max-width: 100%;
+.LocationImg {
+  width: 100%;
+  aspect-ratio: 1/1;
+  object-fit: contain;
 }

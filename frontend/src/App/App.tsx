@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import Map from "../Map/Map";
 import "./App.css";
 
 export default function App() {
@@ -30,9 +31,9 @@ export default function App() {
           <h1>Hello</h1>
           <button onClick={requestImage}>Click for Picture</button>
         </div>
-        <img src={state["image"]} />
+        <img className="LocationImg" src={state["image"]} />
       </div>
-      <h1>Hello</h1>
+      <Map />
     </div>
   );
 }
