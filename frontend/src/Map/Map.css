@@ -17,4 +17,5 @@ img h2 {
   left: 20px;
   position: absolute;
   background-color: red;
+  translate: -50% -50%;
 }
