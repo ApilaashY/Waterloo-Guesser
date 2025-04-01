@@ -1,5 +1,7 @@
-img {
-  max-width: 100%;
+.Map img {
+  cursor: pointer;
+  width: 100%;
+  aspect-ratio: 1/1;
 }
 
 img h2 {
@@ -18,4 +20,7 @@ img h2 {
   position: absolute;
   background-color: red;
   translate: -50% -50%;
+  cursor: pointer;
+  width: 1em;
+  height: 1em;
 }

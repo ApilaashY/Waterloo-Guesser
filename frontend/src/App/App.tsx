@@ -10,6 +10,9 @@ export default function App() {
   const [state, setState] = useState<State>({});
   const [setupDone, setSetupDone] = useState(false);
 
+  const [xCoor, setXCoor] = useState(0);
+  const [yCoor, setYCoor] = useState(0);
+
   function requestImage() {
     fetch("http://localhost:8080/getPhoto")
       .then((res) => res.json())
@@ -33,7 +36,15 @@ export default function App() {
         </div>
         <img className="LocationImg" src={state["image"]} />
       </div>
-      <Map />
+      <div>
+        <button>Submit</button>
+        <Map
+          xCoor={xCoor}
+          yCoor={yCoor}
+          setXCoor={setXCoor}
+          setYCoor={setYCoor}
+        />
+      </div>
     </div>
   );
 }
