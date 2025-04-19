@@ -1,7 +1,6 @@
 .Map img {
   cursor: pointer;
   width: 100%;
-  aspect-ratio: 1/1;
 }
 
 img h2 {
@@ -21,6 +20,6 @@ img h2 {
   background-color: red;
   translate: -50% -50%;
   cursor: pointer;
-  width: 1em;
-  height: 1em;
+  width: 0.5em;
+  height: 0.5em;
 }

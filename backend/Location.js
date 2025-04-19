@@ -11,8 +11,10 @@ const locationSchema = new mong.Schema({
     type: Date,
     default: Date.now,
   },
-  latitude: {type: String, required: true},
-  longitude: {type: String, required: true},
+  latitude: { type: String, required: true },
+  longitude: { type: String, required: true },
+  xCoordinate: { type: Number, required: true },
+  yCoordinate: { type: Number, required: true },
 });
 
 module.exports = mong.model("Location", locationSchema);
