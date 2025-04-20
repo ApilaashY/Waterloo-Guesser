@@ -10,15 +10,21 @@ const uri = `mongodb+srv://${process.env.USERNAME}:${process.env.PASSWORD}@clust
 
 mongoose.connect(uri);
 
-// Linear Model
-// a = 0, b = -10/3, c = 7/6
-// Quadratic Model
-// a = -25/3, b = 0, c = 49/48
+function generateModel(perfectRadius, maxTillNoPoints, model) {
+  if (model == "linear") {
+    const slope = -1 / (maxTillNoPoints - perfectRadius);
+
+    return [0, slope, -slope * maxTillNoPoints];
+  } else if (model == "quadratic") {
+    const coefficient =
+      1 / (Math.pow(perfectRadius, 2) - Math.pow(maxTillNoPoints, 2));
+
+    return [coefficient, 0, -(coefficient * Math.pow(maxTillNoPoints, 2))];
+  }
+}
 
 const maxPoints = 1000;
-const a = 0;
-const b = -10 / 3;
-const c = 7 / 6;
+const [a, b, c] = generateModel(0.05, 0.35, "linear");
 
 function boundModel(num) {
   if (num <= 0) return 0;

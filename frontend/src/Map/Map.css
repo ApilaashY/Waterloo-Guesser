@@ -22,4 +22,5 @@ img h2 {
   cursor: pointer;
   width: 0.5em;
   height: 0.5em;
+  border-radius: 50%;
 }
