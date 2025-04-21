@@ -1,26 +1,47 @@
 .App {
-  width: 100%;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  max-height: 100vh;
+  max-width: 100vw;
+  display: flex;
+  justify-content: center;
+  align-self: center;
 }
 
-@media only screen and (max-width: 600px) {
-  .App {
-    width: 100%;
-    display: grid;
-    grid-template-columns: 1fr;
-  }
-}
-
-.App .flex {
+.ZoomControls {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: center;
+  background-color: #575757;
+  padding: 5px;
+  border-radius: 5px;
 }
 
+.ZoomControls button {
+  background-color: rgb(203, 203, 203);
+  border: none;
+  border-radius: 5px;
+  padding: 6px 8px;
+  margin: 2px;
+  cursor: pointer;
+  transition-duration: 0.25s;
+}
+
+.ZoomControls button:hover {
+  background-color: rgb(139, 139, 139);
+  transition-duration: 0.25s;
+}
 .LocationImg {
-  width: 100%;
-  aspect-ratio: 1/1;
-  object-fit: contain;
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  max-height: 20%;
+  max-width: 20%;
+  transition-duration: 0.5s;
+}
+
+.LocationImg:hover {
+  max-height: 85%;
+  max-width: 85%;
+  transition-duration: 0.5s;
 }

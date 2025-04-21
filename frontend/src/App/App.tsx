@@ -100,21 +100,7 @@ export default function App() {
 
   return (
     <div className="App">
-      <div>
-        <div className="flex">
-          <h1>Hello</h1>
-          <h2>Points: {totalPoints}</h2>
-          <h2>Questions Done: {questionCount}</h2>
-          {questionCount != 0 && (
-            <h2>
-              Average Question Points: {Math.round(totalPoints / questionCount)}
-            </h2>
-          )}
-        </div>
-        <img className="LocationImg" src={state.image} />
-      </div>
-      <div>
-        <button
+      {/* <button
           onClick={() => {
             if (resetZoom.current) {
               resetZoom.current();
@@ -125,18 +111,19 @@ export default function App() {
           }}
         >
           {xRightCoor == null || yRightCoor == null ? "Submit" : "Next"}
-        </button>
+        </button> */}
 
-        <Map
-          xCoor={xCoor}
-          yCoor={yCoor}
-          setXCoor={setXCoor}
-          setYCoor={setYCoor}
-          xRightCoor={xRightCoor}
-          yRightCoor={yRightCoor}
-          Controls={<Controls />}
-        />
-      </div>
+      <Map
+        xCoor={xCoor}
+        yCoor={yCoor}
+        setXCoor={setXCoor}
+        setYCoor={setYCoor}
+        xRightCoor={xRightCoor}
+        yRightCoor={yRightCoor}
+      >
+        <Controls />
+        <img className="LocationImg" src={state.image} />
+      </Map>
     </div>
   );
 }

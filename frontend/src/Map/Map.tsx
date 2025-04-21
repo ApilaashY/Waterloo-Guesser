@@ -12,7 +12,6 @@ interface MapProps extends PropsWithChildren {
   setYCoor: (value: number) => void;
   xRightCoor: number | null;
   yRightCoor: number | null;
-  Controls: JSX.Element;
 }
 import "./Map.css";
 
@@ -127,7 +126,7 @@ export default function Map(props: MapProps) {
             </TransformComponent>
           </div>
 
-          {props.Controls}
+          {props.children}
         </TransformWrapper>
       </div>
     </div>
