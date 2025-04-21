@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Map from "../Map/Map";
 import "./App.css";
+import { useControls } from "react-zoom-pan-pinch";
 
 export default function App() {
   interface State {
@@ -20,6 +21,28 @@ export default function App() {
   const [yCoor, setYCoor] = useState<number | null>(null);
   const [xRightCoor, setXRightCoor] = useState<number | null>(null);
   const [yRightCoor, setYRightCoor] = useState<number | null>(null);
+
+  const resetZoom = useRef<
+    | ((
+        animationTime?: number,
+        animationType?:
+          | "easeOut"
+          | "linear"
+          | "easeInQuad"
+          | "easeOutQuad"
+          | "easeInOutQuad"
+          | "easeInCubic"
+          | "easeOutCubic"
+          | "easeInOutCubic"
+          | "easeInQuart"
+          | "easeOutQuart"
+          | "easeInOutQuart"
+          | "easeInQuint"
+          | "easeOutQuint"
+          | "easeInOutQuint"
+      ) => void)
+    | null
+  >(null);
 
   function requestImage() {
     fetch(`http://localhost:8080/getPhoto?previousCode=${imageID}`)
@@ -61,6 +84,20 @@ export default function App() {
     requestImage();
   }, []);
 
+  const Controls = () => {
+    const { zoomIn, zoomOut, resetTransform } = useControls();
+
+    resetZoom.current = resetTransform;
+
+    return (
+      <div className="ZoomControls">
+        <button onClick={() => zoomIn()}>+</button>
+        <button onClick={() => zoomOut()}>-</button>
+        <button onClick={() => resetTransform()}>⟲</button>
+      </div>
+    );
+  };
+
   return (
     <div className="App">
       <div>
@@ -78,14 +115,18 @@ export default function App() {
       </div>
       <div>
         <button
-          onClick={() =>
-            xRightCoor == null || yRightCoor == null
+          onClick={() => {
+            if (resetZoom.current) {
+              resetZoom.current();
+            }
+            return xRightCoor == null || yRightCoor == null
               ? validateCoordinate()
-              : requestImage()
-          }
+              : requestImage();
+          }}
         >
           {xRightCoor == null || yRightCoor == null ? "Submit" : "Next"}
         </button>
+
         <Map
           xCoor={xCoor}
           yCoor={yCoor}
@@ -93,6 +134,7 @@ export default function App() {
           setYCoor={setYCoor}
           xRightCoor={xRightCoor}
           yRightCoor={yRightCoor}
+          Controls={<Controls />}
         />
       </div>
     </div>

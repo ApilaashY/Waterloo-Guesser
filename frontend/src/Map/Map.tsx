@@ -1,4 +1,9 @@
-import { PropsWithChildren } from "react";
+import { JSX, PropsWithChildren, useRef } from "react";
+import {
+  TransformWrapper,
+  TransformComponent,
+  ReactZoomPanPinchRef,
+} from "react-zoom-pan-pinch";
 
 interface MapProps extends PropsWithChildren {
   xCoor: number | null;
@@ -7,23 +12,35 @@ interface MapProps extends PropsWithChildren {
   setYCoor: (value: number) => void;
   xRightCoor: number | null;
   yRightCoor: number | null;
+  Controls: JSX.Element;
 }
 import "./Map.css";
 
 export default function Map(props: MapProps) {
+  const zoomOffsetX = useRef(0);
+  const zoomOffsetY = useRef(0);
+  const zoomScale = useRef(1);
+
   function handleClick(event: React.MouseEvent<HTMLImageElement>) {
     if (props.xRightCoor != null && props.yRightCoor != null) return;
 
+    const width = event.currentTarget.parentElement?.clientWidth || 0;
+    const height = event.currentTarget.parentElement?.clientHeight || 0;
+
     const x =
-      event.pageX - (event.currentTarget.parentElement?.offsetLeft ?? 0);
-    const y = event.pageY - (event.currentTarget.parentElement?.offsetTop ?? 0);
-    console.log(
-      `Clicked at coordinates: (${x}, ${y}) (${
-        x / (event.currentTarget.parentElement?.clientWidth || 1)
-      }, ${y / (event.currentTarget.parentElement?.clientHeight || 1)})`
-    );
-    props.setXCoor(x / (event.currentTarget.parentElement?.clientWidth || 1));
-    props.setYCoor(y / (event.currentTarget.parentElement?.clientHeight || 1));
+      zoomOffsetX.current / width / zoomScale.current +
+      (event.pageX - (event.currentTarget.parentElement?.offsetLeft ?? 0)) /
+        width /
+        zoomScale.current;
+    const y =
+      zoomOffsetY.current / height / zoomScale.current +
+      (event.pageY - (event.currentTarget.parentElement?.offsetTop ?? 0)) /
+        height /
+        zoomScale.current;
+
+    console.log(`Clicked at coordinates: (${x}, ${y})`);
+    props.setXCoor(x);
+    props.setYCoor(y);
   }
 
   const lineStyle = () => {
@@ -61,38 +78,57 @@ export default function Map(props: MapProps) {
     return {};
   };
 
+  function handleZoom(ref: ReactZoomPanPinchRef, _: any) {
+    zoomOffsetX.current = -ref.state.positionX;
+    zoomOffsetY.current = -ref.state.positionY;
+    zoomScale.current = ref.state.scale;
+  }
+
+  function handlePan(ref: ReactZoomPanPinchRef, _: any) {
+    zoomOffsetX.current = -ref.state.positionX;
+    zoomOffsetY.current = -ref.state.positionY;
+    zoomScale.current = ref.state.scale;
+  }
+
   return (
     <div className="Map">
       <div className="Box">
-        <img
-          className="MapPicture"
-          src="campus-map.png"
-          alt="Campus Map"
-          onClick={handleClick}
-        />
-        {props.xCoor != null &&
-          props.yCoor != null &&
-          props.xRightCoor != null &&
-          props.yRightCoor != null && <div style={lineStyle()}></div>}
-        {props.xCoor != null && props.yCoor != null && (
-          <div
-            className="InnerBox"
-            style={{
-              top: `${props.yCoor * 100}%`,
-              left: `${props.xCoor * 100}%`,
-            }}
-          ></div>
-        )}
-        {props.xRightCoor != null && props.yRightCoor != null && (
-          <div
-            className="InnerBox"
-            style={{
-              top: `${(props.yRightCoor as number) * 100}%`,
-              left: `${(props.xRightCoor as number) * 100}%`,
-              backgroundColor: "limegreen",
-            }}
-          ></div>
-        )}
+        <TransformWrapper onPanningStop={handlePan} onZoomStop={handleZoom}>
+          <div onClick={handleClick}>
+            <TransformComponent>
+              <img
+                className="MapPicture"
+                src="campus-map.png"
+                alt="Campus Map"
+              />
+              {props.xCoor != null &&
+                props.yCoor != null &&
+                props.xRightCoor != null &&
+                props.yRightCoor != null && <div style={lineStyle()}></div>}
+              {props.xCoor != null && props.yCoor != null && (
+                <div
+                  className="InnerBox"
+                  style={{
+                    top: `${(props.yCoor as number) * 100}%`,
+                    left: `${(props.xCoor as number) * 100}%`,
+                  }}
+                ></div>
+              )}
+              {props.xRightCoor != null && props.yRightCoor != null && (
+                <div
+                  className="InnerBox"
+                  style={{
+                    top: `${(props.yRightCoor as number) * 100}%`,
+                    left: `${(props.xRightCoor as number) * 100}%`,
+                    backgroundColor: "limegreen",
+                  }}
+                ></div>
+              )}
+            </TransformComponent>
+          </div>
+
+          {props.Controls}
+        </TransformWrapper>
       </div>
     </div>
   );
