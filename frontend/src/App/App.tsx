@@ -22,6 +22,8 @@ export default function App() {
   const [xRightCoor, setXRightCoor] = useState<number | null>(null);
   const [yRightCoor, setYRightCoor] = useState<number | null>(null);
 
+  const [imgOpacity, setImgOpacity] = useState(0.8);
+
   const resetZoom = useRef<
     | ((
         animationTime?: number,
@@ -84,35 +86,25 @@ export default function App() {
     requestImage();
   }, []);
 
-  const Controls = () => {
+  const Controls = ({ children }: { children: React.ReactNode }) => {
     const { zoomIn, zoomOut, resetTransform } = useControls();
 
     resetZoom.current = resetTransform;
 
     return (
-      <div className="ZoomControls">
-        <button onClick={() => zoomIn()}>+</button>
-        <button onClick={() => zoomOut()}>-</button>
-        <button onClick={() => resetTransform()}>⟲</button>
+      <div className="AllControls">
+        <div>{children}</div>
+        <div className="ZoomControls">
+          <button onClick={() => zoomIn()}>+</button>
+          <button onClick={() => zoomOut()}>-</button>
+          <button onClick={() => resetTransform()}>⟲</button>
+        </div>
       </div>
     );
   };
 
   return (
     <div className="App">
-      {/* <button
-          onClick={() => {
-            if (resetZoom.current) {
-              resetZoom.current();
-            }
-            return xRightCoor == null || yRightCoor == null
-              ? validateCoordinate()
-              : requestImage();
-          }}
-        >
-          {xRightCoor == null || yRightCoor == null ? "Submit" : "Next"}
-        </button> */}
-
       <Map
         xCoor={xCoor}
         yCoor={yCoor}
@@ -121,8 +113,28 @@ export default function App() {
         xRightCoor={xRightCoor}
         yRightCoor={yRightCoor}
       >
-        <Controls />
-        <img className="LocationImg" src={state.image} />
+        <Controls>
+          <button
+            className="SubmitButton"
+            onClick={() => {
+              if (resetZoom.current) {
+                resetZoom.current();
+              }
+              return xRightCoor == null || yRightCoor == null
+                ? validateCoordinate()
+                : requestImage();
+            }}
+          >
+            {xRightCoor == null || yRightCoor == null ? "Submit" : "Next"}
+          </button>
+        </Controls>
+        <img
+          className="LocationImg"
+          src={state.image}
+          style={{ opacity: imgOpacity }}
+          onMouseEnter={() => setImgOpacity(1)}
+          onMouseLeave={() => setTimeout(() => setImgOpacity(0.8), 5000)}
+        />
       </Map>
     </div>
   );
