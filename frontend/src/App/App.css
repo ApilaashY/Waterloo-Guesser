@@ -19,6 +19,7 @@
   margin: 2px;
   cursor: pointer;
   transition-duration: 0.25s;
+  font-size: 1.5rem;
 }
 
 .ZoomControls button:hover {
