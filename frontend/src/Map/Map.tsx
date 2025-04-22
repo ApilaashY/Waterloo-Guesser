@@ -1,4 +1,4 @@
-import { JSX, PropsWithChildren, useRef } from "react";
+import { PropsWithChildren, useRef } from "react";
 import {
   TransformWrapper,
   TransformComponent,
