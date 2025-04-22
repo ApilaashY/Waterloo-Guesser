@@ -23,6 +23,7 @@ export default function App() {
   const [yRightCoor, setYRightCoor] = useState<number | null>(null);
 
   const [imgOpacity, setImgOpacity] = useState(0.8);
+  const hovering = useRef(false);
 
   const resetZoom = useRef<
     | ((
@@ -132,8 +133,16 @@ export default function App() {
           className="LocationImg"
           src={state.image}
           style={{ opacity: imgOpacity }}
-          onMouseEnter={() => setImgOpacity(1)}
-          onMouseLeave={() => setTimeout(() => setImgOpacity(0.8), 5000)}
+          onMouseEnter={() => {
+            hovering.current = true;
+            setImgOpacity(1);
+          }}
+          onMouseLeave={() => {
+            hovering.current = false;
+            setTimeout(() => {
+              if (!hovering.current) setImgOpacity(0.8);
+            }, 5000);
+          }}
         />
       </Map>
     </div>

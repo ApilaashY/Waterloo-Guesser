@@ -33,6 +33,7 @@
   max-height: 20%;
   max-width: 20%;
   transition-duration: 0.5s;
+  cursor: pointer;
 }
 
 .LocationImg:hover {
@@ -46,6 +47,7 @@
   border-radius: 5px;
   border: none;
   margin: 3px;
+  cursor: pointer;
 }
 
 .AllControls {

@@ -12,6 +12,7 @@ img h2 {
 
 .Box {
   position: relative;
+  cursor: pointer;
 }
 
 .InnerBox {
