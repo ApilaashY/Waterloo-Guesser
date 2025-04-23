@@ -140,6 +140,7 @@ export default function App() {
             {xRightCoor == null || yRightCoor == null ? "Submit" : "Next"}
           </button>
         </Controls>
+        <h1 className="PointTitle">Points: {totalPoints}</h1>
         <img
           className="LocationImg"
           src={state.image}
