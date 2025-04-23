@@ -48,7 +48,11 @@ export default function App() {
     | null
   >(null);
 
+  const requestingImage = useRef(false);
   function requestImage() {
+    if (requestingImage.current) return;
+
+    requestingImage.current = true;
     fetch(`${host}/getPhoto/?previousCode=${imageID}`)
       .then((res) => res.json())
       .then((json) => {
@@ -58,10 +62,15 @@ export default function App() {
         setYCoor(null);
         setXRightCoor(null);
         setYRightCoor(null);
+        requestingImage.current = false;
       });
   }
 
+  const validatingCoordinate = useRef(false);
   function validateCoordinate() {
+    if (validatingCoordinate.current) return;
+
+    validatingCoordinate.current = true;
     fetch(`${host}/validateCoordinate`, {
       method: "POST",
       headers: {
@@ -79,6 +88,7 @@ export default function App() {
         setYRightCoor(json.yCoor);
         setTotalPoints(totalPoints + json.points);
         setQuestionCount(questionCount + 1);
+        validatingCoordinate.current = false;
       });
   }
 
