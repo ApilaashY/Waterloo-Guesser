@@ -12,7 +12,7 @@ export default function App() {
 
   const [totalPoints, setTotalPoints] = useState(0);
 
-  const [imageID, setImageID] = useState("");
+  const [imageIDs, setImageIDs] = useState<string[]>([]);
   const [questionCount, setQuestionCount] = useState(0);
 
   const [state, setState] = useState<State>({});
@@ -53,16 +53,30 @@ export default function App() {
     if (requestingImage.current) return;
 
     requestingImage.current = true;
-    fetch(`${host}/getPhoto/?previousCode=${imageID}`)
+    fetch(`${host}/getPhoto`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        previousCodes: imageIDs,
+      }),
+    })
       .then((res) => res.json())
       .then((json) => {
-        setImageID(json.id);
+        if (imageIDs.includes(json.id)) {
+          setImageIDs([json.id]);
+        } else {
+          setImageIDs([...imageIDs, json.id]);
+        }
         setState(json);
         setXCoor(null);
         setYCoor(null);
         setXRightCoor(null);
         setYRightCoor(null);
         requestingImage.current = false;
+
+        console.log(imageIDs);
       });
   }
 

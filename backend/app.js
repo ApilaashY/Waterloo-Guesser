@@ -4,7 +4,7 @@ const fs = require("node:fs");
 require("dotenv").config();
 const mongoose = require("mongoose");
 const app = express();
-const Location = require("./Location");
+const LocationModel = require("./Location");
 
 const uri = `mongodb+srv://${process.env.USERNAME}:${process.env.PASSWORD}@cluster1.v3kqu.mongodb.net/?appName=Cluster1`;
 
@@ -21,6 +21,7 @@ function generateModel(perfectRadius, maxTillNoPoints, model) {
 
     return [coefficient, 0, -(coefficient * Math.pow(maxTillNoPoints, 2))];
   }
+  return [0, 0, 0];
 }
 
 const maxPoints = 1000;
@@ -32,10 +33,19 @@ function boundModel(num) {
   return num;
 }
 
-var allData = {};
+function contains(lst, val) {
+  for (var i = 0; i < lst.length; i++) {
+    if (lst[i] == val) {
+      return true;
+    }
+  }
+  return false;
+}
+
+var allData = [];
 
 async function setupImages() {
-  var data = await Location.find({});
+  var data = await LocationModel.find({});
 
   allData = data;
 }
@@ -50,10 +60,15 @@ async function initializeApp() {
     res.json({ message: "Hello" });
   });
 
-  app.get("/getPhoto", async (req, res) => {
-    var data = allData[(Math.random() * allData.length) | 0];
+  app.post("/getPhoto", async (req, res) => {
+    var uniqueIds = allData.filter((id) => {
+      return !contains(req.body.previousCodes, id._id);
+    });
 
-    while (allData.length > 1 && data._id == req.query.previousCode) {
+    var data;
+    if (uniqueIds.length > 0) {
+      data = uniqueIds[(Math.random() * uniqueIds.length) | 0];
+    } else {
       data = allData[(Math.random() * allData.length) | 0];
     }
 
@@ -88,7 +103,7 @@ async function initializeApp() {
   const PORT = process.env.PORT || 8080;
 
   app.listen(PORT, console.log(`Server started on port ${PORT}`));
-
-  module.exports = { uri };
 }
 initializeApp();
+
+module.exports = { uri };
