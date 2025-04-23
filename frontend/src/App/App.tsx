@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import Map from "../Map/Map";
 import "./App.css";
 import { useControls } from "react-zoom-pan-pinch";
+import { host } from "../main";
 
 export default function App() {
   interface State {
@@ -48,7 +49,7 @@ export default function App() {
   >(null);
 
   function requestImage() {
-    fetch("/api/getPhoto?previousCode=" + imageID)
+    fetch(`${host}/getPhoto/?previousCode=${imageID}`)
       .then((res) => res.json())
       .then((json) => {
         setImageID(json.id);
@@ -61,7 +62,7 @@ export default function App() {
   }
 
   function validateCoordinate() {
-    fetch("/api/validateCoordinate", {
+    fetch(`${host}/validateCoordinate`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
