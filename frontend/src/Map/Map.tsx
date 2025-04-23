@@ -37,7 +37,7 @@ export default function Map(props: MapProps) {
         height /
         zoomScale.current;
 
-    console.log(`Clicked at coordinates: (${x}, ${y})`);
+    // console.log(`Clicked at coordinates: (${x}, ${y})`);
     props.setXCoor(x);
     props.setYCoor(y);
   }
