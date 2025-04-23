@@ -13,7 +13,8 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-quick-pinch-zoom": "^5.1.0",
-    "react-zoom-pan-pinch": "^3.7.0"
+    "react-zoom-pan-pinch": "^3.7.0",
+    "dotenv": "^16.5.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",
