@@ -5,7 +5,6 @@ import * as dotenv from "dotenv";
 dotenv.config();
 
 const host = process.env.VITE_HOST;
-console.log("Host: ", host);
 
 // https://vite.dev/config/
 export default defineConfig({
