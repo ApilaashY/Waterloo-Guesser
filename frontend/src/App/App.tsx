@@ -48,7 +48,7 @@ export default function App() {
   >(null);
 
   function requestImage() {
-    fetch(`http://localhost:8080/getPhoto?previousCode=${imageID}`)
+    fetch(`/api/getPhoto?previousCode=${imageID}`)
       .then((res) => res.json())
       .then((json) => {
         setImageID(json.id);
@@ -61,7 +61,7 @@ export default function App() {
   }
 
   function validateCoordinate() {
-    fetch("http://localhost:8080/validateCoordinate", {
+    fetch(`/api/validateCoordinate`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
