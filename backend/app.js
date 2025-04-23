@@ -24,7 +24,7 @@ function generateModel(perfectRadius, maxTillNoPoints, model) {
 }
 
 const maxPoints = 1000;
-const [a, b, c] = generateModel(0.05, 0.35, "linear");
+const [a, b, c] = generateModel(0.05, 0.25, "linear");
 
 function boundModel(num) {
   if (num <= 0) return 0;
