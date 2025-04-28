@@ -78,8 +78,6 @@ export default function App() {
         setXRightCoor(null);
         setYRightCoor(null);
         requestingImage.current = false;
-
-        console.log(imageIDs);
       });
   }
 
