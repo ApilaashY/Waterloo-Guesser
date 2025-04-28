@@ -1,8 +1,9 @@
 const fs = require("fs");
 const Location = require("./Location");
-const { uri } = require("./app.js");
 const mongoose = require("mongoose");
 require("dotenv").config();
+
+const uri = `mongodb+srv://${process.env.ATLASNAME}:${process.env.PASSWORD}@cluster1.v3kqu.mongodb.net/?appName=Cluster1`;
 
 mongoose.connect(uri);
 

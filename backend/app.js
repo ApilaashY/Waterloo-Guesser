@@ -109,5 +109,3 @@ async function initializeApp() {
   app.listen(PORT, console.log(`Server started on port ${PORT}`));
 }
 initializeApp();
-
-module.exports = { uri };
