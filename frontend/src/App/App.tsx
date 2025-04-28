@@ -105,13 +105,10 @@ export default function App() {
         setTotalPoints(totalPoints + json.points);
         setQuestionCount(questionCount + 1);
 
-        if (makeTransform.current) {
-          const parent = document.querySelector(".MapPicture"); // Reference to the parent container
-          if (!parent) {
-            validatingCoordinate.current = false;
-            return;
-          }
+        // Zoom to the new coordinates
+        const parent = document.querySelector(".MapPicture");
 
+        if (makeTransform.current && parent) {
           const parentWidth = parent.clientWidth;
           const parentHeight = parent.clientHeight;
 
