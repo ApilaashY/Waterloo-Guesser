@@ -47,6 +47,9 @@ export default function App() {
       ) => void)
     | null
   >(null);
+  const makeTransform = useRef<
+    ((x: number, y: number, scale: number) => void) | null
+  >(null);
 
   const requestingImage = useRef(false);
   function requestImage() {
@@ -102,6 +105,39 @@ export default function App() {
         setYRightCoor(json.yCoor);
         setTotalPoints(totalPoints + json.points);
         setQuestionCount(questionCount + 1);
+
+        if (makeTransform.current) {
+          const parent = document.querySelector(".MapPicture"); // Reference to the parent container
+          if (!parent) {
+            validatingCoordinate.current = false;
+            return;
+          }
+
+          const parentWidth = parent.clientWidth;
+          const parentHeight = parent.clientHeight;
+
+          let topleftX =
+            (Math.min(xCoor || 0, json.xCoor) - 0.05) * parentWidth;
+          let topleftY =
+            (Math.min(yCoor || 0, json.yCoor) - 0.05) * parentHeight;
+          const bottomrightX =
+            (Math.max(xCoor || 0, json.xCoor) + 0.05) * parentWidth;
+          const bottomrightY =
+            (Math.max(yCoor || 0, json.yCoor) + 0.05) * parentHeight;
+
+          const scaleX = (bottomrightX - topleftX) / parentWidth;
+          const scaleY = (bottomrightY - topleftY) / parentHeight;
+          const scale = 1 / Math.max(scaleX, scaleY);
+
+          if (scaleX > scaleY) {
+            topleftY = (topleftY + bottomrightY) / 2 - parentHeight / scale / 2;
+          } else {
+            topleftX = (topleftX + bottomrightX) / 2 - parentWidth / scale / 2;
+          }
+
+          makeTransform.current(-topleftX * scale, -topleftY * scale, scale);
+        }
+
         validatingCoordinate.current = false;
       });
   }
@@ -113,9 +149,10 @@ export default function App() {
   }, []);
 
   const Controls = ({ children }: { children: React.ReactNode }) => {
-    const { zoomIn, zoomOut, resetTransform } = useControls();
+    const { zoomIn, zoomOut, resetTransform, setTransform } = useControls();
 
     resetZoom.current = resetTransform;
+    makeTransform.current = setTransform;
 
     return (
       <div className="AllControls">
