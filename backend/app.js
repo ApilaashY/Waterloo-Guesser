@@ -6,7 +6,7 @@ const mongoose = require("mongoose");
 const app = express();
 const LocationModel = require("./Location");
 
-const uri = `mongodb+srv://${process.env.USERNAME}:${process.env.PASSWORD}@cluster1.v3kqu.mongodb.net/?appName=Cluster1`;
+const uri = `mongodb+srv://${process.env.ATLASNAME}:${process.env.PASSWORD}@cluster1.v3kqu.mongodb.net/?appName=Cluster1`;
 
 mongoose.connect(uri);
 
