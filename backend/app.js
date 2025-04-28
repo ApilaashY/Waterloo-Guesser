@@ -54,7 +54,11 @@ async function initializeApp() {
   await setupImages();
 
   app.use(express.json());
-  app.use(cors());
+  app.use(
+    cors({
+      origin: "https://waterloo-guesser.vercel.app",
+    })
+  );
 
   app.get("/", async (req, res) => {
     res.json({ message: "Hello" });
