@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useRef, useEffect } from "react";
 import Map from "./Map";
 import ManualDotPlacer from "./ManualDotPlacer";
@@ -11,8 +13,8 @@ export default function LocationUploader() {
   const secretSequence = "qwertyuiop";
   const [typedKeys, setTypedKeys] = useState("");
   // Get passcode from env (client-side)
-  let envPasscode = '';
-  if (typeof window !== 'undefined') {
+  let envPasscode = "";
+  if (typeof window !== "undefined") {
     // @ts-ignore
     envPasscode = process.env.NEXT_PUBLIC_PASSCODE;
   }
@@ -70,7 +72,9 @@ export default function LocationUploader() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!imageFile || xCoor == null || yCoor == null || !building) {
-      setError("Please fill all fields, select an image, and location on the map.");
+      setError(
+        "Please fill all fields, select an image, and location on the map."
+      );
       return;
     }
     setUploading(true);
@@ -122,7 +126,6 @@ export default function LocationUploader() {
     setUploading(false);
   };
 
-
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4">
       {/* Passcode Popup */}
@@ -133,7 +136,7 @@ export default function LocationUploader() {
             <input
               type="password"
               value={passcode}
-              onChange={e => setPasscode(e.target.value)}
+              onChange={(e) => setPasscode(e.target.value)}
               className="border rounded px-4 py-2 mb-4 text-lg"
               autoFocus
             />
@@ -163,21 +166,62 @@ export default function LocationUploader() {
           </div>
         </div>
       )}
-      <form className="w-full max-w-lg bg-white rounded-lg shadow-md p-6 flex flex-col gap-4" onSubmit={handleSubmit}>
+      <form
+        className="w-full max-w-lg bg-white rounded-lg shadow-md p-6 flex flex-col gap-4"
+        onSubmit={handleSubmit}
+      >
         {toast && (
-          <div className={`fixed top-6 right-6 z-50 px-6 py-3 rounded-lg shadow font-bold text-white ${toast === success ? 'bg-green-600' : 'bg-red-600'}`}>{toast}</div>
+          <div
+            className={`fixed top-6 right-6 z-50 px-6 py-3 rounded-lg shadow font-bold text-white ${
+              toast === success ? "bg-green-600" : "bg-red-600"
+            }`}
+          >
+            {toast}
+          </div>
         )}
         {/* ...existing code... */}
-        <h2 className="text-2xl font-bold mb-2 text-gray-800">Upload Campus Location</h2>
+        <h2 className="text-2xl font-bold mb-2 text-gray-800">
+          Upload Campus Location
+        </h2>
         <label className="block font-medium text-gray-700">Image File</label>
-        <input type="file" accept="image/*" onChange={handleFileChange} className="mb-2" />
+        <input
+          type="file"
+          accept="image/*"
+          onChange={handleFileChange}
+          className="mb-2"
+        />
         <label className="block font-medium text-gray-700">Building</label>
-        <input type="text" value={building} onChange={e => setBuilding(e.target.value)} required className="border rounded px-3 py-2 mb-2" />
+        <input
+          type="text"
+          value={building}
+          onChange={(e) => setBuilding(e.target.value)}
+          required
+          className="border rounded px-3 py-2 mb-2"
+        />
         {previewUrl && (
-          <img src={previewUrl} alt="Preview" className="max-w-xs rounded shadow mb-2" />
+          <img
+            src={previewUrl}
+            alt="Preview"
+            className="max-w-xs rounded shadow mb-2"
+          />
         )}
-        <div className="flex items-center justify-center w-full" style={{ width: "100%", margin: 0, padding: 0 }}>
-          <div style={{ width: "90vw", maxWidth: 1200, aspectRatio: "896/683", position: "relative", background: "#eaeaea", borderRadius: 12, overflow: "hidden", margin: 0, padding: 0 }}>
+        <div
+          className="flex items-center justify-center w-full"
+          style={{ width: "100%", margin: 0, padding: 0 }}
+        >
+          <div
+            style={{
+              width: "90vw",
+              maxWidth: 1200,
+              aspectRatio: "896/683",
+              position: "relative",
+              background: "#eaeaea",
+              borderRadius: 12,
+              overflow: "hidden",
+              margin: 0,
+              padding: 0,
+            }}
+          >
             <Map
               xCoor={xCoor}
               yCoor={yCoor}
@@ -192,15 +236,23 @@ export default function LocationUploader() {
             <div className="mt-2 text-sm text-gray-700">Selected Coordinates: ({xCoor.toFixed(4)}, {yCoor.toFixed(4)})</div>
           )} */}
         </div>
-        <button type="submit" disabled={uploading} className="px-4 py-2 bg-blue-600 text-white rounded shadow hover:bg-blue-700 disabled:opacity-50">
+        <button
+          type="submit"
+          disabled={uploading}
+          className="px-4 py-2 bg-blue-600 text-white rounded shadow hover:bg-blue-700 disabled:opacity-50"
+        >
           {uploading ? "Uploading..." : "Submit Location"}
         </button>
-        {success && <div className="text-green-600 font-semibold">{success}</div>}
+        {success && (
+          <div className="text-green-600 font-semibold">{success}</div>
+        )}
         {error && <div className="text-red-600 font-semibold">{error}</div>}
       </form>
       {/* Show ManualDotPlacer if passcode is correct and popup is closed */}
       {passcode === envPasscode && !showPasscode && (
-        <div style={{ width: "100%", maxWidth: 1000, margin: "32px auto 0 auto" }}>
+        <div
+          style={{ width: "100%", maxWidth: 1000, margin: "32px auto 0 auto" }}
+        >
           <ManualDotPlacer />
         </div>
       )}
