@@ -6,10 +6,10 @@ import LocationUploader from "./LocationUploader";
 
 export default function GamePage() {
   const [showUploader, setShowUploader] = useState(false);
-  const [transformReady, setTransformReady] = useState(false);
+  // const [transformReady, setTransformReady] = useState(false);
   interface State {
     image?: string;
-    id?: String;
+    id?: string;
   }
 
   const [totalPoints, setTotalPoints] = useState(0);
@@ -21,8 +21,6 @@ export default function GamePage() {
   const [yCoor, setYCoor] = useState<number | null>(null);
   const [xRightCoor, setXRightCoor] = useState<number | null>(null);
   const [yRightCoor, setYRightCoor] = useState<number | null>(null);
-  const [imgOpacity, setImgOpacity] = useState(0.8);
-  const hovering = useRef(false);
 
   const requestingImage = useRef(false);
   function requestImage() {
@@ -120,7 +118,7 @@ export default function GamePage() {
     if (setupDone) return;
     setSetupDone(true);
     requestImage();
-  }, []);
+  }, [requestImage, setupDone]);
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-gray-50 overflow-hidden">

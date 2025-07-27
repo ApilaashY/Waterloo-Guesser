@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import Map from "./Map";
 import ManualDotPlacer from "./ManualDotPlacer";
+import Image from "next/image";
 
 // This page can be placed in app/upload/page.tsx for Next.js routing
 // and will be accessible at /upload
@@ -11,11 +12,12 @@ export default function LocationUploader() {
   const [showPasscode, setShowPasscode] = useState(false);
   const [passcode, setPasscode] = useState("");
   const secretSequence = "qwertyuiop";
-  const [typedKeys, setTypedKeys] = useState("");
+  const setTypedKeys = useState("")[1];
+
   // Get passcode from env (client-side)
   let envPasscode = "";
   if (typeof window !== "undefined") {
-    // @ts-ignore
+    // @ts-expect-error This is a workaround for TypeScript to allow access to process.env in client-side code
     envPasscode = process.env.NEXT_PUBLIC_PASSCODE;
   }
   useEffect(() => {
@@ -30,7 +32,7 @@ export default function LocationUploader() {
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  }, [setTypedKeys]);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [xCoor, setXCoor] = useState<number | null>(null);
@@ -120,7 +122,7 @@ export default function LocationUploader() {
       } else {
         setError("Upload failed.");
       }
-    } catch (err) {
+    } catch {
       setError("Error uploading location.");
     }
     setUploading(false);
@@ -199,10 +201,13 @@ export default function LocationUploader() {
           className="border rounded px-3 py-2 mb-2"
         />
         {previewUrl && (
-          <img
+          <Image
             src={previewUrl}
             alt="Preview"
             className="max-w-xs rounded shadow mb-2"
+            layout="responsive"
+            width={896}
+            height={683}
           />
         )}
         <div
