@@ -1,0 +1,7 @@
+{
+  "/api/floorplans/route": "app/api/floorplans/route.js",
+  "/api/getPhoto/route": "app/api/getPhoto/route.js",
+  "/icon0.svg/route": "app/icon0.svg/route.js",
+  "/manifest.json/route": "app/manifest.json/route.js",
+  "/page": "app/page.js"
+}
