@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { useEffect, useRef, useState } from "react";
 import Map from "./Map";
@@ -59,7 +59,14 @@ export default function GamePage() {
 
   function zoomToGuessAndAnswer() {
     const parent = mapContainerRef.current;
-    if (!parent || xCoor == null || yCoor == null || xRightCoor == null || yRightCoor == null) return;
+    if (
+      !parent ||
+      xCoor == null ||
+      yCoor == null ||
+      xRightCoor == null ||
+      yRightCoor == null
+    )
+      return;
     const parentWidth = parent.clientWidth;
     const parentHeight = parent.clientHeight;
     let topleftX = (Math.min(xCoor, xRightCoor) - 0.05) * parentWidth;
@@ -79,7 +86,7 @@ export default function GamePage() {
     parent.scrollTo({
       left: Math.max(0, -topleftX * scale),
       top: Math.max(0, -topleftY * scale),
-      behavior: "smooth"
+      behavior: "smooth",
     });
   }
 
@@ -128,7 +135,9 @@ export default function GamePage() {
       ) : (
         <div className="relative flex flex-col items-center justify-center w-full h-full">
           <div className="absolute top-4 left-4">
-            <h1 className="text-xl font-bold text-gray-800 bg-white/80 rounded px-4 py-2 shadow">Points: {totalPoints}</h1>
+            <h1 className="text-xl font-bold text-gray-800 bg-white/80 rounded px-4 py-2 shadow">
+              Points: {totalPoints}
+            </h1>
           </div>
           <div className="absolute top-4 right-4 z-50">
             <button
@@ -139,16 +148,23 @@ export default function GamePage() {
             </button>
           </div>
           <div className="flex items-center justify-center w-full h-full">
-            <div ref={mapContainerRef} className="flex items-center justify-center w-full h-full max-w-4xl max-h-[80vh] mx-auto my-auto bg-white rounded shadow-lg overflow-hidden relative">
+            <div
+              ref={mapContainerRef}
+              className="flex items-center justify-center w-full h-full max-w-4xl max-h-[80vh] mx-auto my-auto bg-white rounded shadow-lg overflow-hidden relative"
+            >
               <Map
                 xCoor={xCoor}
                 yCoor={yCoor}
-                setXCoor={xRightCoor == null && yRightCoor == null ? setXCoor : () => {} }
-                setYCoor={xRightCoor == null && yRightCoor == null ? setYCoor : () => {} }
+                setXCoor={
+                  xRightCoor == null && yRightCoor == null ? setXCoor : () => {}
+                }
+                setYCoor={
+                  xRightCoor == null && yRightCoor == null ? setYCoor : () => {}
+                }
                 xRightCoor={xRightCoor}
                 yRightCoor={yRightCoor}
                 disabled={xRightCoor != null && yRightCoor != null}
-                aspectRatio={0.7 * (896/683)}
+                aspectRatio={0.7 * (896 / 683)}
               />
               <div className="absolute top-4 right-4 z-50">
                 <button
@@ -164,20 +180,14 @@ export default function GamePage() {
               </div>
             </div>
           </div>
-          <div className="absolute bottom-4 right-4 flex justify-end items-start w-full" style={{ pointerEvents: "none" }}>
+          <div className="absolute bottom-4 right-4 flex justify-end items-start w-full">
             <img
-              className="rounded shadow"
+              className="rounded shadow opacity-80 hover:opacity-100 transition-opacity duration-300"
               src={state.image}
-              style={{ opacity: imgOpacity, maxWidth: 400, marginRight: 20, pointerEvents: "none" }}
-              onMouseEnter={() => {
-                hovering.current = true;
-                setImgOpacity(1);
-              }}
-              onMouseLeave={() => {
-                hovering.current = false;
-                setTimeout(() => {
-                  if (!hovering.current) setImgOpacity(0.8);
-                }, 5000);
+              style={{
+                maxWidth: 400,
+                marginRight: 20,
+                zIndex: 99999,
               }}
             />
           </div>
