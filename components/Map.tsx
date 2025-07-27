@@ -22,6 +22,17 @@ import {
 //   x: number;
 //   y: number;
 // }
+// interface Floorplan {
+//   _id: string;
+//   filename: string;
+//   image_base64: string;
+// }
+// interface Building {
+//   _id: string;
+//   building: string;
+//   x: number;
+//   y: number;
+// }
 
 interface MapProps extends PropsWithChildren {
   xCoor: number | null;
@@ -69,8 +80,40 @@ export default function Map(props: MapProps) {
   //   }
   //   return 'Unknown';
   // }
+  // function getFloorLabel(filename: string) {
+  //   // Match _B1FLR, _01FLR, _02FLR, _03FLR, _04FLR, _02FLR_MEZ, etc.
+  //   const match = filename.match(/_((B\d|\d{2})FLR)(?:_MEZ)?/i);
+  //   if (match) {
+  //     const code = match[1].toUpperCase();
+  //     if (filename.toUpperCase().includes('MEZ')) {
+  //       return 'Mezzanine';
+  //     }
+  //     if (code.startsWith('B')) {
+  //       // Basement
+  //       return `Basement ${code[1]}`;
+  //     } else {
+  //       // Floor number
+  //       const num = parseInt(code.slice(0,2), 10);
+  //       if (num === 1) return '1st Floor';
+  //       if (num === 2) return '2nd Floor';
+  //       if (num === 3) return '3rd Floor';
+  //       if (num === 4) return '4th Floor';
+  //       return `${num}th Floor`;
+  //     }
+  //   }
+  //   return 'Unknown';
+  // }
 
+  // COMMENTED OUT SINCE NOT IN USE
   // Helper to get building code from filename
+  // function getBuildingCode(filename: string) {
+  //   // Match: 001DWE_01FLR.pdf, 002E2_01FLR.pdf, 005ML_01FLR.pdf, etc.
+  //   // Building code is after digits and before _
+  //   const match = filename.match(/^\d+([A-Z0-9]+)_/i);
+  //   return match ? match[1] : 'UNKNOWN';
+  // }
+
+  // COMMENTED OUT SINCE NOT IN USE
   // function getBuildingCode(filename: string) {
   //   // Match: 001DWE_01FLR.pdf, 002E2_01FLR.pdf, 005ML_01FLR.pdf, etc.
   //   // Building code is after digits and before _
@@ -230,9 +273,7 @@ export default function Map(props: MapProps) {
               {props.xCoor != null &&
                 props.yCoor != null &&
                 props.xRightCoor != null &&
-                props.yRightCoor != null && (
-                  <div style={lineStyle()}></div>
-                )}
+                props.yRightCoor != null && <div style={lineStyle()}></div>}
               {props.xCoor != null && props.yCoor != null && (
                 <div
                   style={{

@@ -9,7 +9,10 @@ import Image from "next/image";
 
 type Dot = { x: number; y: number; building: string };
 type PendingDot = { x: number; y: number } | null;
-type BuildingFloors = Record<string, Array<{ filename: string; floor: string }>>;
+type BuildingFloors = Record<
+  string,
+  Array<{ filename: string; floor: string }>
+>;
 
 const campusMapUrl = "/uw campus map.png";
 
@@ -165,7 +168,10 @@ export default function ManualDotPlacer({ show = true }: ManualDotPlacerProps) {
   // Save dot with code
   function handleSaveDot() {
     if (!buildingCode.trim() || !pendingDot) return;
-    setDots([...dots, { x: pendingDot.x, y: pendingDot.y, building: buildingCode.trim() }]);
+    setDots([
+      ...dots,
+      { x: pendingDot.x, y: pendingDot.y, building: buildingCode.trim() },
+    ]);
     setPendingDot(null);
     setBuildingCode("");
   }
@@ -177,7 +183,9 @@ export default function ManualDotPlacer({ show = true }: ManualDotPlacerProps) {
   function handleDotMouseDown(e: React.MouseEvent<HTMLDivElement>, i: number) {
     e.stopPropagation();
     dragDotIndex.current = i;
-    const rect = (e.currentTarget.parentElement as HTMLDivElement).getBoundingClientRect();
+    const rect = (
+      e.currentTarget.parentElement as HTMLDivElement
+    ).getBoundingClientRect();
     const x = (e.clientX - rect.left) / rect.width;
     const y = (e.clientY - rect.top) / rect.height;
     dragOffset.current = { x: x - dots[i].x, y: y - dots[i].y };
@@ -192,7 +200,17 @@ export default function ManualDotPlacer({ show = true }: ManualDotPlacerProps) {
     const rect = container.getBoundingClientRect();
     const x = (e.clientX - rect.left) / rect.width - dragOffset.current.x;
     const y = (e.clientY - rect.top) / rect.height - dragOffset.current.y;
-    setDots(prev => prev.map((dot, idx) => idx === dragDotIndex.current ? { ...dot, x: Math.max(0, Math.min(1, x)), y: Math.max(0, Math.min(1, y)) } : dot));
+    setDots((prev) =>
+      prev.map((dot, idx) =>
+        idx === dragDotIndex.current
+          ? {
+              ...dot,
+              x: Math.max(0, Math.min(1, x)),
+              y: Math.max(0, Math.min(1, y)),
+            }
+          : dot
+      )
+    );
   }
 
   function handleDotMouseUp() {
@@ -203,7 +221,7 @@ export default function ManualDotPlacer({ show = true }: ManualDotPlacerProps) {
   }
 
   function handleDeleteDot(i: number) {
-    setDots(prev => prev.filter((_, idx) => idx !== i));
+    setDots((prev) => prev.filter((_, idx) => idx !== i));
   }
 
   // Export JSON
@@ -221,11 +239,28 @@ export default function ManualDotPlacer({ show = true }: ManualDotPlacerProps) {
   return (
     <div style={{ width: "100vw", height: "100vh", background: "#f8f8f8", display: show ? undefined : "none" }}>
       <div style={{ display: "flex", alignItems: "center", margin: 8 }}>
-        <h2 style={{ margin: 0, marginRight: 16 }}>Manual Building Dot Placer</h2>
-        <button onClick={handleExport} style={{ fontSize: 16, padding: "8px 16px" }}>Export JSON</button>
-        <span style={{ marginLeft: 16, color: "#888" }}>Dots placed: {dots.length}</span>
+        <h2 style={{ margin: 0, marginRight: 16 }}>
+          Manual Building Dot Placer
+        </h2>
+        <button
+          onClick={handleExport}
+          style={{ fontSize: 16, padding: "8px 16px" }}
+        >
+          Export JSON
+        </button>
+        <span style={{ marginLeft: 16, color: "#888" }}>
+          Dots placed: {dots.length}
+        </span>
       </div>
-      <div id="dot-map-container" style={{ position: "relative", width: "80vw", height: "80vh", margin: "auto" }}>
+      <div
+        id="dot-map-container"
+        style={{
+          position: "relative",
+          width: "80vw",
+          height: "80vh",
+          margin: "auto",
+        }}
+      >
         <TransformWrapper>
           <TransformComponent>
             <div
@@ -237,7 +272,12 @@ export default function ManualDotPlacer({ show = true }: ManualDotPlacerProps) {
                 alt="Campus Map"
                 width={896}
                 height={683}
-                style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }}
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "contain",
+                  display: "block",
+                }}
               />
               {/* Render placed dots */}
               {dots.map((dot, i) => (
@@ -264,7 +304,7 @@ export default function ManualDotPlacer({ show = true }: ManualDotPlacerProps) {
                     borderRadius: 8,
                     padding: 12,
                     boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-                    minWidth: 120
+                    minWidth: 120,
                   }}
                 >
                   <div style={{ marginBottom: 8 }}>
@@ -272,12 +312,14 @@ export default function ManualDotPlacer({ show = true }: ManualDotPlacerProps) {
                     <input
                       type="text"
                       value={buildingCode}
-                      onChange={e => setBuildingCode(e.target.value)}
+                      onChange={(e) => setBuildingCode(e.target.value)}
                       style={{ width: 60, fontWeight: "bold" }}
                       autoFocus
                     />
                   </div>
-                  <button onClick={handleSaveDot} style={{ marginRight: 8 }}>Save</button>
+                  <button onClick={handleSaveDot} style={{ marginRight: 8 }}>
+                    Save
+                  </button>
                   <button onClick={() => setPendingDot(null)}>Cancel</button>
                 </div>
               )}
