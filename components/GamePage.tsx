@@ -180,9 +180,9 @@ export default function GamePage() {
               </div>
             </div>
           </div>
-          <div className="absolute bottom-4 right-4 flex justify-end items-start w-full">
+          <div className="absolute bottom-4 left-4 flex justify-start items-start w-full">
             <img
-              className="rounded shadow opacity-80 hover:opacity-100 transition-opacity duration-300"
+              className="rounded shadow opacity-80 hover:opacity-100 transition duration-200 hover:scale-120 origin-bottom-left"
               src={state.image}
               style={{
                 maxWidth: 400,
