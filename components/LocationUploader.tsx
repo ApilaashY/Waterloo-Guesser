@@ -1,30 +1,35 @@
-import { useState, useRef, useEffect } from "react";
+"use client";
+
+import { useRouter } from 'next/navigation';
+// components/LocationUploader.tsx
+
+
+import { useState, useEffect } from "react";
+import Image from "next/image";
 import Map from "./Map";
 import ManualDotPlacer from "./ManualDotPlacer";
 
 // This page can be placed in app/upload/page.tsx for Next.js routing
 // and will be accessible at /upload
 export default function LocationUploader() {
+  const router = useRouter();
   // Secret passcode popup logic
   const [showPasscode, setShowPasscode] = useState(false);
   const [passcode, setPasscode] = useState("");
   const secretSequence = "qwertyuiop";
-  const [typedKeys, setTypedKeys] = useState("");
   // Get passcode from env (client-side)
   let envPasscode = '';
   if (typeof window !== 'undefined') {
-    // @ts-ignore
+    // @ts-expect-error: NEXT_PUBLIC_PASSCODE is injected at runtime by Next.js
     envPasscode = process.env.NEXT_PUBLIC_PASSCODE;
   }
   useEffect(() => {
+    let sequence = "";
     const handleKeyDown = (e: KeyboardEvent) => {
-      setTypedKeys((prev) => {
-        const next = (prev + e.key).slice(-secretSequence.length);
-        if (next === secretSequence) {
-          setShowPasscode(true);
-        }
-        return next;
-      });
+      sequence = (sequence + e.key).slice(-secretSequence.length);
+      if (sequence === secretSequence) {
+        setShowPasscode(true);
+      }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
@@ -116,7 +121,7 @@ export default function LocationUploader() {
       } else {
         setError("Upload failed.");
       }
-    } catch (err) {
+    } catch {
       setError("Error uploading location.");
     }
     setUploading(false);
@@ -150,6 +155,7 @@ export default function LocationUploader() {
                   if (passcode === envPasscode) {
                     setToast("Welcome devs!");
                     setTimeout(() => setToast(null), 2500);
+                    router.push("/manual-dot-placer");
                     setShowPasscode(false);
                   } else {
                     setToast("Incorrect passcode");
@@ -174,7 +180,7 @@ export default function LocationUploader() {
         <label className="block font-medium text-gray-700">Building</label>
         <input type="text" value={building} onChange={e => setBuilding(e.target.value)} required className="border rounded px-3 py-2 mb-2" />
         {previewUrl && (
-          <img src={previewUrl} alt="Preview" className="max-w-xs rounded shadow mb-2" />
+          <Image src={previewUrl} alt="Preview" width={300} height={200} className="max-w-xs rounded shadow mb-2" />
         )}
         <div className="flex items-center justify-center w-full" style={{ width: "100%", margin: 0, padding: 0 }}>
           <div style={{ width: "90vw", maxWidth: 1200, aspectRatio: "896/683", position: "relative", background: "#eaeaea", borderRadius: 12, overflow: "hidden", margin: 0, padding: 0 }}>
@@ -198,12 +204,7 @@ export default function LocationUploader() {
         {success && <div className="text-green-600 font-semibold">{success}</div>}
         {error && <div className="text-red-600 font-semibold">{error}</div>}
       </form>
-      {/* Show ManualDotPlacer if passcode is correct and popup is closed */}
-      {passcode === envPasscode && !showPasscode && (
-        <div style={{ width: "100%", maxWidth: 1000, margin: "32px auto 0 auto" }}>
-          <ManualDotPlacer />
-        </div>
-      )}
+      {/* ManualDotPlacer is now only accessible via redirect, not rendered here */}
     </div>
   );
 }

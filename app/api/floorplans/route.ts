@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server';
+// import { NextRequest } from 'next/server';
 import { MongoClient } from 'mongodb';
 
 const uri = process.env.MONGODB_URI || '';
@@ -6,7 +6,7 @@ const dbName = process.env.MONGODB_DB || '';
 
 export const runtime = 'nodejs';
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
     const client = new MongoClient(uri);
     await client.connect();

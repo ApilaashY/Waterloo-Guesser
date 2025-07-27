@@ -1,15 +1,18 @@
+// components/GamePage.tsx
+
 "use client"
 
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import Map from "./Map";
 import LocationUploader from "./LocationUploader";
 
 export default function GamePage() {
   const [showUploader, setShowUploader] = useState(false);
-  const [transformReady, setTransformReady] = useState(false);
+  // const [transformReady, setTransformReady] = useState(false);
   interface State {
     image?: string;
-    id?: String;
+    id?: string;
   }
 
   const [totalPoints, setTotalPoints] = useState(0);
@@ -113,7 +116,8 @@ export default function GamePage() {
     if (setupDone) return;
     setSetupDone(true);
     requestImage();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [setupDone]);
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-gray-50 overflow-hidden">
@@ -165,21 +169,26 @@ export default function GamePage() {
             </div>
           </div>
           <div className="absolute bottom-4 right-4 flex justify-end items-start w-full" style={{ pointerEvents: "none" }}>
-            <img
-              className="rounded shadow"
-              src={state.image}
-              style={{ opacity: imgOpacity, maxWidth: 400, marginRight: 20, pointerEvents: "none" }}
-              onMouseEnter={() => {
-                hovering.current = true;
-                setImgOpacity(1);
-              }}
-              onMouseLeave={() => {
-                hovering.current = false;
-                setTimeout(() => {
-                  if (!hovering.current) setImgOpacity(0.8);
-                }, 5000);
-              }}
-            />
+            {state.image && (
+              <Image
+                className="rounded shadow"
+                src={state.image}
+                alt="Campus location"
+                width={400}
+                height={300}
+                style={{ opacity: imgOpacity, marginRight: 20, pointerEvents: "none" }}
+                onMouseEnter={() => {
+                  hovering.current = true;
+                  setImgOpacity(1);
+                }}
+                onMouseLeave={() => {
+                  hovering.current = false;
+                  setTimeout(() => {
+                    if (!hovering.current) setImgOpacity(0.8);
+                  }, 5000);
+                }}
+              />
+            )}
           </div>
         </div>
       )}

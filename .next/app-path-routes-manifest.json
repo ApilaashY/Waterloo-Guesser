@@ -1,0 +1,15 @@
+{
+  "/_not-found/page": "/_not-found",
+  "/api/validateCoordinate/route": "/api/validateCoordinate",
+  "/api/uploadLocation/route": "/api/uploadLocation",
+  "/api/getPhoto/route": "/api/getPhoto",
+  "/favicon.ico/route": "/favicon.ico",
+  "/apple-icon.png/route": "/apple-icon.png",
+  "/manifest.json/route": "/manifest.json",
+  "/icon1.png/route": "/icon1.png",
+  "/api/floorplans/route": "/api/floorplans",
+  "/icon0.svg/route": "/icon0.svg",
+  "/manual-dot-placer/page": "/manual-dot-placer",
+  "/page": "/",
+  "/upload/page": "/upload"
+}
