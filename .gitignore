@@ -1,4 +1,4 @@
 node_modules
 photos
 .env
-.next
+/.next/
