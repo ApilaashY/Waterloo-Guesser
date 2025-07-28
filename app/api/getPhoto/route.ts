@@ -1,3 +1,6 @@
+export async function GET(req: NextRequest) {
+  return new Response(JSON.stringify({ error: 'GET method not supported. Use POST.' }), { status: 405 });
+}
 import { NextRequest } from 'next/server';
 import { MongoClient, ObjectId } from 'mongodb';
 
