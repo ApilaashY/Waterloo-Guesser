@@ -192,6 +192,7 @@ export default function GamePage() {
                 alt="Campus location"
                 width={400}
                 height={300}
+                loading="lazy"
                 style={{
                   zIndex: 99999,
                 }}
