@@ -1,4 +1,4 @@
-// File: C:\Users\senth\OneDrive\Documents\GitHub\Waterloo-Guesser\app\api\validateCoordinate\route.ts
+// File: /Users/apilaashyoharan/Documents/Waterloo-Guesser/app/api/validateCoordinate/route.ts
 import * as entry from '../../../../../app/api/validateCoordinate/route.js'
 import type { NextRequest } from 'next/server.js'
 

@@ -1,4 +1,4 @@
-// File: C:\Users\senth\OneDrive\Documents\GitHub\Waterloo-Guesser\app\manual-dot-placer\page.tsx
+// File: /Users/apilaashyoharan/Documents/Waterloo-Guesser/app/manual-dot-placer/page.tsx
 import * as entry from '../../../../app/manual-dot-placer/page.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 

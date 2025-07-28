@@ -1,6 +1,6 @@
 // components/GamePage.tsx
 
-"use client"
+"use client";
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
@@ -33,11 +33,10 @@ export default function GamePage() {
   function requestImage() {
     if (requestingImage.current) return;
     requestingImage.current = true;
-    fetch(`/api/getPhoto`, {
+    fetch(`${process.env.NEXT_PUBLIC_LINK}/api/getPhoto`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        mode: "no-cors",
       },
       body: JSON.stringify({
         previousCodes: imageIDs,
@@ -98,7 +97,7 @@ export default function GamePage() {
   function validateCoordinate() {
     if (validatingCoordinate.current) return;
     validatingCoordinate.current = true;
-    fetch(`/api/validateCoordinate`, {
+    fetch(`${process.env.NEXT_PUBLIC_LINK}/api/validateCoordinate`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -185,34 +184,17 @@ export default function GamePage() {
               </div>
             </div>
           </div>
-          <div className="absolute bottom-4 left-4 flex justify-end items-start w-full" style={{ pointerEvents: "none" }}>
+          <div className="absolute bottom-4 left-4 flex justify-start items-start w-full">
             {state.image && (
               <Image
-                className="rounded shadow transition duration-200"
+                className="rounded shadow scale-100 opacity-80 hover:opacity-100 hover:scale-125 origin-bottom-left transition-all duration-200"
                 src={state.image}
                 alt="Campus location"
                 width={400}
                 height={300}
-                onMouseEnter={() => {
-                  hovering.current = true;
-                  setImgOpacity(1);
-                }}
-                onMouseLeave={() => {
-                  hovering.current = false;
-                  setTimeout(() => {
-                    if (!hovering.current) setImgOpacity(0.8);
-                  }, 5000);
-                }}
                 style={{
-                  maxWidth: 400,
-                  marginRight: 20,
                   zIndex: 99999,
-                  opacity: imgOpacity,
-                  pointerEvents: "none",
-                  transition: "opacity 0.2s, transform 0.2s",
-                  transform: imgOpacity === 1 ? "scale(1.05)" : "scale(1)"
                 }}
-                
               />
             )}
           </div>

@@ -1,4 +1,4 @@
-// File: C:\Users\senth\OneDrive\Documents\GitHub\Waterloo-Guesser\app\api\getPhoto\route.ts
+// File: /Users/apilaashyoharan/Documents/Waterloo-Guesser/app/api/getPhoto/route.ts
 import * as entry from '../../../../../app/api/getPhoto/route.js'
 import type { NextRequest } from 'next/server.js'
 

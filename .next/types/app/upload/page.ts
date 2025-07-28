@@ -1,4 +1,4 @@
-// File: C:\Users\senth\OneDrive\Documents\GitHub\Waterloo-Guesser\app\upload\page.tsx
+// File: /Users/apilaashyoharan/Documents/Waterloo-Guesser/app/upload/page.tsx
 import * as entry from '../../../../app/upload/page.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 
