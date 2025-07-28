@@ -3,7 +3,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Image from "next/image";
+import { CldImage } from "next-cloudinary";
 import Map from "./Map";
 import LocationUploader from "./LocationUploader";
 
@@ -186,16 +186,14 @@ export default function GamePage() {
           </div>
           <div className="absolute bottom-4 left-4 flex justify-start items-start w-full">
             {state.image && (
-              <Image
-                className="rounded shadow scale-100 opacity-80 hover:opacity-100 hover:scale-125 origin-bottom-left transition-all duration-200"
+              <CldImage
                 src={state.image}
-                alt="Campus location"
                 width={400}
                 height={300}
-                loading="lazy"
-                style={{
-                  zIndex: 99999,
-                }}
+                crop={{ type: "auto", source: true }}
+                alt="Campus location"
+                className="rounded shadow scale-100 opacity-80 hover:opacity-100 hover:scale-125 origin-bottom-left transition-all duration-200"
+                style={{ zIndex: 99999 }}
               />
             )}
           </div>

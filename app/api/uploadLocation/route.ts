@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
-import { MongoClient } from 'mongodb';
 import { Buffer } from 'buffer';
+import crypto from 'crypto';
+import { getDb } from '../../../lib/mongodb';
 
 const uri = process.env.MONGODB_URI || '';
 const dbName = process.env.MONGODB_DB || '';
@@ -46,28 +47,51 @@ export async function POST(req: NextRequest) {
       imageBase64 = null;
     }
 
-    let client;
+    let imageUrl = null;
     try {
-      console.log(uri)
-      client = new MongoClient(uri || '');
-      await client.connect();
-    } catch (connErr) {
-      console.error('MongoDB connection error:', connErr);
-      return new Response(JSON.stringify({ error: 'MongoDB connection error', details: String(connErr) }), { status: 500 });
+      // Upload image to Cloudinary CDN
+      const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+      const apiKey = process.env.CLOUDINARY_API_KEY;
+      const apiSecret = process.env.CLOUDINARY_API_SECRET;
+      if (!cloudName || !apiKey || !apiSecret) {
+        throw new Error('Missing Cloudinary env variables');
+      }
+      if (imageFile instanceof Blob) {
+        const buffer = Buffer.from(await imageFile.arrayBuffer());
+        const base64 = buffer.toString('base64');
+        const timestamp = Math.floor(Date.now() / 1000);
+        // Generate signature
+        const paramsToSign = `timestamp=${timestamp}${apiSecret}`;
+        const signature = crypto.createHash('sha1').update(paramsToSign).digest('hex');
+        // Upload to Cloudinary
+        const formData = new FormData();
+        formData.append('file', `data:image/png;base64,${base64}`);
+        formData.append('timestamp', String(timestamp));
+        formData.append('api_key', apiKey);
+        formData.append('signature', signature);
+        const uploadRes = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+          method: 'POST',
+          body: formData
+        });
+        const uploadJson = await uploadRes.json();
+        imageUrl = uploadJson.secure_url;
+      }
+    } catch (cloudErr) {
+      console.error('Cloudinary upload error:', cloudErr);
+      imageUrl = null;
     }
+    // Save to MongoDB
     let db, collection;
     try {
-      db = client.db(dbName);
-      db = client.db(dbName || '');
+      db = await getDb();
       collection = db.collection('base_locations');
     } catch (dbInitErr) {
       console.error('MongoDB db/collection error:', dbInitErr);
-      await client.close();
       return new Response(JSON.stringify({ error: 'MongoDB db/collection error', details: String(dbInitErr) }), { status: 500 });
     }
 
     const locationDoc = {
-      image: imageBase64,
+      image: imageUrl,
       xCoordinate: parseFloat(xCoordinate as string),
       yCoordinate: parseFloat(yCoordinate as string),
       name,
@@ -82,10 +106,8 @@ export async function POST(req: NextRequest) {
       await collection.insertOne(locationDoc);
     } catch (dbErr) {
       console.error('MongoDB insert error:', dbErr);
-      await client.close();
       return new Response(JSON.stringify({ error: 'Database error', details: String(dbErr), doc: locationDoc }), { status: 500 });
     }
-    await client.close();
 
     return new Response(JSON.stringify({ success: true }), { status: 200 });
   } catch (err) {
