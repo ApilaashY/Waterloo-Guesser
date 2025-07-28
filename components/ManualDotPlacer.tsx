@@ -1,6 +1,11 @@
-import Image from "next/image";
+// components/ManualDotPlacer.tsx
+
+"use client";
+
 import React, { useState, useRef, useEffect } from "react";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
+import Image from "next/image";
+
 
 type Dot = { x: number; y: number; building: string };
 type PendingDot = { x: number; y: number } | null;
@@ -11,7 +16,118 @@ type BuildingFloors = Record<
 
 const campusMapUrl = "/uw campus map.png";
 
-export default function ManualDotPlacer() {
+interface DotWithHoverProps {
+  dot: Dot;
+  index: number;
+  buildingFloors: BuildingFloors;
+  handleDotMouseDown: (e: React.MouseEvent<HTMLDivElement>, i: number) => void;
+  handleDeleteDot: (i: number) => void;
+}
+
+const DotWithHover: React.FC<DotWithHoverProps> = ({
+  dot,
+  index,
+  buildingFloors,
+  handleDotMouseDown,
+  handleDeleteDot,
+}) => {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <div
+      style={{
+        position: "absolute",
+        top: `${dot.y * 100}%`,
+        left: `${dot.x * 100}%`,
+        width: 21,
+        height: 21,
+        borderRadius: "50%",
+        background: "yellow",
+        border: "2px solid #888",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        transform: "translate(-50%, -50%)",
+        zIndex: 10,
+        fontWeight: "bold",
+        color: "#222",
+        fontSize: 12,
+        cursor: "grab",
+        userSelect: "none"
+      }}
+      title={dot.building}
+      onMouseDown={e => handleDotMouseDown(e, index)}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      {dot.building}
+      <button
+        onClick={ev => { ev.stopPropagation(); handleDeleteDot(index); }}
+        style={{
+          position: "absolute",
+          top: -10,
+          right: -10,
+          width: 18,
+          height: 18,
+          borderRadius: "50%",
+          background: "#f44",
+          color: "#fff",
+          border: "none",
+          fontSize: 12,
+          cursor: "pointer",
+          zIndex: 20
+        }}
+        title="Delete dot"
+      >×</button>
+      {/* Dropdown with floor buttons on hover */}
+      {hovered && buildingFloors[dot.building] && (
+        <div
+          style={{
+            position: "absolute",
+            top: "50%",
+            left: "110%",
+            transform: "translateY(-50%)",
+            background: "#fff",
+            border: "1px solid #ccc",
+            borderRadius: "6px",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+            padding: "6px 12px",
+            minWidth: "60px",
+            zIndex: 30,
+            pointerEvents: "auto",
+            whiteSpace: "nowrap"
+          }}
+        >
+          {buildingFloors[dot.building].map((floorObj: { filename: string; floor: string }) => (
+            <button
+              key={floorObj.filename}
+              style={{
+                display: "block",
+                width: "100%",
+                margin: "2px 0",
+                padding: "4px 8px",
+                fontSize: "12px",
+                background: "#eee",
+                border: "1px solid #bbb",
+                borderRadius: "4px",
+                cursor: "pointer",
+                textAlign: "left"
+              }}
+              onClick={() => window.open(`/clean_floorplans/${floorObj.filename}`, "_blank")}
+            >
+              {floorObj.floor.replace("FLR", "")}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+interface ManualDotPlacerProps {
+  show?: boolean;
+}
+
+export default function ManualDotPlacer({ show = true }: ManualDotPlacerProps) {
   const [dots, setDots] = useState<Dot[]>([]);
   const [pendingDot, setPendingDot] = useState<PendingDot>(null);
   const [buildingCode, setBuildingCode] = useState("");
@@ -19,26 +135,20 @@ export default function ManualDotPlacer() {
 
   useEffect(() => {
     fetch("/api/floorplans")
-      .then((res) => res.json())
-      .then(
-        (data: {
-          floorplans: { building: string; filename: string; floor: string }[];
-        }) => {
-          // Group floorplans by building
-          const floors: BuildingFloors = {};
-          if (data.floorplans) {
-            data.floorplans.forEach((fp) => {
-              if (!fp.building || fp.building === "UNKNOWN") return;
-              if (!floors[fp.building]) floors[fp.building] = [];
-              floors[fp.building].push({
-                filename: fp.filename,
-                floor: fp.floor,
-              });
-            });
-          }
-          setBuildingFloors(floors);
+      .then(res => res.json())
+      .then(data => {
+        // Group floorplans by building
+        const floors: BuildingFloors = {};
+        if (data.floorplans) {
+          type Floorplan = { building: string; filename: string; floor: string };
+          (data.floorplans as Floorplan[]).forEach(fp => {
+            if (!fp.building || fp.building === "UNKNOWN") return;
+            if (!floors[fp.building]) floors[fp.building] = [];
+            floors[fp.building].push({ filename: fp.filename, floor: fp.floor });
+          });
         }
-      );
+        setBuildingFloors(floors);
+      });
   }, []);
 
   // Use right-click (contextmenu) to place dot (attach to parent div)
@@ -127,7 +237,7 @@ export default function ManualDotPlacer() {
   }
 
   return (
-    <div style={{ width: "100vw", height: "100vh", background: "#f8f8f8" }}>
+    <div style={{ width: "100vw", height: "100vh", background: "#f8f8f8", display: show ? undefined : "none" }}>
       <div style={{ display: "flex", alignItems: "center", margin: 8 }}>
         <h2 style={{ margin: 0, marginRight: 16 }}>
           Manual Building Dot Placer
@@ -160,6 +270,8 @@ export default function ManualDotPlacer() {
               <Image
                 src={campusMapUrl}
                 alt="Campus Map"
+                width={896}
+                height={683}
                 style={{
                   width: "100%",
                   height: "100%",
@@ -168,112 +280,16 @@ export default function ManualDotPlacer() {
                 }}
               />
               {/* Render placed dots */}
-              {dots.map((dot, i) => {
-                const [hovered, setHovered] = useState(false);
-                // Use a wrapper to allow hover state per dot
-                return (
-                  <div
-                    key={i}
-                    style={{
-                      position: "absolute",
-                      top: `${dot.y * 100}%`,
-                      left: `${dot.x * 100}%`,
-                      width: 21,
-                      height: 21,
-                      borderRadius: "50%",
-                      background: "yellow",
-                      border: "2px solid #888",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      transform: "translate(-50%, -50%)",
-                      zIndex: 10,
-                      fontWeight: "bold",
-                      color: "#222",
-                      fontSize: 12,
-                      cursor: "grab",
-                      userSelect: "none",
-                    }}
-                    title={dot.building}
-                    onMouseDown={(e) => handleDotMouseDown(e, i)}
-                    onMouseEnter={() => setHovered(true)}
-                    onMouseLeave={() => setHovered(false)}
-                  >
-                    {dot.building}
-                    <button
-                      onClick={(ev) => {
-                        ev.stopPropagation();
-                        handleDeleteDot(i);
-                      }}
-                      style={{
-                        position: "absolute",
-                        top: -10,
-                        right: -10,
-                        width: 18,
-                        height: 18,
-                        borderRadius: "50%",
-                        background: "#f44",
-                        color: "#fff",
-                        border: "none",
-                        fontSize: 12,
-                        cursor: "pointer",
-                        zIndex: 20,
-                      }}
-                      title="Delete dot"
-                    >
-                      ×
-                    </button>
-                    {/* Dropdown with floor buttons on hover */}
-                    {hovered && buildingFloors[dot.building] && (
-                      <div
-                        style={{
-                          position: "absolute",
-                          top: "50%",
-                          left: "110%",
-                          transform: "translateY(-50%)",
-                          background: "#fff",
-                          border: "1px solid #ccc",
-                          borderRadius: "6px",
-                          boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-                          padding: "6px 12px",
-                          minWidth: "60px",
-                          zIndex: 30,
-                          pointerEvents: "auto",
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        {buildingFloors[dot.building].map(
-                          (floorObj: { filename: string; floor: string }) => (
-                            <button
-                              key={floorObj.filename}
-                              style={{
-                                display: "block",
-                                width: "100%",
-                                margin: "2px 0",
-                                padding: "4px 8px",
-                                fontSize: "12px",
-                                background: "#eee",
-                                border: "1px solid #bbb",
-                                borderRadius: "4px",
-                                cursor: "pointer",
-                                textAlign: "left",
-                              }}
-                              onClick={() =>
-                                window.open(
-                                  `/clean_floorplans/${floorObj.filename}`,
-                                  "_blank"
-                                )
-                              }
-                            >
-                              {floorObj.floor.replace("FLR", "")}
-                            </button>
-                          )
-                        )}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
+              {dots.map((dot, i) => (
+                <DotWithHover
+                  key={i}
+                  dot={dot}
+                  index={i}
+                  buildingFloors={buildingFloors}
+                  handleDotMouseDown={handleDotMouseDown}
+                  handleDeleteDot={handleDeleteDot}
+                />
+              ))}
               {/* Pending dot input */}
               {pendingDot && (
                 <div

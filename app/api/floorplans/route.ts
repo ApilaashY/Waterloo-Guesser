@@ -1,4 +1,5 @@
-import { MongoClient } from "mongodb";
+// import { NextRequest } from 'next/server';
+import { MongoClient } from 'mongodb';
 
 const uri = process.env.MONGODB_URI || "";
 const dbName = process.env.MONGODB_DB || "";

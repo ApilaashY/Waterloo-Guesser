@@ -1,19 +1,22 @@
 "use client";
 
+import { useRouter } from 'next/navigation';
+// components/LocationUploader.tsx
+
+
 import { useState, useEffect } from "react";
 import Map from "./Map";
-import ManualDotPlacer from "./ManualDotPlacer";
 import Image from "next/image";
 
 // This page can be placed in app/upload/page.tsx for Next.js routing
 // and will be accessible at /upload
 export default function LocationUploader() {
+  const router = useRouter();
   // Secret passcode popup logic
   const [showPasscode, setShowPasscode] = useState(false);
   const [passcode, setPasscode] = useState("");
   const secretSequence = "qwertyuiop";
-  const setTypedKeys = useState("")[1];
-
+  const [typedKeys, setTypedKeys] = useState("");
   // Get passcode from env (client-side)
   let envPasscode = "";
   if (typeof window !== "undefined") {
@@ -21,14 +24,12 @@ export default function LocationUploader() {
     envPasscode = process.env.NEXT_PUBLIC_PASSCODE;
   }
   useEffect(() => {
+    let sequence = "";
     const handleKeyDown = (e: KeyboardEvent) => {
-      setTypedKeys((prev) => {
-        const next = (prev + e.key).slice(-secretSequence.length);
-        if (next === secretSequence) {
-          setShowPasscode(true);
-        }
-        return next;
-      });
+      sequence = (sequence + e.key).slice(-secretSequence.length);
+      if (sequence === secretSequence) {
+        setShowPasscode(true);
+      }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
@@ -155,6 +156,7 @@ export default function LocationUploader() {
                   if (passcode === envPasscode) {
                     setToast("Welcome devs!");
                     setTimeout(() => setToast(null), 2500);
+                    router.push("/manual-dot-placer");
                     setShowPasscode(false);
                   } else {
                     setToast("Incorrect passcode");
@@ -253,14 +255,7 @@ export default function LocationUploader() {
         )}
         {error && <div className="text-red-600 font-semibold">{error}</div>}
       </form>
-      {/* Show ManualDotPlacer if passcode is correct and popup is closed */}
-      {passcode === envPasscode && !showPasscode && (
-        <div
-          style={{ width: "100%", maxWidth: 1000, margin: "32px auto 0 auto" }}
-        >
-          <ManualDotPlacer />
-        </div>
-      )}
+      {/* ManualDotPlacer is now only accessible via redirect, not rendered here */}
     </div>
   );
 }

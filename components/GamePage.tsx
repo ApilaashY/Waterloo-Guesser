@@ -1,11 +1,15 @@
+// components/GamePage.tsx
+
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import Map from "./Map";
 import LocationUploader from "./LocationUploader";
 
 export default function GamePage() {
   const [showUploader, setShowUploader] = useState(false);
+  // const [transformReady, setTransformReady] = useState(false);
   // const [transformReady, setTransformReady] = useState(false);
   interface State {
     image?: string;
@@ -22,15 +26,17 @@ export default function GamePage() {
   const [xRightCoor, setXRightCoor] = useState<number | null>(null);
   const [yRightCoor, setYRightCoor] = useState<number | null>(null);
 
+  const [imgOpacity, setImgOpacity] = useState<number | 0.8>(0.8);
+  const hovering = useRef(false);
+
   const requestingImage = useRef(false);
   function requestImage() {
     if (requestingImage.current) return;
     requestingImage.current = true;
-    fetch(`/api/getPhoto`, {
+    fetch(`${process.env.NEXT_PUBLIC_LINK}/api/getPhoto`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        mode: "no-cors",
       },
       body: JSON.stringify({
         previousCodes: imageIDs,
@@ -91,7 +97,7 @@ export default function GamePage() {
   function validateCoordinate() {
     if (validatingCoordinate.current) return;
     validatingCoordinate.current = true;
-    fetch(`/api/validateCoordinate`, {
+    fetch(`${process.env.NEXT_PUBLIC_LINK}/api/validateCoordinate`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -179,15 +185,18 @@ export default function GamePage() {
             </div>
           </div>
           <div className="absolute bottom-4 left-4 flex justify-start items-start w-full">
-            <img
-              className="rounded shadow opacity-80 hover:opacity-100 transition duration-200 hover:scale-120 origin-bottom-left"
-              src={state.image}
-              style={{
-                maxWidth: 400,
-                marginRight: 20,
-                zIndex: 99999,
-              }}
-            />
+            {state.image && (
+              <Image
+                className="rounded shadow scale-100 opacity-80 hover:opacity-100 hover:scale-125 origin-bottom-left transition-all duration-200"
+                src={state.image}
+                alt="Campus location"
+                width={400}
+                height={300}
+                style={{
+                  zIndex: 99999,
+                }}
+              />
+            )}
           </div>
         </div>
       )}

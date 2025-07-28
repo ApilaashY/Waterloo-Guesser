@@ -1,11 +1,27 @@
+// components/Map.tsx
+"use client";
+
 // Fetch floorplans and buildings from API
-import React, { PropsWithChildren, useRef, useEffect } from "react";
+import React, { PropsWithChildren } from "react"; // useRef, useState, useEffect are unused
+// import ReactDOM from "react-dom";
+import Image from "next/image";
 import {
   TransformWrapper,
   TransformComponent,
-  ReactZoomPanPinchRef,
+  // ReactZoomPanPinchRef,
 } from "react-zoom-pan-pinch";
 
+// interface Floorplan {
+//   _id: string;
+//   filename: string;
+//   image_base64: string;
+// }
+// interface Building {
+//   _id: string;
+//   building: string;
+//   x: number;
+//   y: number;
+// }
 // interface Floorplan {
 //   _id: string;
 //   filename: string;
@@ -30,8 +46,40 @@ interface MapProps extends PropsWithChildren {
 }
 
 export default function Map(props: MapProps) {
-  // COMMENTED OUT SINCE NOT IN USE
+  // --- Future-use state and refs preserved as comments ---
+  // const [floorplans, setFloorplans] = useState<Floorplan[]>([]);
+  // const [buildings, setBuildings] = useState<Building[]>([]);
+  // const mapImgRef = useRef<HTMLImageElement>(null);
+  // const [modalImg, setModalImg] = useState<string | null>(null);
+  // const zoomOffsetX = useRef(0);
+  // const zoomOffsetY = useRef(0);
+  // const zoomScale = useRef(1);
+  // const [activeBuilding, setActiveBuilding] = useState<string | null>(null);
+  // const hideDropdownTimeout = useRef<NodeJS.Timeout | null>(null);
   // Helper to parse floor type from filename
+  // function getFloorLabel(filename: string) {
+  //   // Match _B1FLR, _01FLR, _02FLR, _03FLR, _04FLR, _02FLR_MEZ, etc.
+  //   const match = filename.match(/_((B\d|\d{2})FLR)(?:_MEZ)?/i);
+  //   if (match) {
+  //     const code = match[1].toUpperCase();
+  //     if (filename.toUpperCase().includes('MEZ')) {
+  //       return 'Mezzanine';
+  //     }
+  //     if (code.startsWith('B')) {
+  //       // Basement
+  //       return `Basement ${code[1]}`;
+  //     } else {
+  //       // Floor number
+  //       const num = parseInt(code.slice(0,2), 10);
+  //       if (num === 1) return '1st Floor';
+  //       if (num === 2) return '2nd Floor';
+  //       if (num === 3) return '3rd Floor';
+  //       if (num === 4) return '4th Floor';
+  //       return `${num}th Floor`;
+  //     }
+  //   }
+  //   return 'Unknown';
+  // }
   // function getFloorLabel(filename: string) {
   //   // Match _B1FLR, _01FLR, _02FLR, _03FLR, _04FLR, _02FLR_MEZ, etc.
   //   const match = filename.match(/_((B\d|\d{2})FLR)(?:_MEZ)?/i);
@@ -66,6 +114,12 @@ export default function Map(props: MapProps) {
   // }
 
   // COMMENTED OUT SINCE NOT IN USE
+  // function getBuildingCode(filename: string) {
+  //   // Match: 001DWE_01FLR.pdf, 002E2_01FLR.pdf, 005ML_01FLR.pdf, etc.
+  //   // Building code is after digits and before _
+  //   const match = filename.match(/^\d+([A-Z0-9]+)_/i);
+  //   return match ? match[1] : 'UNKNOWN';
+  // }
   // Helper to clean floorplan filename to 'BUILDING Floor XX'
   // function getCleanFloorplanName(filename: string) {
   //   // Example: 019SLC_02FLR_page1.png
@@ -79,32 +133,29 @@ export default function Map(props: MapProps) {
   //   }
   //   return filename;
   // }
-
-  // COMMENTED OUT SINCE NOT IN USE
   // Helper to get building code prefix from filename
   // function entryCode(building: string) {
   //   return building + "_";
   // }
   // const [floorplans, setFloorplans] = useState<Floorplan[]>([]);
   // const [buildings, setBuildings] = useState<Building[]>([]);
-  const mapImgRef = useRef<HTMLImageElement>(null);
+  // const mapImgRef = useRef<HTMLImageElement>(null);
   // const [modalImg, setModalImg] = useState<string | null>(null);
-  const zoomOffsetX = useRef(0);
-  const zoomOffsetY = useRef(0);
-  const zoomScale = useRef(1);
+  // const zoomOffsetX = useRef(0);
+  // const zoomOffsetY = useRef(0);
+  // const zoomScale = useRef(1);
   // const [activeBuilding, setActiveBuilding] = useState<string | null>(null);
   // const hideDropdownTimeout = useRef<NodeJS.Timeout | null>(null);
 
-  useEffect(() => {
-    fetch("/api/floorplans")
-      .then((res) => res.json())
-      .then(() => {
-        // setFloorplans(data.floorplans || []);
-        // setBuildings(data.buildings || []);
-      });
-  }, []);
+  // useEffect(() => {
+  //   fetch("/api/floorplans")
+  //     .then(res => res.json())
+  //     .then(data => {
+  //       setFloorplans(data.floorplans || []);
+  //       setBuildings(data.buildings || []);
+  //     });
+  // }, []);
 
-  // COMMENTED OUT SINCE NOT IN USE
   // function getDotSize() {
   //   const img = mapImgRef.current;
   //   if (!img) return 12; // fallback
@@ -157,43 +208,38 @@ export default function Map(props: MapProps) {
     return {};
   };
 
-  function handleZoom(ref: ReactZoomPanPinchRef) {
-    zoomOffsetX.current = -ref.state.positionX;
-    zoomOffsetY.current = -ref.state.positionY;
-    zoomScale.current = ref.state.scale;
-  }
+  // function handleZoom(ref: ReactZoomPanPinchRef, _: any) {
+  //   // ref and _ are unused
+  //   // zoomOffsetX.current = -ref.state.positionX;
+  //   // zoomOffsetY.current = -ref.state.positionY;
+  //   // zoomScale.current = ref.state.scale;
+  // }
 
-  function handlePan(ref: ReactZoomPanPinchRef) {
-    zoomOffsetX.current = -ref.state.positionX;
-    zoomOffsetY.current = -ref.state.positionY;
-    zoomScale.current = ref.state.scale;
-  }
+  // function handlePan(ref: ReactZoomPanPinchRef, _: any) {
+  //   // ref and _ are unused
+  //   // zoomOffsetX.current = -ref.state.positionX;
+  //   // zoomOffsetY.current = -ref.state.positionY;
+  //   // zoomScale.current = ref.state.scale;
+  // }
 
   return (
     <>
-      <div
-        className="w-full h-full bg-gray-50"
-        style={{ position: "relative" }}
-      >
-        <TransformWrapper onPanningStop={handlePan} onZoomStop={handleZoom}>
+      <div className="w-full h-full bg-gray-50" style={{position: "relative"}}>
+        <TransformWrapper>
           <TransformComponent>
-            <div
-              onClick={handleClick}
-              className="w-full h-full cursor-crosshair relative"
-            >
-              <img
-                ref={mapImgRef}
+            <div onClick={handleClick} className="w-full h-full cursor-crosshair relative">
+              <Image
+                /* ref={mapImgRef} */
                 className="MapPicture w-full h-full select-none"
                 src="/uw campus map.png"
                 alt="Campus Map"
+                width={896}
+                height={683}
                 draggable={false}
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "cover",
-                  display: "block",
-                  pointerEvents: "auto",
-                }}
+                unoptimized
+                priority
+                style={{ width: "100%", height: "100%", display: "block", pointerEvents: "auto" }}
+                onError={e => { console.error('Campus map image failed to load', e); }}
               />
               {/*
               Invisible interactive circles for each building from DB
