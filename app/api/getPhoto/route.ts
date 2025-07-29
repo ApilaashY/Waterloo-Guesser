@@ -31,9 +31,9 @@ export async function POST(req: NextRequest) {
     if (!doc) {
       return new Response(JSON.stringify({ error: 'No image found' }), { status: 404 });
     }
-    // Return only the image as base64 string
+    // Return image URL and MongoDB document id
     return new Response(
-      JSON.stringify({ image: doc.image ? `data:image/png;base64,${doc.image}` : null }),
+      JSON.stringify({ image: doc.image ?? null, id: doc._id }),
       { status: 200 }
     );
   } catch (err) {
