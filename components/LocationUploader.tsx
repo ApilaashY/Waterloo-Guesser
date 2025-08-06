@@ -252,7 +252,29 @@ export default function LocationUploader() {
           {uploading ? "Uploading..." : "Submit Location"}
         </button>
         {success && (
-          <div className="text-green-600 font-semibold">{success}</div>
+          <>
+            <div className="text-green-600 font-semibold">{success}</div>
+            <button
+              type="button"
+              className="mt-2 px-4 py-2 bg-yellow-600 text-white rounded shadow hover:bg-yellow-700"
+              onClick={() => {
+                setImageFile(null);
+                setPreviewUrl(null);
+                setXCoor(null);
+                setYCoor(null);
+                setName("");
+                setBuilding("");
+                setLatitude("");
+                setLongitude("");
+                setPasscode("");
+                setShowPasscode(false);
+                setSuccess(null);
+                setError(null);
+              }}
+            >
+              Add Another Location
+            </button>
+          </>
         )}
         {error && <div className="text-red-600 font-semibold">{error}</div>}
       </form>
