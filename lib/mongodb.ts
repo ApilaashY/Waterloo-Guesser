@@ -7,17 +7,21 @@ if (!uri || !dbName) {
   throw new Error('Missing MongoDB env variables');
 }
 
-let cachedClient: MongoClient | null = null;
-let cachedDb: Db | null = null;
+
+// Use globalThis to persist client across hot reloads in dev (Next.js best practice)
+let globalWithMongo = globalThis as unknown as {
+  _mongoClient?: MongoClient;
+  _mongoDb?: Db;
+};
 
 export async function getDb(): Promise<Db> {
-  if (cachedDb && cachedClient) {
-    return cachedDb;
+  if (globalWithMongo._mongoDb && globalWithMongo._mongoClient) {
+    return globalWithMongo._mongoDb;
   }
-  if (!cachedClient) {
-    cachedClient = new MongoClient(uri);
-    await cachedClient.connect();
+  if (!globalWithMongo._mongoClient) {
+    globalWithMongo._mongoClient = new MongoClient(uri);
+    await globalWithMongo._mongoClient.connect();
   }
-  cachedDb = cachedClient.db(dbName);
-  return cachedDb;
+  globalWithMongo._mongoDb = globalWithMongo._mongoClient.db(dbName);
+  return globalWithMongo._mongoDb;
 }
