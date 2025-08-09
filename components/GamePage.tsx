@@ -1,9 +1,17 @@
-// components/GamePage.tsx
+
 
 "use client";
 
+// Helper to extract Cloudinary public ID from a full URL
+function getCloudinaryPublicId(url?: string) {
+  if (!url) return '';
+  const cleanUrl = url.split('?')[0];
+  const lastPart = cleanUrl.split('/').pop() || '';
+  return lastPart.split('.')[0];
+}
+
 import { useEffect, useRef, useState } from "react";
-import Image from "next/image";
+import { CldImage } from "next-cloudinary";
 import Map from "./Map";
 import LocationUploader from "./LocationUploader";
 
@@ -126,6 +134,10 @@ export default function GamePage() {
     requestImage();
   }, [requestImage, setupDone]);
 
+  // ...existing code...
+  // Add router for navigation
+  const router = typeof window !== "undefined" ? require("next/navigation").useRouter() : null;
+
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-gray-50 overflow-hidden">
       <button
@@ -133,6 +145,15 @@ export default function GamePage() {
         onClick={() => setShowUploader((v) => !v)}
       >
         {showUploader ? "Back to Game" : "Add Location"}
+      </button>
+      <button
+        className="absolute top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2 bg-purple-600 text-white rounded shadow hover:bg-purple-700"
+        onClick={() => {
+          if (router) router.push("/queue-game");
+          else window.location.href = "/queue-game";
+        }}
+      >
+        Multiplayer Queue
       </button>
       {showUploader ? (
         <LocationUploader />
@@ -184,18 +205,16 @@ export default function GamePage() {
               </div>
             </div>
           </div>
-          <div className="absolute bottom-4 left-4 flex justify-start items-start w-full">
+          <div className="absolute bottom-4 left-4 flex justify-start items-start">
             {state.image && (
-              <Image
-                className="rounded shadow scale-100 opacity-80 hover:opacity-100 hover:scale-125 origin-bottom-left transition-all duration-200"
+              <CldImage
                 src={state.image}
-                alt="Campus location"
                 width={400}
                 height={300}
-                loading="lazy"
-                style={{
-                  zIndex: 99999,
-                }}
+                crop={{ type: "auto", source: true }}
+                alt="Campus location"
+                className="rounded shadow scale-100 opacity-80 hover:opacity-100 hover:scale-125 origin-bottom-left transition-all duration-200"
+                style={{ zIndex: 99999}}
               />
             )}
           </div>
