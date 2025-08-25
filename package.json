@@ -7,7 +7,7 @@
     "dev": "next dev --turbopack",
     "dev:socket": "cross-env NODE_OPTIONS=\"--loader ts-node/esm --trace-warnings --no-warnings\" ts-node server.mts",
     "build": "next build",
-    "build:socket": "cross-env NODE_OPTIONS=\"--loader ts-node/esm\" ts-node server.mts"
+    "build:socket": "cross-env NODE_OPTIONS=\"--loader ts-node/esm\" ts-node server.mts",
     "start": "next start",
     "lint": "next lint"
   },
