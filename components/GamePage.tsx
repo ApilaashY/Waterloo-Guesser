@@ -12,6 +12,7 @@ import { useEffect, useRef, useState } from "react";
 import { CldImage } from "next-cloudinary";
 import Map from "./Map";
 import LocationUploader from "./LocationUploader";
+import Link from "next/link";
 
 export default function GamePage() {
   const [showUploader, setShowUploader] = useState(false);
@@ -150,7 +151,7 @@ export default function GamePage() {
               Points: {totalPoints}
             </h1>
             <button
-              className=" px-4 py-2 bg-purple-600 text-white rounded shadow hover:bg-purple-700"
+              className=" px-4 py-2 bg-purple-600 text-white rounded shadow hover:bg-purple-700 cursor-pointer"
               onClick={() => {
                 if (router) router.push("/queue-game");
                 else window.location.href = "/queue-game";
@@ -158,12 +159,22 @@ export default function GamePage() {
             >
               Multiplayer Queue
             </button>
-            <button
-              className="px-4 py-2 bg-blue-600 text-white rounded shadow hover:bg-blue-700"
-              onClick={() => setShowUploader((v) => !v)}
-            >
-              {showUploader ? "Back to Game" : "Add Location"}
-            </button>
+            <div>
+              <button
+                className="px-4 py-2 bg-blue-600 text-white rounded shadow hover:bg-blue-700 cursor-pointer"
+                onClick={() => setShowUploader((v) => !v)}
+              >
+                {showUploader ? "Back to Game" : "Add Location"}
+              </button>
+              <button
+                className="px-4 py-2 bg-blue-600 text-white rounded shadow hover:bg-blue-700 ml-5 cursor-pointer"
+                onClick={() => {
+                  router.push("/login");
+                }}
+              >
+                Login
+              </button>
+            </div>
           </div>
           <div className="flex items-center justify-center w-full h-full">
             <div

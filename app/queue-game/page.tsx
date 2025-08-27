@@ -1,19 +1,26 @@
 "use client";
-"use client";
 
-import React, { useCallback, useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useSocket } from '../../components/SocketProvider';
+import React, { useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useSocket } from "../../components/SocketProvider";
 
 export default function QueueGamePage() {
-  const [status, setStatus] = useState<"idle" | "searching" | "matched" | "error">("idle");
+  const [status, setStatus] = useState<
+    "idle" | "searching" | "matched" | "error"
+  >("idle");
   const [toast, setToast] = useState<string | null>(null);
   const router = useRouter();
   const { socket, sessionId: contextSessionId } = useSocket();
   const [partnerId, setPartnerId] = useState<string | null>(null);
 
   // Toast component
-  function Toast({ message, onClose }: { message: string; onClose: () => void }) {
+  function Toast({
+    message,
+    onClose,
+  }: {
+    message: string;
+    onClose: () => void;
+  }) {
     React.useEffect(() => {
       const timer = setTimeout(onClose, 2500);
       return () => clearTimeout(timer);
@@ -31,7 +38,7 @@ export default function QueueGamePage() {
       setToast("Not connected to server. Please refresh the page.");
       return;
     }
-    
+
     setStatus("searching");
     socket.emit("joinQueue", {}, (response: any) => {
       console.debug("[Queue] joinQueue response:", response);
@@ -42,7 +49,9 @@ export default function QueueGamePage() {
         // Handle successful match
         setPartnerId(response.partnerId);
         setStatus("matched");
-        router.push(`/versus?sessionId=${response.sessionId}&partnerId=${response.partnerId}`);
+        router.push(
+          `/versus?sessionId=${response.sessionId}&partnerId=${response.partnerId}`
+        );
       }
     });
   }, [socket, router]);
@@ -67,7 +76,9 @@ export default function QueueGamePage() {
       if (msg.partnerId && msg.sessionId) {
         setPartnerId(msg.partnerId);
         setStatus("matched");
-        router.push(`/versus?sessionId=${msg.sessionId}&partnerId=${msg.partnerId}`);
+        router.push(
+          `/versus?sessionId=${msg.sessionId}&partnerId=${msg.partnerId}`
+        );
       }
     };
 
@@ -137,8 +148,10 @@ export default function QueueGamePage() {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
       <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full text-center">
-        <h1 className="text-2xl font-bold mb-6 text-gray-800">Multiplayer Game</h1>
-        
+        <h1 className="text-2xl font-bold mb-6 text-gray-800">
+          Multiplayer Game
+        </h1>
+
         {status === "idle" ? (
           <button
             className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 
@@ -157,13 +170,13 @@ export default function QueueGamePage() {
             </div>
           </div>
         )}
-        
+
         {toast && (
           <div className="mt-4 p-3 bg-yellow-100 text-yellow-800 rounded-md text-sm">
             {toast}
           </div>
         )}
-        
+
         {status === "idle" && (
           <p className="mt-4 text-sm text-gray-600">
             Play against another player in real-time!
@@ -173,5 +186,3 @@ export default function QueueGamePage() {
     </div>
   );
 }
-
-
