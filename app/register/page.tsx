@@ -5,13 +5,13 @@ import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-export default function LoginPage() {
+export default function RegisterPage() {
   const [toast, setToast] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
   const processing = useRef(false);
 
-  async function handleLogin(event: React.FormEvent<HTMLFormElement>) {
+  async function handleRegister(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (processing.current) return;
@@ -22,13 +22,16 @@ export default function LoginPage() {
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
 
-    const res = await fetch(`${process.env.NEXT_PUBLIC_LINK}/api/auth/login`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ email, password }),
-    });
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_LINK}/api/auth/register`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      }
+    );
 
     const data = await res.json();
 
@@ -36,9 +39,9 @@ export default function LoginPage() {
 
     if (res.ok) {
       Cookies.set("user", JSON.stringify(data.user));
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      processing.current = false;
-      router.push("/");
+      await setTimeout(() => {
+        router.push("/");
+      }, 1000);
     }
     processing.current = false;
   }
@@ -47,9 +50,9 @@ export default function LoginPage() {
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
       <form
         className="bg-white p-8 rounded-lg shadow-md max-w-md w-full text-center"
-        onSubmit={handleLogin}
+        onSubmit={handleRegister}
       >
-        <h1 className="text-2xl font-bold mb-6 text-gray-800">Login</h1>
+        <h1 className="text-2xl font-bold mb-6 text-gray-800">Register</h1>
 
         <input
           type="email"
@@ -77,7 +80,7 @@ export default function LoginPage() {
 
         <input
           type="submit"
-          value="Login"
+          value="Register"
           className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 
                       focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50
                       transition-colors duration-200 cursor-pointer"
@@ -86,11 +89,11 @@ export default function LoginPage() {
         {toast && setTimeout(() => setToast(null), 5000) && (
           <div
             className={`mt-4 p-3 ${
-              toast.startsWith("Login successful")
+              toast.startsWith("Registration successful")
                 ? "bg-green-100"
                 : "bg-yellow-100"
             } ${
-              toast.startsWith("Login successful")
+              toast.startsWith("Registration successful")
                 ? "text-green-800"
                 : "text-yellow-800"
             } rounded-md text-sm`}
@@ -99,8 +102,8 @@ export default function LoginPage() {
           </div>
         )}
 
-        <Link href="/register">
-          <p className="mt-4 text-sm text-gray-600">Create an account</p>
+        <Link href="/login">
+          <p className="mt-4 text-sm text-gray-600">Already have an Account</p>
         </Link>
       </form>
     </div>
