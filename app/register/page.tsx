@@ -8,6 +8,7 @@ import Link from "next/link";
 export default function RegisterPage() {
   const [toast, setToast] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const router = useRouter();
   const processing = useRef(false);
 
@@ -19,8 +20,11 @@ export default function RegisterPage() {
     processing.current = true;
 
     const formData = new FormData(event.currentTarget);
+    const username = formData.get("username") as string;
     const email = formData.get("email") as string;
+    const department = formData.get("department") as string;
     const password = formData.get("password") as string;
+    const confirmPassword = formData.get("confirmPassword") as string;
 
     const res = await fetch(
       `${process.env.NEXT_PUBLIC_LINK}/api/auth/register`,
@@ -29,7 +33,13 @@ export default function RegisterPage() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({
+          username,
+          email,
+          department,
+          password,
+          confirmPassword,
+        }),
       }
     );
 
@@ -55,11 +65,31 @@ export default function RegisterPage() {
         <h1 className="text-2xl font-bold mb-6 text-gray-800">Register</h1>
 
         <input
+          type="text"
+          name="username"
+          placeholder="Username"
+          className="w-full px-6 py-3 border border-gray-300 rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+
+        <input
           type="email"
           name="email"
           placeholder="Email"
           className="w-full px-6 py-3 border border-gray-300 rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
+
+        <select
+          name="department"
+          className="w-full px-6 py-3 border border-gray-300 rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="arts">Arts</option>
+          <option value="engineering">Engineering</option>
+          <option value="environment">Environment</option>
+          <option value="health">Health</option>
+          <option value="mathematics">Mathematics</option>
+          <option value="science">Science</option>
+          <option value="other">Other</option>
+        </select>
 
         <div className="relative">
           <input
@@ -75,6 +105,23 @@ export default function RegisterPage() {
             tabIndex={-1}
           >
             {showPassword ? "Hide" : "Show"}
+          </button>
+        </div>
+
+        <div className="relative">
+          <input
+            type={showConfirmPassword ? "text" : "password"}
+            name="confirmPassword"
+            placeholder="Confirm Password"
+            className="w-full px-6 py-3 border border-gray-300 rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500 pr-16"
+          />
+          <button
+            type="button"
+            onClick={() => setShowConfirmPassword((v) => !v)}
+            className="absolute top-1/4 right-4 text-sm text-blue-600 hover:underline focus:outline-none cursor-pointer"
+            tabIndex={-1}
+          >
+            {showConfirmPassword ? "Hide" : "Show"}
           </button>
         </div>
 
