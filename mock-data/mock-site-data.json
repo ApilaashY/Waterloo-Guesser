@@ -1,0 +1,105 @@
+{
+  "site": {
+    "title": "UW Guesser (Mock)",
+    "description": "Mock data for the UW Guesser campus location game.",
+    "accentColor": "#f4b834",
+    "theme": "dark"
+  },
+  "sampleLocations": [
+    {
+      "id": "loc-1",
+      "title": "Engineering 5 East Stairwell",
+      "image": "/public/sample-images/e5-stairs.jpg",
+      "coords": { "lat": 43.472, "lng": -80.544 },
+      "mapNormalized": { "x": 0.42, "y": 0.37 },
+      "building": "Engineering",
+      "floor": 5
+    },
+    {
+      "id": "loc-2",
+      "title": "Dana Porter Library Entrance",
+      "image": "/public/sample-images/dana-porter.jpg",
+      "coords": { "lat": 43.4728, "lng": -80.5425 },
+      "mapNormalized": { "x": 0.48, "y": 0.31 },
+      "building": "Library",
+      "floor": 1
+    },
+    {
+      "id": "loc-3",
+      "title": "Physics Building Courtyard",
+      "image": "/public/sample-images/physics-courtyard.jpg",
+      "coords": { "lat": 43.4712, "lng": -80.5468 },
+      "mapNormalized": { "x": 0.36, "y": 0.58 },
+      "building": "Physics",
+      "floor": 0
+    }
+  ],
+  "players": [
+  { "id": "p_anna", "name": "Anna Lee", "avatar": "/avatars/anna.jpg", "rank": 1200 },
+  { "id": "p_ben", "name": "Ben Cho", "avatar": "/avatars/ben.jpg", "rank": 1450 },
+  { "id": "p_chris", "name": "Chris N.", "avatar": "/avatars/chris.jpg", "rank": 1580 },
+  { "id": "p_diego", "name": "Diego M.", "avatar": "/avatars/diego.jpg", "rank": 980 },
+  { "id": "p_ellen", "name": "Ellen P.", "avatar": "/avatars/ellen.jpg", "rank": 2000 },
+  { "id": "p_fatima", "name": "Fatima K.", "avatar": "/avatars/fatima.jpg", "rank": 0 },
+  { "id": "p_guest", "name": "Guest User", "avatar": null, "rank": null }
+  ],
+  "leaderboard": [
+  { "playerId": "p_chris", "score": 49820, "rank": 1 },
+  { "playerId": "p_ellen", "score": 49820, "rank": 1 },
+  { "playerId": "p_ben", "score": 42100, "rank": 3 },
+  { "playerId": "p_anna", "score": 38800, "rank": 4 },
+  { "playerId": "p_diego", "score": 1200, "rank": 5 },
+  { "playerId": "p_fatima", "score": 0, "rank": 6 },
+  { "playerId": "p_guest", "score": 5, "rank": 7 },
+  { "playerId": "p_hacker", "score": 999999999, "rank": 0 }
+  ],
+  "matches": [
+    {
+      "id": "m_1",
+      "players": ["p_ben", "p_anna"],
+      "startedAt": "2025-08-24T14:00:00.000Z",
+      "rounds": [
+        { "locationId": "loc-1", "winner": "p_ben", "scores": { "p_ben": 1200, "p_anna": 900 } },
+        { "locationId": "loc-2", "winner": "p_anna", "scores": { "p_ben": 800, "p_anna": 1300 } }
+      ],
+      "status": "finished"
+    }
+    ,
+    {
+      "id": "m_2_inprogress",
+      "players": ["p_chris", "p_ellen"],
+      "startedAt": "2025-08-26T10:15:00.000Z",
+      "rounds": [
+        { "locationId": "loc-3", "winner": null, "scores": { "p_chris": 400 } }
+      ],
+      "status": "in-progress"
+    },
+    {
+      "id": "m_3_cancelled",
+      "players": ["p_diego", "p_guest"],
+      "startedAt": "2025-08-20T09:00:00.000Z",
+      "rounds": [],
+      "status": "cancelled",
+      "cancelReason": "network"
+    },
+    {
+      "id": "m_4_badloc",
+      "players": ["p_anna", "p_fatima"],
+      "startedAt": "2025-08-25T16:00:00.000Z",
+      "rounds": [
+        { "locationId": "loc-999", "winner": null, "scores": {} }
+      ],
+      "status": "finished"
+    },
+    {
+      "id": "m_5_long",
+      "players": ["p_hacker", "p_ellen"],
+      "startedAt": "2023-01-01T00:00:00.000Z",
+      "rounds": [
+        { "locationId": "loc-1", "winner": "p_hacker", "scores": { "p_hacker": 999999999, "p_ellen": 10 } },
+        { "locationId": "loc-2", "winner": "p_ellen", "scores": { "p_hacker": 0, "p_ellen": 200000 } }
+      ],
+      "status": "finished"
+    }
+  ]
+}

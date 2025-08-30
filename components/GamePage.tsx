@@ -1,14 +1,4 @@
-
-
 "use client";
-
-// Helper to extract Cloudinary public ID from a full URL
-function getCloudinaryPublicId(url?: string) {
-  if (!url) return '';
-  const cleanUrl = url.split('?')[0];
-  const lastPart = cleanUrl.split('/').pop() || '';
-  return lastPart.split('.')[0];
-}
 
 import { useEffect, useRef, useState } from "react";
 import { CldImage } from "next-cloudinary";
@@ -38,36 +28,94 @@ export default function GamePage() {
   const hovering = useRef(false);
 
   const requestingImage = useRef(false);
+  // Preloaded next image cache
+  const preloadedNext = useRef<any | null>(null);
+
+  // Preload the next image in the background and store response in preloadedNext
+  function preloadNextImage() {
+    // don't start another preload if one is already pending
+    if (preloadedNext.current || requestingImage.current) return;
+    const previous = [...imageIDs];
+    fetch(`${process.env.NEXT_PUBLIC_LINK}/api/getPhoto`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ previousCodes: previous }),
+    })
+      .then((res) => res.json())
+      .then((json) => {
+        // store the raw response for later use
+        preloadedNext.current = json;
+        // also start loading the image bytes so subsequent render is instant
+        if (json?.image) {
+          const img = new Image();
+          img.src = json.image;
+        }
+      })
+      .catch(() => {
+        preloadedNext.current = null;
+      });
+  }
+
   function requestImage() {
+    // If we have a preloaded image ready, use it immediately
+    if (preloadedNext.current) {
+      const json = preloadedNext.current;
+      preloadedNext.current = null;
+
+      if (imageIDs.includes(json.id)) setImageIDs([json.id]);
+      else setImageIDs([...imageIDs, json.id]);
+
+      // Set main state and private correct coords (don't display correct answer yet)
+      const correctX = json.correctX ?? json.correct_x ?? json.xCoor ?? json.x ?? null;
+      const correctY = json.correctY ?? json.correct_y ?? json.yCoor ?? json.y ?? null;
+      setState(prev => ({ ...prev, ...json, correctX, correctY }));
+
+      setXCoor(null);
+      setYCoor(null);
+      setXRightCoor(null);
+      setYRightCoor(null);
+
+      // Start preloading the next one
+      preloadNextImage();
+      return;
+    }
+
     if (requestingImage.current) return;
     requestingImage.current = true;
     fetch(`${process.env.NEXT_PUBLIC_LINK}/api/getPhoto`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        previousCodes: imageIDs,
-      }),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ previousCodes: imageIDs }),
     })
       .then((res) => res.json())
       .then((json) => {
-        if (imageIDs.includes(json.id)) {
-          setImageIDs([json.id]);
-        } else {
-          setImageIDs([...imageIDs, json.id]);
-        }
-        setState(json);
+        if (imageIDs.includes(json.id)) setImageIDs([json.id]);
+        else setImageIDs([...imageIDs, json.id]);
+
+        const correctX = json.correctX ?? json.correct_x ?? json.xCoor ?? json.x ?? null;
+        const correctY = json.correctY ?? json.correct_y ?? json.yCoor ?? json.y ?? null;
+        setState(prev => ({ ...prev, ...json, correctX, correctY }));
+
         setXCoor(null);
         setYCoor(null);
         setXRightCoor(null);
         setYRightCoor(null);
+        requestingImage.current = false;
+
+        // Preload next image in the background
+        preloadNextImage();
+      })
+      .catch(() => {
         requestingImage.current = false;
       });
   }
 
   const validatingCoordinate = useRef(false);
   const mapContainerRef = useRef<HTMLDivElement>(null);
+  // Performance timing: record when image finishes loading and user interactions
+  const imageLoadedAt = useRef<number | null>(null);
+  const firstMapClickRecorded = useRef(false);
+  const firstSubmitRecorded = useRef(false);
 
   function zoomToGuessAndAnswer() {
     const parent = mapContainerRef.current;
@@ -105,16 +153,34 @@ export default function GamePage() {
   function validateCoordinate() {
     if (validatingCoordinate.current) return;
     validatingCoordinate.current = true;
+
+    // Prefer correct coords from state (versus) or from the loaded image metadata (single-player)
+    const correctX = (state as any).correctX ?? xRightCoor ?? null;
+    const correctY = (state as any).correctY ?? yRightCoor ?? null;
+
+    const body: any = {
+      xCoor: xCoor,
+      yCoor: yCoor,
+      id: state.id,
+    };
+    if (correctX != null && correctY != null) {
+      body.correctX = correctX;
+      body.correctY = correctY;
+    }
+
+    // Record time from image load to first submit (only once per image)
+    if (imageLoadedAt.current && !firstSubmitRecorded.current) {
+      const delta = Date.now() - imageLoadedAt.current;
+      console.log(`[perf] Time from image load to submit: ${delta}ms`);
+      firstSubmitRecorded.current = true;
+    }
+
     fetch(`${process.env.NEXT_PUBLIC_LINK}/api/validateCoordinate`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        xCoor: xCoor,
-        yCoor: yCoor,
-        id: state.id,
-      }),
+      body: JSON.stringify(body),
     })
       .then((res) => res.json())
       .then((json) => {
@@ -134,9 +200,152 @@ export default function GamePage() {
     requestImage();
   }, [requestImage, setupDone]);
 
-  // ...existing code...
+  // Track natural size of the current image
+  const [naturalSize, setNaturalSize] = useState<{ w: number; h: number } | null>(null);
+
+  // Utility: get natural image size by preloading an Image
+  // Using a small effects-based loader keeps code simple and works with CldImage URLs
+  useEffect(() => {
+    let mounted = true;
+    setNaturalSize(null);
+    if (!state.image) return;
+
+    const img = new Image();
+    img.onload = () => {
+      if (!mounted) return;
+      setNaturalSize({ w: img.naturalWidth, h: img.naturalHeight });
+      // Mark the image as loaded for performance timing
+      imageLoadedAt.current = Date.now();
+      firstMapClickRecorded.current = false;
+      firstSubmitRecorded.current = false;
+      console.log('[perf] Image loaded at', new Date(imageLoadedAt.current).toISOString());
+    };
+    img.onerror = () => {
+      if (!mounted) return;
+      setNaturalSize(null);
+    };
+    img.src = state.image;
+
+    return () => {
+      mounted = false;
+    };
+  }, [state.image]);
+
   // Add router for navigation
   const router = typeof window !== "undefined" ? require("next/navigation").useRouter() : null;
+
+  // Hover zoom state for preview
+  const [previewHover, setPreviewHover] = useState(false);
+  // Scroll zoom state for preview image
+  // Compute minimum zoom so image always fills the area
+  const getMinZoom = () => {
+    if (!naturalSize) return 1.0;
+    const containerW = 280, containerH = 200;
+    const imgW = naturalSize.w, imgH = naturalSize.h;
+    const zoomW = containerW / imgW;
+    const zoomH = containerH / imgH;
+    return Math.max(zoomW, zoomH);
+  };
+  const minZoom = getMinZoom();
+  const [previewZoom, setPreviewZoom] = useState(minZoom);
+
+  // Update zoom when naturalSize changes to ensure it always fills the area
+  useEffect(() => {
+    if (naturalSize) {
+      const newMinZoom = getMinZoom();
+      setPreviewZoom(prev => Math.max(prev, newMinZoom));
+    }
+  }, [naturalSize]);
+
+  // Pan state for dragging image
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [dragging, setDragging] = useState(false);
+  const dragStart = useRef<{ x: number; y: number } | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Mouse event handlers for panning
+  const handleImageMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setDragging(true);
+    setPreviewHover(true); // Ensure hover state is active when starting to drag
+    dragStart.current = { x: e.clientX, y: e.clientY };
+  };
+
+  // Check if mouse position is over the container
+  const isMouseOverContainer = (clientX: number, clientY: number): boolean => {
+    if (!containerRef.current) return false;
+    const rect = containerRef.current.getBoundingClientRect();
+    return clientX >= rect.left && clientX <= rect.right && 
+           clientY >= rect.top && clientY <= rect.bottom;
+  };
+
+  // Global mouse event handlers for dragging outside the container
+  useEffect(() => {
+    const handleGlobalMouseUp = (e: MouseEvent) => {
+      if (dragging) {
+        setDragging(false);
+        dragStart.current = null;
+        // Only exit hover if mouse is not over the container
+        if (!isMouseOverContainer(e.clientX, e.clientY)) {
+          setPreviewHover(false);
+        }
+      }
+    };
+
+    const handleGlobalMouseMove = (e: MouseEvent) => {
+      if (!dragging || !dragStart.current) return;
+      const dx = e.clientX - dragStart.current.x;
+      const dy = e.clientY - dragStart.current.y;
+      dragStart.current = { x: e.clientX, y: e.clientY };
+      setPan(prev => {
+        // Calculate max pan so image can't be dragged out of bounds
+        const containerW = 280, containerH = 200;
+        const imgW = containerW * previewZoom;
+        const imgH = containerH * previewZoom;
+        const maxX = Math.max(0, (imgW - containerW) / 2);
+        const maxY = Math.max(0, (imgH - containerH) / 2);
+        let newX = prev.x + dx;
+        let newY = prev.y + dy;
+        newX = Math.max(-maxX, Math.min(maxX, newX));
+        newY = Math.max(-maxY, Math.min(maxY, newY));
+        return { x: newX, y: newY };
+      });
+    };
+
+    if (dragging) {
+      document.addEventListener('mouseup', handleGlobalMouseUp);
+      document.addEventListener('mousemove', handleGlobalMouseMove);
+    }
+
+    return () => {
+      document.removeEventListener('mouseup', handleGlobalMouseUp);
+      document.removeEventListener('mousemove', handleGlobalMouseMove);
+    };
+  }, [dragging, previewZoom]);
+
+  const handleImageMouseUp = () => {
+    // This is now handled by the global handler
+  };
+  const handleImageMouseLeave = () => {
+    // This is now handled by the global handler
+  };
+  const handleImageMouseMove = (e: React.MouseEvent) => {
+    // This is now handled by the global handler
+  };
+
+  // Handle wheel event for zoom
+  const handleImageWheel = (e: React.WheelEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const delta = e.deltaY > 0 ? -0.1 : 0.1;
+    const currentMinZoom = getMinZoom();
+    setPreviewZoom(prevZoom => {
+      const newZoom = prevZoom + delta;
+      // Clamp zoom so image always fills the area
+      return Math.max(currentMinZoom, Math.min(3, newZoom));
+    });
+  };
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-gray-50 overflow-hidden">
@@ -181,7 +390,17 @@ export default function GamePage() {
                 xCoor={xCoor}
                 yCoor={yCoor}
                 setXCoor={
-                  xRightCoor == null && yRightCoor == null ? setXCoor : () => {}
+                  xRightCoor == null && yRightCoor == null
+                    ? ((val: number | null) => {
+                        // Record first map click timing once per image
+                        if (imageLoadedAt.current && !firstMapClickRecorded.current) {
+                          const delta = Date.now() - imageLoadedAt.current;
+                          console.log(`[perf] Time from image load to first map click: ${delta}ms`);
+                          firstMapClickRecorded.current = true;
+                        }
+                        setXCoor(val);
+                      })
+                    : () => {}
                 }
                 setYCoor={
                   xRightCoor == null && yRightCoor == null ? setYCoor : () => {}
@@ -207,15 +426,48 @@ export default function GamePage() {
           </div>
           <div className="absolute bottom-4 left-4 flex justify-start items-start">
             {state.image && (
-              <CldImage
-                src={state.image}
-                width={400}
-                height={300}
-                crop={{ type: "auto", source: true }}
-                alt="Campus location"
-                className="rounded shadow scale-100 opacity-80 hover:opacity-100 hover:scale-125 origin-bottom-left transition-all duration-200"
-                style={{ zIndex: 99999}}
-              />
+              // Show the image fully (no cropping) but constrained to a small preview box
+              // Use a scale transform on hover to smoothly enlarge the image, then return to original size.
+              // Allow overflow so scaled image isn't clipped
+              <div
+                ref={containerRef}
+                className="rounded shadow relative"
+                style={{ zIndex: 99999, overflow: 'visible' }}
+                onMouseEnter={() => !dragging && setPreviewHover(true)}
+                onMouseLeave={() => !dragging && setPreviewHover(false)}
+              >
+                {/* Container for scroll zoom - restricts zoom to this area */}
+                <div
+                  className="relative rounded overflow-hidden"
+                  style={{
+                    width: '280px',
+                    height: '200px',
+                    transform: previewHover ? 'scale(1.6)' : 'scale(1)',
+                    transformOrigin: 'bottom left',
+                    transition: 'transform 400ms ease'
+                  }}
+                >
+                  <CldImage
+                    src={state.image}
+                    // request the natural size when available (fallback to a reasonable size)
+                    width={naturalSize?.w ?? 800}
+                    height={naturalSize?.h ?? 600}
+                    alt="Campus location"
+                    className="block object-contain rounded shadow"
+                    onWheel={handleImageWheel}
+                    onMouseDown={handleImageMouseDown}
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      display: 'block',
+                      transition: 'transform 200ms ease',
+                      transform: `scale(${previewZoom}) translate(${pan.x / previewZoom}px, ${pan.y / previewZoom}px)`,
+                      transformOrigin: 'center center',
+                      cursor: dragging ? 'grabbing' : 'grab'
+                    }}
+                  />
+                </div>
+              </div>
             )}
           </div>
         </div>

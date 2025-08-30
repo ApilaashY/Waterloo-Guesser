@@ -1,7 +1,13 @@
-"use client";
+import Hero from '../components/Hero'
+import Leaderboard from '../components/Leaderboard'
 
-import GamePage from '../components/GamePage';
-
-export default function Home() {
-  return <GamePage />;
+export default function Page() {
+  return (
+    <>
+      <Hero />
+      <div className="mx-auto max-w-6xl px-6 py-12">
+        <Leaderboard />
+      </div>
+    </>
+  )
 }

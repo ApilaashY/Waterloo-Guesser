@@ -1,0 +1,11 @@
+.font-dangrek {
+  font-family: 'Dangrek', sans-serif;
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: 'Dangrek';
+  src: url('/Dangrek/Dangrek-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}

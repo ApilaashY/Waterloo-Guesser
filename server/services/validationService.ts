@@ -49,9 +49,15 @@ export class ValidationService {
     
     debugLog(`[VALIDATION] Threshold: ${threshold}, Valid: ${isValid}, Points: ${points}`);
     
-    currentPlayer.score = (currentPlayer.score || 0) + points;
+    // Ensure points is a finite number (guard against NaN)
+    const safePoints = Number.isFinite(points) ? points : 0;
+
+    // Ensure current player score is a finite number before summing
+    const currentScoreSafe = Number.isFinite(currentPlayer.score) ? currentPlayer.score : 0;
+
+    currentPlayer.score = currentScoreSafe + safePoints;
     currentPlayer.hasSubmitted = true;
-    
+
     // Store game state for session persistence
     const matchId = createMatchId(sessionId, partnerId);
     gameStorage.updateGameState(matchId, sessionId, {
@@ -59,22 +65,22 @@ export class ValidationService {
       hasSubmitted: currentPlayer.hasSubmitted
     });
     gameStorage.updateGameState(matchId, partnerId, {
-      score: partner.score || 0,
+      score: Number.isFinite(partner.score) ? partner.score : 0,
       hasSubmitted: partner.hasSubmitted || false
     });
     
     socket.emit('validationResult', { 
       valid: isValid, 
-      points,
+      points: safePoints,
       totalPoints: currentPlayer.score,
       correctX,
       correctY,
       roundComplete: false
     });
-    
+
     if (partner.hasSubmitted) {
-      const partnerScore = partner.score || 0;
-      const currentPlayerScore = currentPlayer.score || 0;
+      const partnerScore = Number.isFinite(partner.score) ? partner.score : 0;
+      const currentPlayerScore = Number.isFinite(currentPlayer.score) ? currentPlayer.score : 0;
       
       // Reset submission states for next round
       currentPlayer.hasSubmitted = false;
@@ -92,7 +98,7 @@ export class ValidationService {
       
       socket.emit('validationResult', {
         valid: isValid,
-        points,
+        points: safePoints,
         totalPoints: currentPlayerScore,
         opponentPoints: partnerScore,
         correctX,
@@ -112,12 +118,12 @@ export class ValidationService {
         };
         partner.socket.emit('validationResult', partnerValidation);
       }
-      
+
       // Start new round after delay
       setTimeout(() => {
         const updatedCurrentPlayer = gameStorage.getActivePlayer(sessionId);
         const updatedPartner = gameStorage.getActivePlayer(partnerId);
-        
+
         if (updatedCurrentPlayer && updatedPartner) {
           gameService.startNewRound(updatedCurrentPlayer, updatedPartner);
         } else {
@@ -127,7 +133,7 @@ export class ValidationService {
       
       return { 
         success: true, 
-        points,
+        points: safePoints,
         totalPoints: currentPlayer.score,
         roundComplete: true,
         valid: isValid
@@ -142,7 +148,7 @@ export class ValidationService {
       
       return { 
         success: true, 
-        points,
+        points: safePoints,
         totalPoints: currentPlayer.score,
         roundComplete: false,
         valid: isValid
