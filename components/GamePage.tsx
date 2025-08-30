@@ -1,9 +1,18 @@
 "use client";
 
+// Helper to extract Cloudinary public ID from a full URL
+function getCloudinaryPublicId(url?: string) {
+  if (!url) return "";
+  const cleanUrl = url.split("?")[0];
+  const lastPart = cleanUrl.split("/").pop() || "";
+  return lastPart.split(".")[0];
+}
+
 import { useEffect, useRef, useState } from "react";
 import { CldImage } from "next-cloudinary";
 import Map from "./Map";
 import LocationUploader from "./LocationUploader";
+import Link from "next/link";
 
 export default function GamePage() {
   const [showUploader, setShowUploader] = useState(false);
@@ -348,38 +357,40 @@ export default function GamePage() {
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-gray-50 overflow-hidden">
-      <button
-        className="absolute top-4 right-4 z-50 px-4 py-2 bg-blue-600 text-white rounded shadow hover:bg-blue-700"
-        onClick={() => setShowUploader((v) => !v)}
-      >
-        {showUploader ? "Back to Game" : "Add Location"}
-      </button>
-      <button
-        className="absolute top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2 bg-purple-600 text-white rounded shadow hover:bg-purple-700"
-        onClick={() => {
-          if (router) router.push("/queue-game");
-          else window.location.href = "/queue-game";
-        }}
-      >
-        Multiplayer Queue
-      </button>
+    <div className="fixed inset-0 flex items-center justify-center bg-gray-50 flex-wrap gap-1">
       {showUploader ? (
         <LocationUploader />
       ) : (
         <div className="relative flex flex-col items-center justify-center w-full h-full">
-          <div className="absolute top-4 left-4">
+          <div className="flex flex-row justify-center sm:justify-between w-full p-2 flex-wrap gap-2">
             <h1 className="text-xl font-bold text-gray-800 bg-white/80 rounded px-4 py-2 shadow">
               Points: {totalPoints}
             </h1>
-          </div>
-          <div className="absolute top-4 right-4 z-50">
             <button
-              className="px-4 py-2 bg-blue-600 text-white rounded shadow hover:bg-blue-700"
-              onClick={() => setShowUploader((v) => !v)}
+              className=" px-4 py-2 bg-purple-600 text-white rounded shadow hover:bg-purple-700 cursor-pointer"
+              onClick={() => {
+                if (router) router.push("/queue-game");
+                else window.location.href = "/queue-game";
+              }}
             >
-              {showUploader ? "Back to Game" : "Add Location"}
+              Multiplayer Queue
             </button>
+            <div>
+              <button
+                className="px-4 py-2 bg-blue-600 text-white rounded shadow hover:bg-blue-700 cursor-pointer"
+                onClick={() => setShowUploader((v) => !v)}
+              >
+                {showUploader ? "Back to Game" : "Add Location"}
+              </button>
+              <button
+                className="px-4 py-2 bg-blue-600 text-white rounded shadow hover:bg-blue-700 ml-5 cursor-pointer"
+                onClick={() => {
+                  router.push("/login");
+                }}
+              >
+                Login
+              </button>
+            </div>
           </div>
           <div className="flex items-center justify-center w-full h-full">
             <div
