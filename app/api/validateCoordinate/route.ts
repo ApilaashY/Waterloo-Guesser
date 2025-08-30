@@ -5,27 +5,50 @@ import { getDb } from '../../../lib/mongodb';
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { xCoor, yCoor, id } = body;
-    if (!id || xCoor == null || yCoor == null) {
+    const { xCoor, yCoor, id } = body as any;
+
+    // Accept correct coordinates directly to short-circuit DB lookup
+    const providedCorrectX = (body.correctX ?? body.correct_x ?? body.correctx ?? null) as number | null;
+    const providedCorrectY = (body.correctY ?? body.correct_y ?? body.correcty ?? null) as number | null;
+
+    if (xCoor == null || yCoor == null) {
       return new Response(JSON.stringify({ error: 'Missing required fields' }), { status: 400 });
     }
-    const db = await getDb();
-    const collection = db.collection('base_locations');
-    const doc = await collection.findOne(
-      { _id: new ObjectId(id) },
-      { projection: { xCoordinate: 1, yCoordinate: 1 } }
-    );
-    if (!doc) {
-      return new Response(JSON.stringify({ error: 'Location not found' }), { status: 404 });
+
+    let correctX: number | null = null;
+    let correctY: number | null = null;
+
+    if (providedCorrectX != null && providedCorrectY != null) {
+      // Use provided coords
+      correctX = providedCorrectX;
+      correctY = providedCorrectY;
+    } else {
+      if (!id) {
+        return new Response(JSON.stringify({ error: 'Missing id for lookup' }), { status: 400 });
+      }
+
+      const db = await getDb();
+      const collection = db.collection('base_locations');
+      const doc = await collection.findOne(
+        { _id: new ObjectId(id) },
+        { projection: { xCoordinate: 1, yCoordinate: 1 } }
+      );
+      if (!doc) {
+        return new Response(JSON.stringify({ error: 'Location not found' }), { status: 404 });
+      }
+      correctX = doc.xCoordinate;
+      correctY = doc.yCoordinate;
     }
+
     // Calculate points based on distance (simple Euclidean for now)
-    const dx = (xCoor - doc.xCoordinate);
-    const dy = (yCoor - doc.yCoordinate);
+    const dx = (xCoor - correctX!);
+    const dy = (yCoor - correctY!);
     const distance = Math.sqrt(dx * dx + dy * dy);
     // Example scoring: max 100, lose 20 per 0.1 distance
     const points = Math.max(0, Math.round(100 - distance * 200));
+
     return new Response(
-      JSON.stringify({ xCoor: doc.xCoordinate, yCoor: doc.yCoordinate, points }),
+      JSON.stringify({ xCoor: correctX, yCoor: correctY, points }),
       { status: 200 }
     );
   } catch (err) {

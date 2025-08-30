@@ -1,0 +1,21 @@
+
+/* Old image-based dialog box (commented out) */
+/*
+.dialog-bg {
+  background-image: url('/plain dialog box v1.png');
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  border-radius: 0;
+}
+*/
+
+/* New custom theme for dialog box */
+.dialog-bg {
+  background: rgba(30, 30, 40, 0.85);
+  border-radius: 2rem;
+  box-shadow: 0 4px 24px 0 rgba(0,0,0,0.25);
+  border: 1.5px solid rgba(200,200,255,0.12);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}

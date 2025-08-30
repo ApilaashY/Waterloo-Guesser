@@ -4,3 +4,5 @@ photos
 .github
 /.next/
 .next
+.vscode
+.superdesign

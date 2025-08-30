@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { SocketProvider } from "../components/SocketProvider";
+import Navbar from "../components/Navbar";
 import Script from "next/script";
 
 const geistSans = Geist({
@@ -98,7 +99,10 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <SocketProvider>{children}</SocketProvider>
+        <SocketProvider>
+          <Navbar />
+          {children}
+        </SocketProvider>
       </body>
       <Script
         src="https://www.googletagmanager.com/gtag/js?id=G-8YNLGB5Q9Z"

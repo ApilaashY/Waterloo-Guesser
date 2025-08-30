@@ -53,8 +53,8 @@ export function useVersusSocket({
         setState(prevState => ({
           ...prevState,
           image: response.roundData.imageId,
-          correctX: response.roundData.correctX,
-          correctY: response.roundData.correctY
+          correctX: response.roundData.correctX ?? response.roundData.xCoor ?? response.roundData.x ?? null,
+          correctY: response.roundData.correctY ?? response.roundData.yCoor ?? response.roundData.y ?? null,
         }));
       } else {
         console.log('[Versus] No current round data available:', response);
@@ -77,8 +77,8 @@ export function useVersusSocket({
       setState(prevState => ({
         ...prevState,
         image: data.imageId,
-        correctX: data.correctX,
-        correctY: data.correctY
+        correctX: data.correctX ?? data.xCoor ?? data.x ?? null,
+        correctY: data.correctY ?? data.yCoor ?? data.y ?? null,
       }));
       
       // Reset round-specific state
