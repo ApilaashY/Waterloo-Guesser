@@ -1,10 +1,11 @@
-export async function GET(request: Request) {
-  const userId = request.headers.get("user");
+import { NextRequest } from "next/server";
+
+export async function GET(request: NextRequest) {
+  const userId = request.nextUrl.searchParams.get("user");
+
   if (!userId) {
     return new Response("User ID is required", { status: 400 });
   }
-
-  console.log(process.env.ACCESS_TOKEN);
 
   const userRequest = await fetch(
     `https://graph.microsoft.com/v1.0/users/${userId}@uwaterloo.ca?$select=mail,department`,
@@ -17,16 +18,21 @@ export async function GET(request: Request) {
   const retrievedUserData = await userRequest.json();
   const userData = {
     email: retrievedUserData.mail,
-    department: retrievedUserData.department,
+    department: (retrievedUserData.department ?? "")
+      .split(" ")[0]
+      .split("/")[1],
   };
 
-  if (!userData) {
-    return new Response("User not found", { status: 404 });
+  if (retrievedUserData.error) {
+    return new Response(JSON.stringify({ error: "User not found" }), {
+      status: 404,
+    });
   }
 
   console.log(userData);
 
   return new Response(JSON.stringify(userData), {
     headers: { "Content-Type": "application/json" },
+    status: 200,
   });
 }
