@@ -59,13 +59,13 @@ export default function Navbar() {
         </div>
         {/* Login button desktop */}
         <div className="hidden md:flex flex-shrink-0">
-          <a
-            href="#"
+          <Link
+            href="/login"
             className="text-sm font-semibold text-white px-4 py-2 rounded transition shadow-xs"
             style={{ backgroundColor: "#f4b834" }}
           >
             Log in &rarr;
-          </a>
+          </Link>
         </div>
         {/* Hamburger for mobile */}
         <div className="md:hidden flex items-center">
@@ -125,13 +125,13 @@ export default function Navbar() {
                 ))}
               </div>
               <div className="py-6">
-                <a
+                <Link
                   href="/login"
                   className="-mx-3 block rounded-lg px-3 py-2.5 text-base font-semibold text-white"
                   style={{ backgroundColor: "#f4b834" }}
                 >
                   Log in
-                </a>
+                </Link>
               </div>
             </div>
           </div>
