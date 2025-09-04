@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   title: "UW Guesser",
   description: "A game for guessing locations at the University of Waterloo",
   keywords:
-    "waterloo, uwaterloo, campus, guessing game, geoguessr, map, university, location, education, fun, Uwaterloo guesser, UW Guesser, Waterloo Guesser",
+    "uwguessr, uwgusser, watguessr.io, waterloo, uwaterloo, campus, guessing game, geoguessr, map, university, location, education, fun, Uwaterloo guesser, UW Guesser, Waterloo Guesser",
   authors: [{ name: "Senthil Kirthieswar" }, { name: "Apilaash Yoharan" }],
   openGraph: {
     title: "UW Guesser - Guess the Waterloo Campus Location!",
@@ -51,7 +51,7 @@ export default function RootLayout({
         />
         <meta
           name="keywords"
-          content="waterloo, uwaterloo, campus, guessing game, geoguessr, map, university, location, education, fun, Uwaterloo guesser, UW Guesser, Waterloo Guesser, university of waterloo, waterloo campus, campus game, map game, student life, student game, campus challenge, campus trivia, ontario university, canadian university, geo game, geo challenge, geo guessing, geo campus, geo education, geo trivia, geo fun, geo map, geo university, geo waterloo"
+          content="waterloo, uwaterloo, uwguessr, watguessr.io, campus, guessing game, geoguessr, map, university, location, education, fun, Uwaterloo guesser, UW Guesser, Waterloo Guesser, university of waterloo, waterloo campus, campus game, map game, student life, student game, campus challenge, campus trivia, ontario university, canadian university, geo game, geo challenge, geo guessing, geo campus, geo education, geo trivia, geo fun, geo map, geo university, geo waterloo"
         />
         <meta
           name="description"

@@ -11,11 +11,9 @@ function getCloudinaryPublicId(url?: string) {
 import { useEffect, useRef, useState } from "react";
 import { CldImage } from "next-cloudinary";
 import Map from "./Map";
-import LocationUploader from "./LocationUploader";
 import Link from "next/link";
 
 export default function GamePage() {
-  const [showUploader, setShowUploader] = useState(false);
   // const [transformReady, setTransformReady] = useState(false);
   // const [transformReady, setTransformReady] = useState(false);
   interface State {
@@ -32,6 +30,7 @@ export default function GamePage() {
   const [yCoor, setYCoor] = useState<number | null>(null);
   const [xRightCoor, setXRightCoor] = useState<number | null>(null);
   const [yRightCoor, setYRightCoor] = useState<number | null>(null);
+  const [round, setRound] = useState(0);
 
   const [imgOpacity, setImgOpacity] = useState<number | 0.8>(0.8);
   const hovering = useRef(false);
@@ -66,6 +65,26 @@ export default function GamePage() {
   }
 
   function requestImage() {
+    // Increment the round number if less than 5
+    if (round < 5) {
+      setRound(round + 1);
+    } else {
+      // If round is 5 or more, reset to 1 and end the game
+      alert(`Game over! You scored a total of ${totalPoints} points.`);
+      setRound(1);
+      setTotalPoints(0);
+      setQuestionCount(0);
+      setImageIDs([]);
+      setState({});
+      setXCoor(null);
+      setYCoor(null);
+      setXRightCoor(null);
+      setYRightCoor(null);
+      preloadedNext.current = null;
+      requestingImage.current = false;
+      return;
+    }
+
     // If we have a preloaded image ready, use it immediately
     if (preloadedNext.current) {
       const json = preloadedNext.current;
@@ -75,9 +94,11 @@ export default function GamePage() {
       else setImageIDs([...imageIDs, json.id]);
 
       // Set main state and private correct coords (don't display correct answer yet)
-      const correctX = json.correctX ?? json.correct_x ?? json.xCoor ?? json.x ?? null;
-      const correctY = json.correctY ?? json.correct_y ?? json.yCoor ?? json.y ?? null;
-      setState(prev => ({ ...prev, ...json, correctX, correctY }));
+      const correctX =
+        json.correctX ?? json.correct_x ?? json.xCoor ?? json.x ?? null;
+      const correctY =
+        json.correctY ?? json.correct_y ?? json.yCoor ?? json.y ?? null;
+      setState((prev) => ({ ...prev, ...json, correctX, correctY }));
 
       setXCoor(null);
       setYCoor(null);
@@ -101,9 +122,11 @@ export default function GamePage() {
         if (imageIDs.includes(json.id)) setImageIDs([json.id]);
         else setImageIDs([...imageIDs, json.id]);
 
-        const correctX = json.correctX ?? json.correct_x ?? json.xCoor ?? json.x ?? null;
-        const correctY = json.correctY ?? json.correct_y ?? json.yCoor ?? json.y ?? null;
-        setState(prev => ({ ...prev, ...json, correctX, correctY }));
+        const correctX =
+          json.correctX ?? json.correct_x ?? json.xCoor ?? json.x ?? null;
+        const correctY =
+          json.correctY ?? json.correct_y ?? json.yCoor ?? json.y ?? null;
+        setState((prev) => ({ ...prev, ...json, correctX, correctY }));
 
         setXCoor(null);
         setYCoor(null);
@@ -210,7 +233,10 @@ export default function GamePage() {
   }, [requestImage, setupDone]);
 
   // Track natural size of the current image
-  const [naturalSize, setNaturalSize] = useState<{ w: number; h: number } | null>(null);
+  const [naturalSize, setNaturalSize] = useState<{
+    w: number;
+    h: number;
+  } | null>(null);
 
   // Utility: get natural image size by preloading an Image
   // Using a small effects-based loader keeps code simple and works with CldImage URLs
@@ -227,7 +253,10 @@ export default function GamePage() {
       imageLoadedAt.current = Date.now();
       firstMapClickRecorded.current = false;
       firstSubmitRecorded.current = false;
-      console.log('[perf] Image loaded at', new Date(imageLoadedAt.current).toISOString());
+      console.log(
+        "[perf] Image loaded at",
+        new Date(imageLoadedAt.current).toISOString()
+      );
     };
     img.onerror = () => {
       if (!mounted) return;
@@ -241,7 +270,10 @@ export default function GamePage() {
   }, [state.image]);
 
   // Add router for navigation
-  const router = typeof window !== "undefined" ? require("next/navigation").useRouter() : null;
+  const router =
+    typeof window !== "undefined"
+      ? require("next/navigation").useRouter()
+      : null;
 
   // Hover zoom state for preview
   const [previewHover, setPreviewHover] = useState(false);
@@ -249,8 +281,10 @@ export default function GamePage() {
   // Compute minimum zoom so image always fills the area
   const getMinZoom = () => {
     if (!naturalSize) return 1.0;
-    const containerW = 280, containerH = 200;
-    const imgW = naturalSize.w, imgH = naturalSize.h;
+    const containerW = 280,
+      containerH = 200;
+    const imgW = naturalSize.w,
+      imgH = naturalSize.h;
     const zoomW = containerW / imgW;
     const zoomH = containerH / imgH;
     return Math.max(zoomW, zoomH);
@@ -262,7 +296,7 @@ export default function GamePage() {
   useEffect(() => {
     if (naturalSize) {
       const newMinZoom = getMinZoom();
-      setPreviewZoom(prev => Math.max(prev, newMinZoom));
+      setPreviewZoom((prev) => Math.max(prev, newMinZoom));
     }
   }, [naturalSize]);
 
@@ -284,8 +318,12 @@ export default function GamePage() {
   const isMouseOverContainer = (clientX: number, clientY: number): boolean => {
     if (!containerRef.current) return false;
     const rect = containerRef.current.getBoundingClientRect();
-    return clientX >= rect.left && clientX <= rect.right && 
-           clientY >= rect.top && clientY <= rect.bottom;
+    return (
+      clientX >= rect.left &&
+      clientX <= rect.right &&
+      clientY >= rect.top &&
+      clientY <= rect.bottom
+    );
   };
 
   // Global mouse event handlers for dragging outside the container
@@ -306,9 +344,10 @@ export default function GamePage() {
       const dx = e.clientX - dragStart.current.x;
       const dy = e.clientY - dragStart.current.y;
       dragStart.current = { x: e.clientX, y: e.clientY };
-      setPan(prev => {
+      setPan((prev) => {
         // Calculate max pan so image can't be dragged out of bounds
-        const containerW = 280, containerH = 200;
+        const containerW = 280,
+          containerH = 200;
         const imgW = containerW * previewZoom;
         const imgH = containerH * previewZoom;
         const maxX = Math.max(0, (imgW - containerW) / 2);
@@ -322,13 +361,13 @@ export default function GamePage() {
     };
 
     if (dragging) {
-      document.addEventListener('mouseup', handleGlobalMouseUp);
-      document.addEventListener('mousemove', handleGlobalMouseMove);
+      document.addEventListener("mouseup", handleGlobalMouseUp);
+      document.addEventListener("mousemove", handleGlobalMouseMove);
     }
 
     return () => {
-      document.removeEventListener('mouseup', handleGlobalMouseUp);
-      document.removeEventListener('mousemove', handleGlobalMouseMove);
+      document.removeEventListener("mouseup", handleGlobalMouseUp);
+      document.removeEventListener("mousemove", handleGlobalMouseMove);
     };
   }, [dragging, previewZoom]);
 
@@ -346,10 +385,10 @@ export default function GamePage() {
   const handleImageWheel = (e: React.WheelEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     const delta = e.deltaY > 0 ? -0.1 : 0.1;
     const currentMinZoom = getMinZoom();
-    setPreviewZoom(prevZoom => {
+    setPreviewZoom((prevZoom) => {
       const newZoom = prevZoom + delta;
       // Clamp zoom so image always fills the area
       return Math.max(currentMinZoom, Math.min(3, newZoom));
@@ -358,131 +397,136 @@ export default function GamePage() {
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-gray-50 flex-wrap gap-1">
-      {showUploader ? (
-        <LocationUploader />
-      ) : (
-        <div className="relative flex flex-col items-center justify-center w-full h-full">
-          <div className="flex flex-row justify-center sm:justify-between w-full p-2 flex-wrap gap-2">
-            <h1 className="text-xl font-bold text-gray-800 bg-white/80 rounded px-4 py-2 shadow">
-              Points: {totalPoints}
-            </h1>
+      <div className="relative flex flex-col items-center justify-center w-full h-full">
+        <div className="flex flex-row justify-center sm:justify-between w-full p-2 flex-wrap gap-2">
+          <h1 className="text-2xl font-bold text-gray-800 bg-white/80 rounded px-8 py-2 shadow">
+            Points: {totalPoints}
+            <br />
+            Round {round} / 5
+          </h1>
+          <button
+            className=" px-4 py-2 bg-purple-600 text-white rounded shadow hover:bg-purple-700 cursor-pointer"
+            onClick={() => {
+              if (router) router.push("/queue-game");
+              else window.location.href = "/queue-game";
+            }}
+          >
+            Versus
+          </button>
+          <div>
+            <Link
+              href="/add-location"
+              className="px-4 py-2 bg-blue-600 text-white rounded shadow hover:bg-blue-700 cursor-pointer"
+            >
+              Add Location
+            </Link>
             <button
-              className=" px-4 py-2 bg-purple-600 text-white rounded shadow hover:bg-purple-700 cursor-pointer"
+              className="px-4 py-2 bg-blue-600 text-white rounded shadow hover:bg-blue-700 ml-5 cursor-pointer"
               onClick={() => {
-                if (router) router.push("/queue-game");
-                else window.location.href = "/queue-game";
+                router.push("/login");
               }}
             >
-              Multiplayer Queue
+              Login
             </button>
-            <div>
-              <button
-                className="px-4 py-2 bg-blue-600 text-white rounded shadow hover:bg-blue-700 cursor-pointer"
-                onClick={() => setShowUploader((v) => !v)}
-              >
-                {showUploader ? "Back to Game" : "Add Location"}
-              </button>
-              <button
-                className="px-4 py-2 bg-blue-600 text-white rounded shadow hover:bg-blue-700 ml-5 cursor-pointer"
-                onClick={() => {
-                  router.push("/login");
-                }}
-              >
-                Login
-              </button>
-            </div>
-          </div>
-          <div className="flex items-center justify-center w-full h-full">
-            <div
-              ref={mapContainerRef}
-              className="flex items-center justify-center w-full h-full max-w-4xl max-h-[80vh] mx-auto my-auto bg-white rounded shadow-lg overflow-hidden relative"
-            >
-              <Map
-                xCoor={xCoor}
-                yCoor={yCoor}
-                setXCoor={
-                  xRightCoor == null && yRightCoor == null
-                    ? ((val: number | null) => {
-                        // Record first map click timing once per image
-                        if (imageLoadedAt.current && !firstMapClickRecorded.current) {
-                          const delta = Date.now() - imageLoadedAt.current;
-                          console.log(`[perf] Time from image load to first map click: ${delta}ms`);
-                          firstMapClickRecorded.current = true;
-                        }
-                        setXCoor(val);
-                      })
-                    : () => {}
-                }
-                setYCoor={
-                  xRightCoor == null && yRightCoor == null ? setYCoor : () => {}
-                }
-                xRightCoor={xRightCoor}
-                yRightCoor={yRightCoor}
-                disabled={xRightCoor != null && yRightCoor != null}
-                aspectRatio={0.7 * (896 / 683)}
-              />
-              <div className="absolute top-4 right-4 z-50">
-                <button
-                  className="px-4 py-2 bg-green-600 text-white rounded shadow hover:bg-green-700"
-                  onClick={() => {
-                    return xRightCoor == null || yRightCoor == null
-                      ? validateCoordinate()
-                      : requestImage();
-                  }}
-                >
-                  {xRightCoor == null || yRightCoor == null ? "Submit" : "Next"}
-                </button>
-              </div>
-            </div>
-          </div>
-          <div className="absolute bottom-4 left-4 flex justify-start items-start">
-            {state.image && (
-              // Show the image fully (no cropping) but constrained to a small preview box
-              // Use a scale transform on hover to smoothly enlarge the image, then return to original size.
-              // Allow overflow so scaled image isn't clipped
-              <div
-                ref={containerRef}
-                className="rounded shadow relative"
-                style={{ zIndex: 99999, overflow: 'visible' }}
-                onMouseEnter={() => !dragging && setPreviewHover(true)}
-                onMouseLeave={() => !dragging && setPreviewHover(false)}
-              >
-                {/* Container for scroll zoom - restricts zoom to this area */}
-                <div
-                  className="relative rounded overflow-hidden"
-                  style={{
-                    width: '280px',
-                    height: '200px',
-                    transform: previewHover ? 'scale(1.6)' : 'scale(1)',
-                    transformOrigin: 'bottom left',
-                    transition: 'transform 400ms ease'
-                  }}
-                >
-                  <CldImage
-                    src={state.image}
-                    // request the natural size when available (fallback to a reasonable size)
-                    width={naturalSize?.w ?? 800}
-                    height={naturalSize?.h ?? 600}
-                    alt="Campus location"
-                    className="block object-contain rounded shadow"
-                    onWheel={handleImageWheel}
-                    onMouseDown={handleImageMouseDown}
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      display: 'block',
-                      transition: 'transform 200ms ease',
-                      transform: `scale(${previewZoom}) translate(${pan.x / previewZoom}px, ${pan.y / previewZoom}px)`,
-                      transformOrigin: 'center center',
-                      cursor: dragging ? 'grabbing' : 'grab'
-                    }}
-                  />
-                </div>
-              </div>
-            )}
           </div>
         </div>
-      )}
+        <div className="flex items-center justify-center w-full h-full">
+          <div
+            ref={mapContainerRef}
+            className="flex items-center justify-center w-full h-full max-w-4xl max-h-[80vh] mx-auto my-auto bg-white rounded shadow-lg overflow-hidden relative"
+          >
+            <Map
+              xCoor={xCoor}
+              yCoor={yCoor}
+              setXCoor={
+                xRightCoor == null && yRightCoor == null
+                  ? (val: number | null) => {
+                      // Record first map click timing once per image
+                      if (
+                        imageLoadedAt.current &&
+                        !firstMapClickRecorded.current
+                      ) {
+                        const delta = Date.now() - imageLoadedAt.current;
+                        console.log(
+                          `[perf] Time from image load to first map click: ${delta}ms`
+                        );
+                        firstMapClickRecorded.current = true;
+                      }
+                      setXCoor(val);
+                    }
+                  : () => {}
+              }
+              setYCoor={
+                xRightCoor == null && yRightCoor == null ? setYCoor : () => {}
+              }
+              xRightCoor={xRightCoor}
+              yRightCoor={yRightCoor}
+              disabled={xRightCoor != null && yRightCoor != null}
+              aspectRatio={0.7 * (896 / 683)}
+            />
+            <div className="absolute top-4 right-4 z-50">
+              <button
+                className="px-4 py-2 bg-green-600 text-white rounded shadow hover:bg-green-700"
+                onClick={() => {
+                  return xRightCoor == null || yRightCoor == null
+                    ? validateCoordinate()
+                    : requestImage();
+                }}
+              >
+                {xRightCoor == null || yRightCoor == null ? "Submit" : "Next"}
+              </button>
+            </div>
+          </div>
+        </div>
+        <div className="absolute bottom-4 left-4 flex justify-start items-start">
+          {state.image && (
+            // Show the image fully (no cropping) but constrained to a small preview box
+            // Use a scale transform on hover to smoothly enlarge the image, then return to original size.
+            // Allow overflow so scaled image isn't clipped
+            <div
+              ref={containerRef}
+              className="rounded shadow relative"
+              style={{ zIndex: 99999, overflow: "visible" }}
+              onMouseEnter={() => !dragging && setPreviewHover(true)}
+              onMouseLeave={() => !dragging && setPreviewHover(false)}
+            >
+              {/* Container for scroll zoom - restricts zoom to this area */}
+              <div
+                className="relative rounded overflow-hidden"
+                style={{
+                  width: "280px",
+                  height: "200px",
+                  transform: previewHover ? "scale(1.6)" : "scale(1)",
+                  transformOrigin: "bottom left",
+                  transition: "transform 400ms ease",
+                }}
+              >
+                <CldImage
+                  src={state.image}
+                  // request the natural size when available (fallback to a reasonable size)
+                  width={naturalSize?.w ?? 800}
+                  height={naturalSize?.h ?? 600}
+                  alt="Campus location"
+                  className="block object-contain rounded shadow"
+                  onWheel={handleImageWheel}
+                  onMouseDown={handleImageMouseDown}
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    display: "block",
+                    transition: "transform 200ms ease",
+                    transform: `scale(${previewZoom}) translate(${
+                      pan.x / previewZoom
+                    }px, ${pan.y / previewZoom}px)`,
+                    transformOrigin: "center center",
+                    cursor: dragging ? "grabbing" : "grab",
+                  }}
+                />
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

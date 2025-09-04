@@ -1,11 +1,10 @@
 "use client";
 
-import { useRouter } from 'next/navigation';
+import { useRouter } from "next/navigation";
 // components/LocationUploader.tsx
 
-
 import { useState, useEffect } from "react";
-import Map from "./Map";
+import Map from "../../components/Map";
 import Image from "next/image";
 
 // This page can be placed in app/upload/page.tsx for Next.js routing

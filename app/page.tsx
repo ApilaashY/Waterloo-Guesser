@@ -1,5 +1,5 @@
-import Hero from '../components/Hero'
-import Leaderboard from '../components/Leaderboard'
+import Hero from "../components/Hero";
+import Leaderboard from "../components/Leaderboard";
 
 export default function Page() {
   return (
@@ -9,5 +9,5 @@ export default function Page() {
         <Leaderboard />
       </div>
     </>
-  )
+  );
 }

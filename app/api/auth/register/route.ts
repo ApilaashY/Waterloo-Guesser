@@ -5,12 +5,14 @@ export async function POST(request: NextRequest) {
   // Extract request data
   let {
     username,
+    waterlooUsername,
     email,
     department,
     password,
     confirmPassword,
   }: {
     username: string;
+    waterlooUsername: string;
     email: string;
     department: string;
     password: string;
@@ -19,13 +21,21 @@ export async function POST(request: NextRequest) {
 
   // trim all fields
   username = username.trim();
-  email = email.trim();
+  waterlooUsername = waterlooUsername.trim();
+  email = email.trim().toLowerCase();
   department = department.trim();
   password = password.trim();
   confirmPassword = confirmPassword.trim();
 
   // Validate request data
-  if (!username || !email || !department || !password || !confirmPassword) {
+  if (
+    !username ||
+    !waterlooUsername ||
+    !email ||
+    !department ||
+    !password ||
+    !confirmPassword
+  ) {
     return new Response(
       JSON.stringify({
         message: "All fields are required",
@@ -44,6 +54,33 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  // Check if Waterloo Username is valid
+  const data = await fetch(
+    `${process.env.NEXT_PUBLIC_LINK}/api/auth/getUserInfo?user=${waterlooUsername}`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+  const userData = await data.json();
+
+  if (userData.error == "User not found") {
+    return new Response(
+      JSON.stringify({
+        message: "Waterloo Username is invalid",
+      }),
+      { status: 400 }
+    );
+  }
+  if (userData.email) {
+    email = userData.email;
+  }
+  if (userData.department) {
+    department = userData.department;
+  }
+
   // Check if email is valid
   if (!email.includes("@") || !email.includes(".")) {
     return new Response(
@@ -57,13 +94,13 @@ export async function POST(request: NextRequest) {
   // Check if department is valid
   if (
     ![
-      "art",
-      "engineering",
-      "environment",
-      "health",
-      "mathematics",
-      "science",
-      "other",
+      "Arts",
+      "Engineering",
+      "Environment",
+      "Health",
+      "Mathematics",
+      "Science",
+      "Other",
     ].includes(department)
   ) {
     return new Response(
@@ -98,7 +135,7 @@ export async function POST(request: NextRequest) {
   const db = await getDb();
   const user = await db
     .collection("users")
-    .findOne({ email: email.toLowerCase(), password: password.toLowerCase() });
+    .findOne({ email: email, password: password });
 
   console.log(user);
   // Check if user already exists
@@ -114,9 +151,10 @@ export async function POST(request: NextRequest) {
   // Create new user account
   const newUser = await db.collection("users").insertOne({
     username,
-    email: email.toLowerCase(),
+    email: email,
     department,
-    password: password.toLowerCase(),
+    password: password,
+    waterlooUsername: waterlooUsername,
   });
   const newUserRef = await db.collection("user_refs").insertOne({
     user: newUser.insertedId.toString(),
@@ -131,6 +169,7 @@ export async function POST(request: NextRequest) {
         email: email,
         username: username,
         department: department,
+        waterlooUsername: waterlooUsername,
       },
     }),
     { status: 200 }
