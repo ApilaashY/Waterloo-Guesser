@@ -144,12 +144,38 @@ export default function GamePage() {
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-gray-50 flex-wrap gap-1">
       <div className="relative flex flex-col items-center justify-center w-full h-full">
-        <GameHeader
-          totalPoints={gameState.score}
-          currentRound={gameState.currentRound}
-          maxRounds={gameState.maxRounds}
-        />
-
+        {/* <div className="flex flex-row justify-center sm:justify-between w-full p-2 flex-wrap gap-2">
+          <h1 className="text-2xl font-bold text-gray-800 bg-white/80 rounded px-8 py-2 shadow">
+            Points: {totalPoints}
+            <br />
+            Round {round} / 5
+          </h1>
+          <button
+            className=" px-4 py-2 bg-purple-600 text-white rounded shadow hover:bg-purple-700 cursor-pointer"
+            onClick={() => {
+              if (router) router.push("/queue-game");
+              else window.location.href = "/queue-game";
+            }}
+          >
+            Versus
+          </button>
+          <div>
+            <Link
+              href="/add-location"
+              className="px-4 py-2 bg-blue-600 text-white rounded shadow hover:bg-blue-700 cursor-pointer"
+            >
+              Add Location
+            </Link>
+            <button
+              className="px-4 py-2 bg-blue-600 text-white rounded shadow hover:bg-blue-700 ml-5 cursor-pointer"
+              onClick={() => {
+                router.push("/login");
+              }}
+            >
+              Login
+            </button>
+          </div>
+        </div> */}
         <div className="flex items-center justify-center w-full h-full">
           <div className="flex flex-row items-center justify-between w-full h-full max-w-6xl max-h-[92vh] mx-auto my-auto bg-white rounded shadow-lg overflow-hidden relative">
             {/* Left side: controls (optional, can add more UI here) */}
