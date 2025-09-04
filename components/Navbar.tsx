@@ -34,12 +34,12 @@ export default function Navbar() {
   }, [pathname]);
 
   const items = [
-    { id: 'home', label: 'Home', href: '#' },
+    { id: "home", label: "Home", href: "#" },
     // { id: 'profile', label: 'Profile', href: '#' },
     // { id: 'ranked', label: 'Ranked', href: '#' },
     { id: 'play', label: 'Play', href: '/game' },
     // { id: 'collection', label: 'Collection', href: '#' },
-    { id: 'leaderboard', label: 'Leaderboard', href: '/leaderboard' },
+    { id: "leaderboard", label: "Leaderboard", href: "/leaderboard" },
     // { id: 'store', label: 'Store', href: '#' }
   ];
 
@@ -48,16 +48,32 @@ export default function Navbar() {
       <nav className="flex items-center justify-center px-6 py-4 max-w-7xl mx-auto relative">
         {/* Logo */}
         <div className="flex items-center gap-2 flex-shrink-0">
-          <img src="/UWguesser-logo.png" alt="UW Guesser Logo" className="h-10 rounded-lg shadow-lg" />
+          <img
+            src="/UWguesser-logo.png"
+            alt="UW Guesser Logo"
+            className="h-10 rounded-lg shadow-lg"
+          />
           <span className="sr-only">UW Guesser</span>
         </div>
         {/* Desktop Nav items centered */}
-        <div className="hidden md:flex flex-1 justify-center gap-8 relative" id="nav-items">
+        <div
+          className="hidden md:flex flex-1 justify-center gap-8 relative"
+          id="nav-items"
+        >
           {items.map((it, idx) => (
-            <div key={it.id} className="relative flex items-center justify-center">
+            <div
+              key={it.id}
+              className="relative flex items-center justify-center"
+            >
               <Link
                 href={it.href}
-                className={`relative ${it.id === 'play' ? 'text-lg md:text-xl' : 'text-sm'} font-semibold px-6 py-1 transition-all duration-200 ${active === it.id ? 'text-[#f4b834]' : 'text-white/70 hover:text-white'}`}
+                className={`relative ${
+                  it.id === "play" ? "text-lg md:text-xl" : "text-sm"
+                } font-semibold px-6 py-1 transition-all duration-200 ${
+                  active === it.id
+                    ? "text-[#f4b834]"
+                    : "text-white/70 hover:text-white"
+                }`}
                 onClick={() => setActive(it.id)}
               >
                 {it.label}
@@ -67,7 +83,13 @@ export default function Navbar() {
         </div>
         {/* Login button desktop */}
         <div className="hidden md:flex flex-shrink-0">
-          <a href="#" className="text-sm font-semibold text-white px-4 py-2 rounded transition shadow-xs" style={{ backgroundColor: '#f4b834' }}>Log in &rarr;</a>
+          <Link
+            href="/login"
+            className="text-sm font-semibold text-white px-4 py-2 rounded transition shadow-xs"
+            style={{ backgroundColor: "#f4b834" }}
+          >
+            Log in &rarr;
+          </Link>
         </div>
         {/* Hamburger for mobile */}
         <div className="md:hidden flex items-center">
@@ -82,13 +104,23 @@ export default function Navbar() {
         </div>
       </nav>
       {/* Mobile menu */}
-      <Dialog open={mobileMenuOpen} onClose={setMobileMenuOpen} className="md:hidden">
+      <Dialog
+        open={mobileMenuOpen}
+        onClose={setMobileMenuOpen}
+        className="md:hidden"
+      >
         <div className="fixed inset-0 z-50" />
         <DialogPanel className="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-gray-900 p-6 sm:max-w-sm sm:ring-1 sm:ring-gray-100/10">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <img src="/UWguesser-logo.png" alt="UW Guesser Logo" className="h-14 rounded-lg shadow-lg" />
-              <span className="text-white text-lg font-bold tracking-tight">UW Guesser</span>
+              <img
+                src="/UWguesser-logo.png"
+                alt="UW Guesser Logo"
+                className="h-14 rounded-lg shadow-lg"
+              />
+              <span className="text-white text-lg font-bold tracking-tight">
+                UW Guesser
+              </span>
             </div>
             <button
               type="button"
@@ -107,20 +139,23 @@ export default function Navbar() {
                     key={it.id}
                     href={it.href}
                     className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold text-white hover:bg-[#f4b834]/20"
-                    onClick={() => { setActive(it.id); setMobileMenuOpen(false); }}
+                    onClick={() => {
+                      setActive(it.id);
+                      setMobileMenuOpen(false);
+                    }}
                   >
                     {it.label}
                   </Link>
                 ))}
               </div>
               <div className="py-6">
-                <a
-                  href="#"
+                <Link
+                  href="/login"
                   className="-mx-3 block rounded-lg px-3 py-2.5 text-base font-semibold text-white"
-                  style={{ backgroundColor: '#f4b834' }}
+                  style={{ backgroundColor: "#f4b834" }}
                 >
                   Log in
-                </a>
+                </Link>
               </div>
             </div>
           </div>

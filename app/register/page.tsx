@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { useCallback } from "react";
 import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -9,6 +10,13 @@ export default function RegisterPage() {
   const [toast, setToast] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const [email, setEmail] = useState<string>("");
+  const [department, setDepartment] = useState<string>("Arts");
+  const [waterlooUsername, setWaterlooUsername] = useState<string>("");
+  const [emailLocked, setEmailLocked] = useState<boolean>(false);
+  const [departmentLocked, setDepartmentLocked] = useState<boolean>(false);
+
   const router = useRouter();
   const processing = useRef(false);
 
@@ -21,6 +29,7 @@ export default function RegisterPage() {
 
     const formData = new FormData(event.currentTarget);
     const username = formData.get("username") as string;
+    const waterlooUsername = formData.get("waterloousername") as string;
     const email = formData.get("email") as string;
     const department = formData.get("department") as string;
     const password = formData.get("password") as string;
@@ -35,6 +44,7 @@ export default function RegisterPage() {
         },
         body: JSON.stringify({
           username,
+          waterlooUsername,
           email,
           department,
           password,
@@ -56,10 +66,59 @@ export default function RegisterPage() {
     processing.current = false;
   }
 
+  async function getAccountData(waterlooUsername: string) {
+    console.log("Getting account data...");
+
+    const data = await fetch(
+      `${process.env.NEXT_PUBLIC_LINK}/api/auth/getUserInfo?user=${waterlooUsername}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (data.ok) {
+      const user = await data.json();
+      console.log(user);
+      if (user.email) {
+        setEmailLocked(true);
+        setEmail(user.email);
+      } else {
+        setEmailLocked(false);
+        setEmail("");
+      }
+
+      if (user.department) {
+        setDepartmentLocked(true);
+        setDepartment(user.department);
+      } else {
+        setDepartmentLocked(false);
+        setDepartment("Arts");
+      }
+    }
+  }
+
+  // Debounce helper
+  function debounce<T extends (...args: any[]) => void>(func: T, wait: number) {
+    let timeout: NodeJS.Timeout;
+    return (...args: Parameters<T>) => {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => func(...args), wait);
+    };
+  }
+
+  // Debounced version of getAccountData
+  const debouncedGetAccountData = useCallback(
+    debounce(getAccountData, 600),
+    []
+  );
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
       <form
-        className="bg-white p-8 rounded-lg shadow-md max-w-md w-full text-center"
+        className="bg-white p-8 rounded-lg shadow-md max-w-md w-full text-center text-black"
         onSubmit={handleRegister}
       >
         <h1 className="text-2xl font-bold mb-6 text-gray-800">Register</h1>
@@ -72,23 +131,46 @@ export default function RegisterPage() {
         />
 
         <input
+          type="text"
+          name="waterloousername"
+          placeholder="Waterloo Username"
+          value={waterlooUsername}
+          onChange={(e) => {
+            setWaterlooUsername(e.target.value);
+            debouncedGetAccountData(e.target.value);
+          }}
+          onBlur={(e) => getAccountData(e.target.value)}
+          className="w-full px-6 py-3 border border-gray-300 rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+
+        <input
           type="email"
           name="email"
           placeholder="Email"
+          value={email}
+          onChange={(e) => {
+            if (!emailLocked) setEmail(e.target.value);
+          }}
+          disabled={emailLocked}
           className="w-full px-6 py-3 border border-gray-300 rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
 
         <select
           name="department"
+          value={department}
+          onChange={(e) => {
+            if (!departmentLocked) setDepartment(e.target.value);
+          }}
+          disabled={departmentLocked}
           className="w-full px-6 py-3 border border-gray-300 rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
-          <option value="arts">Arts</option>
-          <option value="engineering">Engineering</option>
-          <option value="environment">Environment</option>
-          <option value="health">Health</option>
-          <option value="mathematics">Mathematics</option>
-          <option value="science">Science</option>
-          <option value="other">Other</option>
+          <option value="Arts">Arts</option>
+          <option value="Engineering">Engineering</option>
+          <option value="Environment">Environment</option>
+          <option value="Health">Health</option>
+          <option value="Mathematics">Mathematics</option>
+          <option value="Science">Science</option>
+          <option value="Other">Other</option>
         </select>
 
         <div className="relative">
