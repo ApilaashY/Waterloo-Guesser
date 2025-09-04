@@ -46,7 +46,7 @@ export default function LoginPage() {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
       <form
-        className="bg-white p-8 rounded-lg shadow-md max-w-md w-full text-center"
+        className="bg-white p-8 rounded-lg shadow-md max-w-md w-full text-center text-black"
         onSubmit={handleLogin}
       >
         <h1 className="text-2xl font-bold mb-6 text-gray-800">Login</h1>
@@ -100,7 +100,9 @@ export default function LoginPage() {
         )}
 
         <Link href="/register">
-          <p className="mt-4 text-sm text-gray-600">Create an account</p>
+          <p className="mt-4 text-sm text-gray-600 cursor-pointer">
+            Create an account
+          </p>
         </Link>
       </form>
     </div>

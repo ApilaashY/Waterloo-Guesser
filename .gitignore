@@ -6,3 +6,5 @@ photos
 .next
 .vscode
 .superdesign
+.vercel
+.env*.local

@@ -373,7 +373,7 @@ export default function GamePage() {
                 else window.location.href = "/queue-game";
               }}
             >
-              Multiplayer Queue
+              Versus
             </button>
             <div>
               <button
