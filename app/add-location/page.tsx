@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import Map from "../../components/Map";
 import Image from "next/image";
+import Link from "next/link";
 
 // This page can be placed in app/upload/page.tsx for Next.js routing
 // and will be accessible at /upload
@@ -130,154 +131,168 @@ export default function LocationUploader() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4">
-      {/* Passcode Popup */}
-      {showPasscode && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-lg p-8 flex flex-col items-center">
-            <h2 className="text-xl font-bold mb-4">Enter Passcode</h2>
-            <input
-              type="password"
-              value={passcode}
-              onChange={(e) => setPasscode(e.target.value)}
-              className="border rounded px-4 py-2 mb-4 text-lg"
-              autoFocus
-            />
-            <div className="flex gap-4">
-              <button
-                className="px-4 py-2 bg-blue-600 text-white rounded shadow hover:bg-blue-700"
-                onClick={() => setShowPasscode(false)}
+    <div className="fixed inset-0 flex items-center justify-center bg-gray-50 flex-wrap gap-1">
+      <div className="relative flex flex-col items-center justify-center w-full h-full">
+        <div className="flex flex-row justify-center w-full p-2 flex-wrap gap-2 top-0 left-0 absolute">
+          <Link
+            href="/game"
+            className="px-4 py-2 bg-blue-600 text-white rounded shadow hover:bg-blue-700 cursor-pointer"
+          >
+            Back to Game
+          </Link>
+        </div>
+        <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4">
+          {/* Passcode Popup */}
+          {showPasscode && (
+            <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+              <div className="bg-white rounded-lg shadow-lg p-8 flex flex-col items-center">
+                <h2 className="text-xl font-bold mb-4">Enter Passcode</h2>
+                <input
+                  type="password"
+                  value={passcode}
+                  onChange={(e) => setPasscode(e.target.value)}
+                  className="border rounded px-4 py-2 mb-4 text-lg"
+                  autoFocus
+                />
+                <div className="flex gap-4">
+                  <button
+                    className="px-4 py-2 bg-blue-600 text-white rounded shadow hover:bg-blue-700"
+                    onClick={() => setShowPasscode(false)}
+                  >
+                    Close
+                  </button>
+                  <button
+                    className="px-4 py-2 bg-green-600 text-white rounded shadow hover:bg-green-700"
+                    onClick={() => {
+                      if (passcode === envPasscode) {
+                        setToast("Welcome devs!");
+                        setTimeout(() => setToast(null), 2500);
+                        router.push("/manual-dot-placer");
+                        setShowPasscode(false);
+                      } else {
+                        setToast("Incorrect passcode");
+                        setTimeout(() => setToast(null), 2500);
+                      }
+                    }}
+                  >
+                    Submit
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+          <form
+            className="w-full max-w-lg bg-white rounded-lg shadow-md p-6 flex flex-col gap-4"
+            onSubmit={handleSubmit}
+          >
+            {toast && (
+              <div
+                className={`fixed top-6 right-6 z-50 px-6 py-3 rounded-lg shadow font-bold text-white ${
+                  toast === success ? "bg-green-600" : "bg-red-600"
+                }`}
               >
-                Close
-              </button>
-              <button
-                className="px-4 py-2 bg-green-600 text-white rounded shadow hover:bg-green-700"
-                onClick={() => {
-                  if (passcode === envPasscode) {
-                    setToast("Welcome devs!");
-                    setTimeout(() => setToast(null), 2500);
-                    router.push("/manual-dot-placer");
-                    setShowPasscode(false);
-                  } else {
-                    setToast("Incorrect passcode");
-                    setTimeout(() => setToast(null), 2500);
-                  }
+                {toast}
+              </div>
+            )}
+            {/* ...existing code... */}
+            <h2 className="text-2xl font-bold mb-2 text-gray-800">
+              Upload Campus Location
+            </h2>
+            <label className="block font-medium text-gray-700">
+              Image File
+            </label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange}
+              className="mb-2"
+            />
+            <label className="block font-medium text-gray-700">Building</label>
+            <input
+              type="text"
+              value={building}
+              onChange={(e) => setBuilding(e.target.value)}
+              required
+              className="border rounded px-3 py-2 mb-2"
+            />
+            {previewUrl && (
+              <Image
+                src={previewUrl}
+                alt="Preview"
+                className="max-w-xs rounded shadow mb-2"
+                layout="responsive"
+                width={896}
+                height={683}
+              />
+            )}
+            <div
+              className="flex items-center justify-center w-full"
+              style={{ width: "100%", margin: 0, padding: 0 }}
+            >
+              <div
+                style={{
+                  width: "90vw",
+                  maxWidth: 1200,
+                  aspectRatio: "896/683",
+                  position: "relative",
+                  background: "#eaeaea",
+                  borderRadius: 12,
+                  overflow: "hidden",
+                  margin: 0,
+                  padding: 0,
                 }}
               >
-                Submit
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-      <form
-        className="w-full max-w-lg bg-white rounded-lg shadow-md p-6 flex flex-col gap-4"
-        onSubmit={handleSubmit}
-      >
-        {toast && (
-          <div
-            className={`fixed top-6 right-6 z-50 px-6 py-3 rounded-lg shadow font-bold text-white ${
-              toast === success ? "bg-green-600" : "bg-red-600"
-            }`}
-          >
-            {toast}
-          </div>
-        )}
-        {/* ...existing code... */}
-        <h2 className="text-2xl font-bold mb-2 text-gray-800">
-          Upload Campus Location
-        </h2>
-        <label className="block font-medium text-gray-700">Image File</label>
-        <input
-          type="file"
-          accept="image/*"
-          onChange={handleFileChange}
-          className="mb-2"
-        />
-        <label className="block font-medium text-gray-700">Building</label>
-        <input
-          type="text"
-          value={building}
-          onChange={(e) => setBuilding(e.target.value)}
-          required
-          className="border rounded px-3 py-2 mb-2"
-        />
-        {previewUrl && (
-          <Image
-            src={previewUrl}
-            alt="Preview"
-            className="max-w-xs rounded shadow mb-2"
-            layout="responsive"
-            width={896}
-            height={683}
-          />
-        )}
-        <div
-          className="flex items-center justify-center w-full"
-          style={{ width: "100%", margin: 0, padding: 0 }}
-        >
-          <div
-            style={{
-              width: "90vw",
-              maxWidth: 1200,
-              aspectRatio: "896/683",
-              position: "relative",
-              background: "#eaeaea",
-              borderRadius: 12,
-              overflow: "hidden",
-              margin: 0,
-              padding: 0,
-            }}
-          >
-            <Map
-              xCoor={xCoor}
-              yCoor={yCoor}
-              setXCoor={setXCoor}
-              setYCoor={setYCoor}
-              xRightCoor={null}
-              yRightCoor={null}
-              aspectRatio={0.25}
-            />
-          </div>
-          {/* {xCoor != null && yCoor != null && (
+                <Map
+                  xCoor={xCoor}
+                  yCoor={yCoor}
+                  setXCoor={setXCoor}
+                  setYCoor={setYCoor}
+                  xRightCoor={null}
+                  yRightCoor={null}
+                  aspectRatio={0.25}
+                />
+              </div>
+              {/* {xCoor != null && yCoor != null && (
             <div className="mt-2 text-sm text-gray-700">Selected Coordinates: ({xCoor.toFixed(4)}, {yCoor.toFixed(4)})</div>
           )} */}
-        </div>
-        <button
-          type="submit"
-          disabled={uploading}
-          className="px-4 py-2 bg-blue-600 text-white rounded shadow hover:bg-blue-700 disabled:opacity-50"
-        >
-          {uploading ? "Uploading..." : "Submit Location"}
-        </button>
-        {success && (
-          <>
-            <div className="text-green-600 font-semibold">{success}</div>
+            </div>
             <button
-              type="button"
-              className="mt-2 px-4 py-2 bg-yellow-600 text-white rounded shadow hover:bg-yellow-700"
-              onClick={() => {
-                setImageFile(null);
-                setPreviewUrl(null);
-                setXCoor(null);
-                setYCoor(null);
-                setName("");
-                setBuilding("");
-                setLatitude("");
-                setLongitude("");
-                setPasscode("");
-                setShowPasscode(false);
-                setSuccess(null);
-                setError(null);
-              }}
+              type="submit"
+              disabled={uploading}
+              className="px-4 py-2 bg-blue-600 text-white rounded shadow hover:bg-blue-700 disabled:opacity-50"
             >
-              Add Another Location
+              {uploading ? "Uploading..." : "Submit Location"}
             </button>
-          </>
-        )}
-        {error && <div className="text-red-600 font-semibold">{error}</div>}
-      </form>
-      {/* ManualDotPlacer is now only accessible via redirect, not rendered here */}
+            {success && (
+              <>
+                <div className="text-green-600 font-semibold">{success}</div>
+                <button
+                  type="button"
+                  className="mt-2 px-4 py-2 bg-yellow-600 text-white rounded shadow hover:bg-yellow-700"
+                  onClick={() => {
+                    setImageFile(null);
+                    setPreviewUrl(null);
+                    setXCoor(null);
+                    setYCoor(null);
+                    setName("");
+                    setBuilding("");
+                    setLatitude("");
+                    setLongitude("");
+                    setPasscode("");
+                    setShowPasscode(false);
+                    setSuccess(null);
+                    setError(null);
+                  }}
+                >
+                  Add Another Location
+                </button>
+              </>
+            )}
+            {error && <div className="text-red-600 font-semibold">{error}</div>}
+          </form>
+          {/* ManualDotPlacer is now only accessible via redirect, not rendered here */}
+        </div>
+      </div>
     </div>
   );
 }
