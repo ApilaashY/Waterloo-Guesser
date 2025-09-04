@@ -2,7 +2,8 @@
 "use client";
 
 // Fetch floorplans and buildings from API
-import React, { PropsWithChildren } from "react"; // useRef, useState, useEffect are unused
+import React, { PropsWithChildren, useState, useRef, useImperativeHandle, forwardRef } from "react";
+import { FaMapMarkerAlt } from "react-icons/fa";
 // import ReactDOM from "react-dom";
 import Image from "next/image";
 import {
@@ -45,7 +46,33 @@ interface MapProps extends PropsWithChildren {
   aspectRatio?: number; // width / height
 }
 
-export default function Map(props: MapProps) {
+const Map = forwardRef(function Map(props: MapProps, ref) {
+  const [zoom, setZoom] = useState(1);
+  const transformRef = useRef<any>(null);
+
+  // Expose zoomToArea and resetZoom to parent via ref
+  useImperativeHandle(ref, () => ({
+    zoomToArea: (x1: number, y1: number, x2: number, y2: number) => {
+      if (!transformRef.current) return;
+      // Center between points
+      const centerX = (x1 + x2) / 2;
+      const centerY = (y1 + y2) / 2;
+      // Calculate zoom so both points are visible
+      const minX = Math.min(x1, x2), maxX = Math.max(x1, x2);
+      const minY = Math.min(y1, y2), maxY = Math.max(y1, y2);
+      // Add padding
+      const pad = 0.08;
+      const viewW = maxX - minX + pad;
+      const viewH = maxY - minY + pad;
+      // Clamp to [0,1]
+      const zoomLevel = 1 / Math.max(viewW, viewH);
+      transformRef.current.setTransform(centerX * 100, centerY * 100, Math.min(2.5, Math.max(zoomLevel, 1.2)), 200, 'ease');
+    },
+    resetZoom: () => {
+      if (!transformRef.current) return;
+      transformRef.current.resetTransform();
+    }
+  }), []);
   // --- Future-use state and refs preserved as comments ---
   // const [floorplans, setFloorplans] = useState<Floorplan[]>([]);
   // const [buildings, setBuildings] = useState<Building[]>([]);
@@ -225,7 +252,10 @@ export default function Map(props: MapProps) {
   return (
     <>
       <div className="w-full h-full bg-gray-50" style={{position: "relative"}}>
-        <TransformWrapper>
+        <TransformWrapper
+          ref={transformRef}
+          onZoom={ref => setZoom(ref.state.scale)}
+        >
           <TransformComponent>
             <div onClick={handleClick} className="w-full h-full cursor-crosshair relative">
               <Image
@@ -280,15 +310,17 @@ export default function Map(props: MapProps) {
                     top: `${(props.yCoor as number) * 100}%`,
                     left: `${(props.xCoor as number) * 100}%`,
                     position: "absolute",
-                    width: "3px",
-                    height: "3px",
-                    borderRadius: "50%",
-                    backgroundColor: "red",
                     pointerEvents: "none",
-                    transform: "translate(-50%, -50%)",
+                    transform: "translate(-50%, -100%)", // marker tip at point
+                    zIndex: 10,
                   }}
-                  className="z-10"
-                ></div>
+                >
+                  <FaMapMarkerAlt
+                    size={Math.max(10, 28 / zoom)}
+                    color="red"
+                    style={{ filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.2))" }}
+                  />
+                </div>
               )}
               {props.xRightCoor != null && props.yRightCoor != null && (
                 <div
@@ -296,15 +328,17 @@ export default function Map(props: MapProps) {
                     top: `${(props.yRightCoor as number) * 100}%`,
                     left: `${(props.xRightCoor as number) * 100}%`,
                     position: "absolute",
-                    width: "3px",
-                    height: "3px",
-                    borderRadius: "50%",
-                    backgroundColor: "limegreen",
                     pointerEvents: "none",
-                    transform: "translate(-50%, -50%)",
+                    transform: "translate(-50%, -100%)", // marker tip at point
+                    zIndex: 10,
                   }}
-                  className="z-10"
-                ></div>
+                >
+                  <FaMapMarkerAlt
+                    size={Math.max(10, 28 / zoom)}
+                    color="limegreen"
+                    style={{ filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.2))" }}
+                  />
+                </div>
               )}
               {props.children}
             </div>
@@ -459,4 +493,5 @@ export default function Map(props: MapProps) {
       )} */}
     </>
   );
-}
+});
+export default Map;
