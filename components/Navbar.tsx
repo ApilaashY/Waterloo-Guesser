@@ -1,27 +1,51 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { Dialog, DialogPanel } from '@headlessui/react';
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
-
 export default function Navbar() {
+  const pathname = typeof window !== 'undefined' ? usePathname() : '';
+  // Hide Navbar on /game
+  if (pathname && pathname.toLowerCase().endsWith('/game')) {
+    return null;
+  }
   const [active, setActive] = useState('home');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Only use disappearing feature on /game
+  const [visible, setVisible] = useState(true);
+  useEffect(() => {
+    if (pathname && pathname.toLowerCase().endsWith('/game')) {
+      setVisible(false); // Hide by default
+      const handleMove = (e: MouseEvent) => {
+        if (e.clientY < 64) {
+          setVisible(true);
+        } else {
+          setVisible(false);
+        }
+      };
+      window.addEventListener('mousemove', handleMove);
+      return () => window.removeEventListener('mousemove', handleMove);
+    } else {
+      setVisible(true); // Always show on other pages
+    }
+  }, [pathname]);
 
   const items = [
     { id: 'home', label: 'Home', href: '#' },
     // { id: 'profile', label: 'Profile', href: '#' },
     // { id: 'ranked', label: 'Ranked', href: '#' },
-  { id: 'play', label: 'Play', href: '/game' },
+    { id: 'play', label: 'Play', href: '/game' },
     // { id: 'collection', label: 'Collection', href: '#' },
     { id: 'leaderboard', label: 'Leaderboard', href: '/leaderboard' },
     // { id: 'store', label: 'Store', href: '#' }
   ];
 
   return (
-    <header className="w-full bg-transparent fixed top-0 left-0 z-50">
-      <nav className="flex items-center px-6 py-4 max-w-7xl mx-auto relative">
+    <header className={`w-full bg-transparent fixed top-0 left-0 z-50 transition-all duration-300 ${visible ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
+      <nav className="flex items-center justify-center px-6 py-4 max-w-7xl mx-auto relative">
         {/* Logo */}
         <div className="flex items-center gap-2 flex-shrink-0">
           <img src="/UWguesser-logo.png" alt="UW Guesser Logo" className="h-10 rounded-lg shadow-lg" />
