@@ -31,6 +31,7 @@ export default function GamePage() {
   const [xRightCoor, setXRightCoor] = useState<number | null>(null);
   const [yRightCoor, setYRightCoor] = useState<number | null>(null);
   const [round, setRound] = useState(0);
+  const [showGameFinish, setShowGameFinish] = useState(false);
 
   const [imgOpacity, setImgOpacity] = useState<number | 0.8>(0.8);
   const hovering = useRef(false);
@@ -70,7 +71,7 @@ export default function GamePage() {
       setRound(round + 1);
     } else {
       // If round is 5 or more, reset to 1 and end the game
-      alert(`Game over! You scored a total of ${totalPoints} points.`);
+      setShowGameFinish(true);
       setRound(1);
       setTotalPoints(0);
       setQuestionCount(0);
@@ -397,6 +398,21 @@ export default function GamePage() {
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-gray-50 flex-wrap gap-1">
+      {showGameFinish && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg p-8 flex flex-col items-center">
+            <h2 className="text-xl font-bold mb-4">Enter Passcode</h2>
+            <div className="flex gap-4">
+              <button
+                className="px-4 py-2 bg-blue-600 text-white rounded shadow hover:bg-blue-700"
+                onClick={() => setShowGameFinish(false)}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="relative flex flex-col items-center justify-center w-full h-full">
         <div className="flex flex-row justify-center sm:justify-between w-full p-2 flex-wrap gap-2">
           <h1 className="text-2xl font-bold text-gray-800 bg-white/80 rounded px-8 py-2 shadow">
