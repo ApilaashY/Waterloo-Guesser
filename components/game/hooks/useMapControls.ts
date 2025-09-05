@@ -35,7 +35,12 @@ export const useMapControls = () => {
 
   const resetZoom = useCallback(() => {
     if (!mapRef.current) return;
-    mapRef.current?.resetTransform(300);
+    // Try instance.resetTransform first
+    if (mapRef.current.instance && typeof mapRef.current.instance.resetTransform === 'function') {
+      mapRef.current.instance.resetTransform(300);
+    } else if (typeof mapRef.current.resetTransform === 'function') {
+      mapRef.current.resetTransform(300);
+    }
   }, []);
 
   const controls: MapControls = {
