@@ -1,6 +1,12 @@
 "use client";
 
-import React, { createContext, useContext, useMemo, useEffect, useState } from "react";
+import React, {
+  createContext,
+  useContext,
+  useMemo,
+  useEffect,
+  useState,
+} from "react";
 import { io, Socket } from "socket.io-client";
 
 interface SocketContextType {
@@ -18,14 +24,14 @@ const SocketContext = createContext<SocketContextType>({
 export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [isRestoringSession, setIsRestoringSession] = useState(false);
-  
+
   // Try to restore session from localStorage on mount
-  useEffect(() => {
-    const savedSessionId = localStorage.getItem('sessionId');
-    if (savedSessionId) {
-      setSessionId(savedSessionId);
-    }
-  }, []);
+  // useEffect(() => {
+  //   const savedSessionId = localStorage.getItem('sessionId');
+  //   if (savedSessionId) {
+  //     setSessionId(savedSessionId);
+  //   }
+  // }, []);
 
   const socket = useMemo(() => {
     // Create socket connection
@@ -65,33 +71,42 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
 
     const onConnect = () => {
       console.log("[Socket] Connected with ID:", socket.id);
-      
+
       // If we have a sessionId, identify ourselves to the server
       if (sessionId) {
         console.log("[Socket] Identifying session to server:", sessionId);
         socket.emit("identifySession", sessionId);
-        
+
         console.log("[Socket] Attempting to restore session:", sessionId);
         setIsRestoringSession(true);
-        
-        socket.emit("restoreSession", sessionId, (response: { success: boolean; sessionId?: string }) => {
-          setIsRestoringSession(false);
-          if (response.success) {
-            console.log("[Socket] Successfully restored session:", response.sessionId);
-            // Update session ID in case it was refreshed
-            if (response.sessionId && response.sessionId !== sessionId) {
-              setSessionId(response.sessionId);
-              localStorage.setItem('sessionId', response.sessionId);
-              // Re-identify with the new session ID
-              socket.emit("identifySession", response.sessionId);
+
+        socket.emit(
+          "restoreSession",
+          sessionId,
+          (response: { success: boolean; sessionId?: string }) => {
+            setIsRestoringSession(false);
+            if (response.success) {
+              console.log(
+                "[Socket] Successfully restored session:",
+                response.sessionId
+              );
+              // Update session ID in case it was refreshed
+              if (response.sessionId && response.sessionId !== sessionId) {
+                setSessionId(response.sessionId);
+                localStorage.setItem("sessionId", response.sessionId);
+                // Re-identify with the new session ID
+                socket.emit("identifySession", response.sessionId);
+              }
+            } else {
+              console.log(
+                "[Socket] Could not restore session, starting new one"
+              );
+              // Clear the invalid session ID
+              localStorage.removeItem("sessionId");
+              setSessionId(null);
             }
-          } else {
-            console.log("[Socket] Could not restore session, starting new one");
-            // Clear the invalid session ID
-            localStorage.removeItem('sessionId');
-            setSessionId(null);
           }
-        });
+        );
       }
     };
 
@@ -104,16 +119,24 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
       setIsRestoringSession(false);
     };
 
-    const onQueueMatched = (data: { sessionId: string; partnerId: string; matchId: string; isReconnect?: boolean }) => {
+    const onQueueMatched = (data: {
+      sessionId: string;
+      partnerId: string;
+      matchId: string;
+      isReconnect?: boolean;
+    }) => {
       console.log("[Socket] Queue matched:", data);
       // Store the session ID for reconnection
       setSessionId(data.sessionId);
-      localStorage.setItem('sessionId', data.sessionId);
-      
+      localStorage.setItem("sessionId", data.sessionId);
+
       // Identify ourselves to the server with the new session ID
-      console.log("[Socket] Identifying session to server after match:", data.sessionId);
+      console.log(
+        "[Socket] Identifying session to server after match:",
+        data.sessionId
+      );
       socket.emit("identifySession", data.sessionId);
-      
+
       if (!data.isReconnect) {
         // Only trigger navigation for new matches, not reconnects
         // The round data will be sent separately for reconnects
@@ -125,7 +148,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
     socket.on("connect", onConnect);
     socket.on("disconnect", onDisconnect);
     socket.on("connect_error", onConnectError);
-    socket.on("queueMatched", onQueueMatched);
+    // socket.on("queueMatched", onQueueMatched);
 
     // Connect the socket
     socket.connect();
@@ -136,16 +159,19 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
       socket.off("connect", onConnect);
       socket.off("disconnect", onDisconnect);
       socket.off("connect_error", onConnectError);
-      socket.off("queueMatched", onQueueMatched);
+      // socket.off("queueMatched", onQueueMatched);
       socket.disconnect();
     };
   }, [socket, sessionId]);
 
-  const contextValue = useMemo(() => ({
-    socket,
-    sessionId,
-    isRestoringSession,
-  }), [socket, sessionId, isRestoringSession]);
+  const contextValue = useMemo(
+    () => ({
+      socket,
+      sessionId,
+      isRestoringSession,
+    }),
+    [socket, sessionId, isRestoringSession]
+  );
 
   return (
     <SocketContext.Provider value={contextValue}>
