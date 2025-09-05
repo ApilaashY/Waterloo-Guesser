@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 
 export async function GET(request: NextRequest) {
-  const userId = request.nextUrl.searchParams.get("user");
+  const userId = request.nextUrl.searchParams.get("user")?.toLowerCase();
 
   if (!userId) {
     return new Response("User ID is required", { status: 400 });
@@ -28,8 +28,6 @@ export async function GET(request: NextRequest) {
       status: 404,
     });
   }
-
-  console.log(userData);
 
   return new Response(JSON.stringify(userData), {
     headers: { "Content-Type": "application/json" },

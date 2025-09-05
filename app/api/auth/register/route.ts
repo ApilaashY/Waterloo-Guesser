@@ -11,21 +11,21 @@ export async function POST(request: NextRequest) {
     password,
     confirmPassword,
   }: {
-    username: string;
-    waterlooUsername: string;
-    email: string;
-    department: string;
-    password: string;
-    confirmPassword: string;
+    username?: string;
+    waterlooUsername?: string;
+    email?: string;
+    department?: string;
+    password?: string;
+    confirmPassword?: string;
   } = await request.json();
 
   // trim all fields
-  username = username.trim();
-  waterlooUsername = waterlooUsername.trim();
-  email = email.trim().toLowerCase();
-  department = department.trim();
-  password = password.trim();
-  confirmPassword = confirmPassword.trim();
+  username = username?.trim();
+  waterlooUsername = waterlooUsername?.trim();
+  email = email?.trim().toLowerCase();
+  department = department?.trim();
+  password = password?.trim();
+  confirmPassword = confirmPassword?.trim();
 
   // Validate request data
   if (
@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
   }
 
   // Check if email is valid
-  if (!email.includes("@") || !email.includes(".")) {
+  if (!email?.includes("@") || !email?.includes(".")) {
     return new Response(
       JSON.stringify({
         message: "Invalid email",
@@ -101,7 +101,7 @@ export async function POST(request: NextRequest) {
       "Mathematics",
       "Science",
       "Other",
-    ].includes(department)
+    ].includes(department ?? "")
   ) {
     return new Response(
       JSON.stringify({
