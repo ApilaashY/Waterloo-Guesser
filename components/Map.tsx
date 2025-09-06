@@ -1,4 +1,8 @@
 // components/Map.tsx
+//
+// Main interactive campus map component for Waterloo-Guesser.
+// Features: pan/zoom, marker placement, WASD/arrow navigation, auto-zoom to results, score/distance overlay.
+// Uses react-zoom-pan-pinch for smooth map interaction.
 "use client";
 
 // Fetch floorplans and buildings from API
@@ -35,6 +39,20 @@ import {
 //   y: number;
 // }
 
+/**
+ * Props for the Map component
+ * @property xCoor - User's guess X (normalized 0-1)
+ * @property yCoor - User's guess Y (normalized 0-1)
+ * @property setXCoor - Setter for guess X
+ * @property setYCoor - Setter for guess Y
+ * @property xRightCoor - Correct answer X (normalized 0-1)
+ * @property yRightCoor - Correct answer Y (normalized 0-1)
+ * @property disabled - If true, disables interaction
+ * @property aspectRatio - Optional aspect ratio for layout
+ * @property showScoreDisplay - Show score/distance overlay
+ * @property currentScore - Current round score
+ * @property maxScore - Maximum possible score
+ */
 interface MapProps extends PropsWithChildren {
   xCoor: number | null;
   yCoor: number | null;
@@ -44,19 +62,125 @@ interface MapProps extends PropsWithChildren {
   yRightCoor: number | null;
   disabled?: boolean;
   aspectRatio?: number; // width / height
+  showScoreDisplay?: boolean; // New prop to control score display
+  currentScore?: number; // Current round score
+  maxScore?: number; // Maximum possible score
 }
 
+/**
+ * Map component: interactive campus map with pan/zoom, marker placement, and result overlay.
+ * - WASD/arrow keys for movement
+ * - Zoom presets and corner keybinds
+ * - Auto-zoom to show guess and answer
+ * - Displays round results (distance, score)
+ */
 const Map = forwardRef(function Map(props: MapProps, ref) {
+  // Current zoom level
   const [zoom, setZoom] = useState(1);
+  // Ref to react-zoom-pan-pinch instance
   const transformRef = useRef<ReactZoomPanPinchRef>(null);
 
-  // Clamp pan so image always fills container
+  /**
+   * Calculates the real-world distance (meters) between two normalized map points.
+   * Uses user-provided reference points for calibration.
+   */
+  const calculateDistance = (x1: number, y1: number, x2: number, y2: number) => {
+    // Map image pixel dimensions
+    const mapPixelWidth = 896;
+    const mapPixelHeight = 683;
+    // Reference points (calibrated: 79.5 meters apart)
+    const ref1 = { x: 0.7042735042735043, y: 0.5448430493273543 };
+    const ref2 = { x: 0.7384615384615385, y: 0.5448430493273543 };
+    // Calculate pixel distance between reference points
+    const refPx1 = ref1.x * mapPixelWidth;
+    const refPy1 = ref1.y * mapPixelHeight;
+    const refPx2 = ref2.x * mapPixelWidth;
+    const refPy2 = ref2.y * mapPixelHeight;
+    const refDeltaPx = refPx2 - refPx1;
+    const refDeltaPy = refPy2 - refPy1;
+    const refPixelDistance = Math.sqrt(refDeltaPx * refDeltaPx + refDeltaPy * refDeltaPy);
+    // Calibrate meters-per-pixel so that refPixelDistance = 79.5 meters
+    const metersPerPixel = 79.5 / refPixelDistance;
+    // Calculate pixel distance for input points
+    const px1 = x1 * mapPixelWidth;
+    const py1 = y1 * mapPixelHeight;
+    const px2 = x2 * mapPixelWidth;
+    const py2 = y2 * mapPixelHeight;
+    const deltaPx = px2 - px1;
+    const deltaPy = py2 - py1;
+    const pixelDistance = Math.sqrt(deltaPx * deltaPx + deltaPy * deltaPy);
+    return pixelDistance * metersPerPixel;
+  };
+
+  /**
+   * Returns formatted distance string for overlay (meters or km).
+   */
+  const getDistanceDisplay = () => {
+    if (props.xCoor != null && props.yCoor != null && 
+        props.xRightCoor != null && props.yRightCoor != null) {
+      const distance = calculateDistance(props.xCoor, props.yCoor, props.xRightCoor, props.yRightCoor);
+      
+      if (distance < 1000) {
+        return `${Math.round(distance)}m`;
+      } else {
+        return `${(distance / 1000).toFixed(2)}km`;
+      }
+    }
+    return null;
+  };
+
+  /**
+   * Auto-zooms and pans to show both guess and answer markers with padding.
+   * Runs when both coordinates are present.
+   */
+  React.useEffect(() => {
+    if (props.xCoor != null && props.yCoor != null && 
+        props.xRightCoor != null && props.yRightCoor != null && 
+        transformRef.current) {
+      setTimeout(() => {
+        if (transformRef.current) {
+          // Center between the two points (normalized coordinates)
+          const centerX = (props.xCoor! + props.xRightCoor!) / 2;
+          const centerY = (props.yCoor! + props.yRightCoor!) / 2;
+          // Calculate distance between points
+          const deltaX = Math.abs(props.xCoor! - props.xRightCoor!);
+          const deltaY = Math.abs(props.yCoor! - props.yRightCoor!);
+          // Add padding around the markers
+          const padding = 0.15;
+          const viewWidth = Math.max(deltaX + padding, 0.3); // Minimum view width
+          const viewHeight = Math.max(deltaY + padding, 0.3); // Minimum view height
+          // Calculate zoom level to fit both points with padding
+          const zoomLevel = Math.min(1 / viewWidth, 1 / viewHeight);
+          const finalZoom = Math.min(Math.max(zoomLevel, 1.2), 2.5);
+          // Convert normalized center to transform coordinates
+          // Instead of shifting by containerWidth/2, just use normalized center
+          // and scale to map coordinates
+          const mapX = centerX * containerWidth;
+          const mapY = centerY * containerHeight;
+          // Center the map so that the center point is in the middle of the viewport
+          const offsetX = (containerWidth / 2 - mapX) * finalZoom;
+          const offsetY = (containerHeight / 2 - mapY) * finalZoom;
+          transformRef.current.setTransform(
+            offsetX,
+            offsetY,
+            finalZoom,
+            800,
+            'easeOut'
+          );
+        }
+      }, 100);
+    }
+  }, [props.xCoor, props.yCoor, props.xRightCoor, props.yRightCoor]);
+
+  // Map image container dimensions
   const containerWidth = 896;
   const containerHeight = 683;
+
+  /**
+   * Clamps pan so the image always fills the container and doesn't move out of bounds.
+   * Used for keyboard/mouse movement and zoom.
+   */
   const clampPan = (x: number, y: number, zoomLevel = zoom) => {
-    if (zoomLevel <= 1) {
-      return { x: 0, y: 0 };
-    }
     const imgWz = containerWidth * zoomLevel;
     const imgHz = containerHeight * zoomLevel;
     const maxX = Math.max(0, (imgWz - containerWidth) / 2);
@@ -67,7 +191,16 @@ const Map = forwardRef(function Map(props: MapProps, ref) {
     };
   };
 
-  // Expose zoomToArea, resetZoom, and pan methods to parent via ref
+  /**
+   * Exposes map control methods to parent via ref:
+   * - zoomToArea: zooms to fit two points
+   * - resetZoom: resets pan/zoom
+   * - panBy: pans by delta
+   * - panToTopLeft/Right/BottomLeft/BottomRight: pans to corners
+   * - setZoom: sets zoom level
+   * - zoomIn/zoomOut: zoom controls
+   * - getPan/getZoom: returns current pan/zoom
+   */
   useImperativeHandle(ref, () => {
     return {
       zoomToArea: (x1: number, y1: number, x2: number, y2: number) => {
@@ -177,15 +310,24 @@ const Map = forwardRef(function Map(props: MapProps, ref) {
     };
   }, [zoom]);
 
+  /**
+   * Handles user click on the map image.
+   * Converts click position to normalized coordinates and sets guess.
+   */
   function handleClick(event: React.MouseEvent<HTMLImageElement>) {
     if (props.disabled) return;
     const img = event.currentTarget as HTMLImageElement;
     const x = event.nativeEvent.offsetX / img.clientWidth;
     const y = event.nativeEvent.offsetY / img.clientHeight;
+    // console.log('Map click:', { x, y });
     props.setXCoor(x);
     props.setYCoor(y);
   }
 
+  /**
+   * Returns CSS style for the line connecting guess and answer markers.
+   * Used for visual feedback after a guess.
+   */
   const lineStyle = () => {
     if (
       props.xCoor != null &&
@@ -218,6 +360,7 @@ const Map = forwardRef(function Map(props: MapProps, ref) {
     return {};
   };
 
+  // Main render: map image, markers, result overlay
   return (
     <>
       <div className="w-full h-full bg-gray-50" style={{ position: "relative" }}>
@@ -285,6 +428,34 @@ const Map = forwardRef(function Map(props: MapProps, ref) {
             </div>
           </TransformComponent>
         </TransformWrapper>
+        
+        {/* Score Display Overlay */}
+        {props.showScoreDisplay && props.xCoor != null && props.yCoor != null && 
+         props.xRightCoor != null && props.yRightCoor != null && (
+          <div 
+            className="absolute top-4 right-4 bg-black bg-opacity-75 text-white p-4 rounded-lg shadow-lg z-20"
+            style={{ backdropFilter: 'blur(5px)' }}
+          >
+            <div className="text-center">
+              <div className="text-sm font-semibold mb-2">Round Results</div>
+              <div className="space-y-1">
+                <div className="text-lg font-bold text-yellow-400">
+                  Distance: {getDistanceDisplay()}
+                </div>
+                {props.currentScore != null && (
+                  <div className="text-lg font-bold text-green-400">
+                    Score: {props.currentScore}
+                  </div>
+                )}
+                {props.maxScore != null && (
+                  <div className="text-sm text-gray-300">
+                    Max Possible: {props.maxScore}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </>
   );

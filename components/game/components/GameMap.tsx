@@ -43,8 +43,8 @@ const GameMap = forwardRef<any, GameMapProps>(({
   useEffect(() => {
     if (disabled || enlarged) return; // Disable movement if enlarged is true
 
-    const PAN_STEP = 40;
-    const PAN_INTERVAL = 30; // ms
+  const PAN_STEP = 600;
+  const PAN_INTERVAL = 30; // ms (smoother, ~60fps)
     const panKeys = ['arrowup', 'arrowleft', 'arrowdown', 'arrowright', 'w', 'a', 's', 'd']; // Added WASD keys
     const zoomKeys = ['1', '2', '3']; // Zoom preset keys
 
@@ -168,6 +168,9 @@ const GameMap = forwardRef<any, GameMapProps>(({
       yRightCoor={yRightCoor}
       disabled={disabled}
       aspectRatio={0.7 * (896 / 683)}
+      showScoreDisplay={true}
+      currentScore={850}
+      maxScore={1000}
     />
   );
 });

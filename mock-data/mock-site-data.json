@@ -35,13 +35,223 @@
     }
   ],
   "players": [
-  { "id": "p_anna", "name": "Anna Lee", "avatar": "/avatars/anna.jpg", "rank": 1200 },
-  { "id": "p_ben", "name": "Ben Cho", "avatar": "/avatars/ben.jpg", "rank": 1450 },
-  { "id": "p_chris", "name": "Chris N.", "avatar": "/avatars/chris.jpg", "rank": 1580 },
-  { "id": "p_diego", "name": "Diego M.", "avatar": "/avatars/diego.jpg", "rank": 980 },
-  { "id": "p_ellen", "name": "Ellen P.", "avatar": "/avatars/ellen.jpg", "rank": 2000 },
-  { "id": "p_fatima", "name": "Fatima K.", "avatar": "/avatars/fatima.jpg", "rank": 0 },
-  { "id": "p_guest", "name": "Guest User", "avatar": null, "rank": null }
+  {
+    "_id": "ObjectId(\"p_anna_mock\")",
+    "playerId": "p_anna",
+    "name": "Anna Lee",
+    "avatar": "/avatars/anna.jpg",
+    "role": "student",
+    "rank": 1200,
+    "createdAt": "2025-09-01T10:00:00Z",
+    "lastActiveAt": "2025-09-06T15:42:00Z",
+    "stats": {
+      "gamesPlayed": 124,
+      "wins": 68,
+      "losses": 56,
+      "avgScore": 312,
+      "bestScore": 9800,
+      "accuracy": 0.72,
+      "longestStreak": 9,
+      "currentStreak": 3
+    },
+    "progression": {
+      "xp": 15200,
+      "level": 12,
+      "achievements": [
+        { "id": "first_win", "earnedAt": "2025-09-02T11:12:00Z" },
+        { "id": "accuracy_70", "earnedAt": "2025-09-04T09:50:00Z" }
+      ]
+    },
+    "preferences": {
+      "notifications": true,
+      "theme": "dark"
+    }
+  },
+  {
+    "_id": "ObjectId(\"p_ben_mock\")",
+    "playerId": "p_ben",
+    "name": "Ben Cho",
+    "avatar": "/avatars/ben.jpg",
+    "role": "student",
+    "rank": 1450,
+    "createdAt": "2025-08-28T09:30:00Z",
+    "lastActiveAt": "2025-09-06T15:40:00Z",
+    "stats": {
+      "gamesPlayed": 210,
+      "wins": 120,
+      "losses": 90,
+      "avgScore": 360,
+      "bestScore": 12000,
+      "accuracy": 0.82,
+      "longestStreak": 14,
+      "currentStreak": 5
+    },
+    "progression": {
+      "xp": 20400,
+      "level": 15,
+      "achievements": [
+        { "id": "first_win", "earnedAt": "2025-08-29T10:00:00Z" },
+        { "id": "streak_5", "earnedAt": "2025-09-05T14:00:00Z" }
+      ]
+    },
+    "preferences": {
+      "notifications": false,
+      "theme": "dark"
+    }
+  },
+  {
+    "_id": "ObjectId(\"p_chris_mock\")",
+    "playerId": "p_chris",
+    "name": "Chris N.",
+    "avatar": "/avatars/chris.jpg",
+    "role": "alumni",
+    "rank": 1580,
+    "createdAt": "2025-07-15T08:00:00Z",
+    "lastActiveAt": "2025-09-06T15:39:00Z",
+    "stats": {
+      "gamesPlayed": 340,
+      "wins": 230,
+      "losses": 110,
+      "avgScore": 410,
+      "bestScore": 20000,
+      "accuracy": 0.85,
+      "longestStreak": 22,
+      "currentStreak": 7
+    },
+    "progression": {
+      "xp": 32000,
+      "level": 22,
+      "achievements": [
+        { "id": "first_win", "earnedAt": "2025-07-16T09:00:00Z" },
+        { "id": "accuracy_80", "earnedAt": "2025-08-10T12:00:00Z" }
+      ]
+    },
+    "preferences": {
+      "notifications": true,
+      "theme": "light"
+    }
+  },
+  {
+    "_id": "ObjectId(\"p_diego_mock\")",
+    "playerId": "p_diego",
+    "name": "Diego M.",
+    "avatar": "/avatars/diego.jpg",
+    "role": "student",
+    "rank": 980,
+    "createdAt": "2025-09-03T13:00:00Z",
+    "lastActiveAt": "2025-09-06T15:38:00Z",
+    "stats": {
+      "gamesPlayed": 38,
+      "wins": 10,
+      "losses": 28,
+      "avgScore": 140,
+      "bestScore": 5600,
+      "accuracy": 0.26,
+      "longestStreak": 2,
+      "currentStreak": 1
+    },
+    "progression": {
+      "xp": 1800,
+      "level": 3,
+      "achievements": [
+        { "id": "first_win", "earnedAt": "2025-09-04T10:00:00Z" }
+      ]
+    },
+    "preferences": {
+      "notifications": true,
+      "theme": "dark"
+    }
+  },
+  {
+    "_id": "ObjectId(\"p_ellen_mock\")",
+    "playerId": "p_ellen",
+    "name": "Ellen P.",
+    "avatar": "/avatars/ellen.jpg",
+    "role": "faculty",
+    "rank": 2000,
+    "createdAt": "2025-06-01T09:00:00Z",
+    "lastActiveAt": "2025-09-06T15:37:00Z",
+    "stats": {
+      "gamesPlayed": 520,
+      "wins": 400,
+      "losses": 120,
+      "avgScore": 470,
+      "bestScore": 30000,
+      "accuracy": 0.92,
+      "longestStreak": 48,
+      "currentStreak": 20
+    },
+    "progression": {
+      "xp": 50000,
+      "level": 30,
+      "achievements": [
+        { "id": "first_win", "earnedAt": "2025-06-02T10:00:00Z" },
+        { "id": "streak_20", "earnedAt": "2025-09-06T15:00:00Z" }
+      ]
+    },
+    "preferences": {
+      "notifications": true,
+      "theme": "dark"
+    }
+  },
+  {
+    "_id": "ObjectId(\"p_fatima_mock\")",
+    "playerId": "p_fatima",
+    "name": "Fatima K.",
+    "avatar": "/avatars/fatima.jpg",
+    "role": "guest",
+    "rank": 0,
+    "createdAt": "2025-09-05T11:00:00Z",
+    "lastActiveAt": "2025-09-06T15:36:00Z",
+    "stats": {
+      "gamesPlayed": 2,
+      "wins": 0,
+      "losses": 2,
+      "avgScore": 20,
+      "bestScore": 20,
+      "accuracy": 0.0,
+      "longestStreak": 0,
+      "currentStreak": 0
+    },
+    "progression": {
+      "xp": 100,
+      "level": 1,
+      "achievements": []
+    },
+    "preferences": {
+      "notifications": false,
+      "theme": "light"
+    }
+  },
+  {
+    "_id": "ObjectId(\"p_guest_mock\")",
+    "playerId": "p_guest",
+    "name": "Guest User",
+    "avatar": null,
+    "role": "guest",
+    "rank": null,
+    "createdAt": "2025-09-06T15:35:00Z",
+    "lastActiveAt": "2025-09-06T15:35:00Z",
+    "stats": {
+      "gamesPlayed": 1,
+      "wins": 0,
+      "losses": 1,
+      "avgScore": 5,
+      "bestScore": 5,
+      "accuracy": 0.0,
+      "longestStreak": 0,
+      "currentStreak": 0
+    },
+    "progression": {
+      "xp": 10,
+      "level": 1,
+      "achievements": []
+    },
+    "preferences": {
+      "notifications": false,
+      "theme": "dark"
+    }
+  }
   ],
   "leaderboard": [
   { "playerId": "p_chris", "score": 49820, "rank": 1 },

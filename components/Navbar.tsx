@@ -5,25 +5,35 @@ import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { Dialog, DialogPanel } from '@headlessui/react';
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
+import { useSession } from './SessionProvider';
 export default function Navbar() {
   const pathname = usePathname();
+  const { user, isAuthenticated, logout } = useSession();
+  
   if (pathname && pathname.toLowerCase().endsWith('/game')) {
     return null;
   }
+  
   const [active, setActive] = useState('home');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [visible, setVisible] = useState(true);
+  
   useEffect(() => {
     setVisible(true);
   }, [pathname]);
 
+  const handleLogout = async () => {
+    await logout();
+    setMobileMenuOpen(false);
+  };
+
   const items = [
-    { id: "home", label: "Home", href: "#" },
+    // { id: "home", label: "Home", href: "#" },
     // { id: 'profile', label: 'Profile', href: '#' },
     // { id: 'ranked', label: 'Ranked', href: '#' },
     { id: 'play', label: 'Play', href: '/game' },
     // { id: 'collection', label: 'Collection', href: '#' },
-    { id: "leaderboard", label: "Leaderboard", href: "/leaderboard" },
+    // { id: "leaderboard", label: "Leaderboard", href: "/leaderboard" },
     // { id: 'store', label: 'Store', href: '#' }
   ];
 
@@ -31,14 +41,14 @@ export default function Navbar() {
     <header className={`w-full bg-transparent fixed top-0 left-0 z-50 transition-all duration-300 ${pathname && pathname.toLowerCase().endsWith('/game') ? (visible ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none') : 'opacity-100 pointer-events-auto'}`}>
       <nav className="flex items-center justify-center px-6 py-4 max-w-7xl mx-auto relative">
         {/* Logo */}
-        <div className="flex items-center gap-2 flex-shrink-0">
+        <Link href="/" className="flex items-center gap-2 flex-shrink-0">
           <img
             src="/UWguesser-logo.png"
             alt="UW Guesser Logo"
             className="h-10 rounded-lg shadow-lg"
           />
           <span className="sr-only">UW Guesser</span>
-        </div>
+        </Link>
         {/* Desktop Nav items centered */}
         <div
           className="hidden md:flex flex-1 justify-center gap-8 relative"
@@ -50,7 +60,7 @@ export default function Navbar() {
               className="relative flex items-center justify-center"
             >
               <Link
-                href={it.href}
+                href={"/game"}
                 className={`relative ${
                   it.id === "play" ? "text-lg md:text-xl" : "text-sm"
                 } font-semibold px-6 py-1 transition-all duration-200 ${
@@ -65,15 +75,29 @@ export default function Navbar() {
             </div>
           ))}
         </div>
-        {/* Login button desktop */}
-        <div className="hidden md:flex flex-shrink-0">
-          <Link
-            href="/login"
-            className="text-sm font-semibold text-white px-4 py-2 rounded transition shadow-xs"
-            style={{ backgroundColor: "#f4b834" }}
-          >
-            Log in &rarr;
-          </Link>
+        {/* Auth section - desktop */}
+        <div className="hidden md:flex flex-shrink-0 items-center gap-4">
+          {isAuthenticated ? (
+            <>
+              <span className="text-sm text-white/80">
+                Welcome, {user?.username}
+              </span>
+              <button
+                onClick={handleLogout}
+                className="text-sm font-semibold text-white px-4 py-2 rounded transition shadow-xs hover:bg-white/10"
+              >
+                Logout
+              </button>
+            </>
+          ) : (
+            <Link
+              href="/login"
+              className="text-sm font-semibold text-white px-4 py-2 rounded transition shadow-xs"
+              style={{ backgroundColor: "#f4b834" }}
+            >
+              Log in &rarr;
+            </Link>
+          )}
         </div>
         {/* Hamburger for mobile */}
         <div className="md:hidden flex items-center">
@@ -96,7 +120,7 @@ export default function Navbar() {
         <div className="fixed inset-0 z-50" />
         <DialogPanel className="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-gray-900 p-6 sm:max-w-sm sm:ring-1 sm:ring-gray-100/10">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
+            <Link href="/" className="flex items-center gap-2">
               <img
                 src="/UWguesser-logo.png"
                 alt="UW Guesser Logo"
@@ -105,7 +129,7 @@ export default function Navbar() {
               <span className="text-white text-lg font-bold tracking-tight">
                 UW Guesser
               </span>
-            </div>
+            </Link>
             <button
               type="button"
               onClick={() => setMobileMenuOpen(false)}
@@ -133,13 +157,28 @@ export default function Navbar() {
                 ))}
               </div>
               <div className="py-6">
-                <Link
-                  href="/login"
-                  className="-mx-3 block rounded-lg px-3 py-2.5 text-base font-semibold text-white"
-                  style={{ backgroundColor: "#f4b834" }}
-                >
-                  Log in
-                </Link>
+                {isAuthenticated ? (
+                  <>
+                    <div className="mb-4 text-white/80 text-sm px-3">
+                      Welcome, {user?.username}
+                    </div>
+                    <button
+                      onClick={handleLogout}
+                      className="-mx-3 block w-full text-left rounded-lg px-3 py-2.5 text-base font-semibold text-white hover:bg-white/10"
+                    >
+                      Logout
+                    </button>
+                  </>
+                ) : (
+                  <Link
+                    href="/login"
+                    className="-mx-3 block rounded-lg px-3 py-2.5 text-base font-semibold text-white"
+                    style={{ backgroundColor: "#f4b834" }}
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Log in
+                  </Link>
+                )}
               </div>
             </div>
           </div>
