@@ -1,4 +1,4 @@
-import { GameState } from '../types';
+import { GameState } from "../types";
 
 interface DebugInfoProps {
   sessionId: string | null;
@@ -34,8 +34,13 @@ export default function DebugInfo(props: DebugInfoProps) {
   };
 
   return (
-    <details className="p-4 mb-4 text-sm bg-gray-100 rounded-lg" style={{ cursor: 'pointer' }}>
-      <summary className="font-semibold text-gray-800 select-none">Debug Info (click to expand)</summary>
+    <details
+      className="p-4 mb-4 text-sm bg-gray-100 rounded-lg"
+      style={{ cursor: "pointer" }}
+    >
+      <summary className="font-semibold text-gray-800 select-none">
+        Debug Info (click to expand)
+      </summary>
       <pre className="whitespace-pre-wrap text-gray-700 mt-2">
         {JSON.stringify(debugData, null, 2)}
       </pre>

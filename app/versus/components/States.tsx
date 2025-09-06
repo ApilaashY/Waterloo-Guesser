@@ -1,3 +1,7 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+
 export function LoadingState({ message = "Loading..." }: { message?: string }) {
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
@@ -9,22 +13,25 @@ export function LoadingState({ message = "Loading..." }: { message?: string }) {
   );
 }
 
-export function ErrorState({ 
-  title = "Error", 
+export function ErrorState({
+  title = "Error",
   message = "An error occurred",
-  onBack = () => window.location.href = '/'
-}: { 
+  onBack,
+}: {
   title?: string;
   message?: string;
   onBack?: () => void;
 }) {
+  const router = useRouter();
+  const defaultOnBack = () => router.push("/");
+
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <div className="text-center p-6 bg-white rounded-lg shadow-md max-w-md mx-4">
         <h2 className="text-2xl font-bold text-red-600 mb-4">{title}</h2>
         <p className="text-gray-700 mb-6">{message}</p>
         <button
-          onClick={onBack}
+          onClick={onBack || defaultOnBack}
           className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
         >
           Back to Home

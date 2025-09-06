@@ -1,6 +1,4 @@
-
 interface GameControlsProps {
-  onValidateCoordinate: () => void;
   onSubmit: () => void;
   opponentHasSubmitted: boolean;
   isRoundComplete: boolean;
@@ -10,7 +8,6 @@ interface GameControlsProps {
 }
 
 const GameControls: React.FC<GameControlsProps> = ({
-  onValidateCoordinate,
   onSubmit,
   opponentHasSubmitted,
   isRoundComplete,
@@ -34,15 +31,6 @@ const GameControls: React.FC<GameControlsProps> = ({
 
   return (
     <div className="flex flex-col sm:flex-row items-center justify-between mt-4">
-      <div className="flex-1 mb-2 sm:mb-0">
-        <button
-          onClick={onValidateCoordinate}
-          className="w-full px-4 py-2 text-sm font-semibold text-white bg-blue-600 rounded hover:bg-blue-700 transition-colors"
-          disabled={isRoundComplete || hasSubmitted || xCoor === null || yCoor === null}
-        >
-          Validate Coordinates
-        </button>
-      </div>
       <div className="flex-1">
         <button
           onClick={onSubmit}
