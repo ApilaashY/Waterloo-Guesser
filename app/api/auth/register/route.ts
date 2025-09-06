@@ -1,5 +1,7 @@
 import { getDb } from "@/lib/mongodb";
 import { NextRequest } from "next/server";
+import { generateSessionToken } from "@/lib/auth";
+import { createAuthResponse } from "@/lib/middleware";
 
 export async function POST(request: NextRequest) {
   // Extract request data
@@ -160,18 +162,30 @@ export async function POST(request: NextRequest) {
     user: newUser.insertedId.toString(),
   });
 
-  return new Response(
-    JSON.stringify({
-      message: `Login successful, Hello ${username}`,
-      user: {
-        ref: newUserRef.insertedId.toString(),
-        id: newUser.insertedId.toString(),
-        email: email,
-        username: username,
-        department: department,
-        waterlooUsername: waterlooUsername,
-      },
-    }),
-    { status: 200 }
-  );
+  // Generate PASETO session token
+  const userPayload = {
+    ref: newUserRef.insertedId.toString(),
+    id: newUser.insertedId.toString(),
+    email: email!,
+    username: username!,
+    department: department!,
+    waterlooUsername: waterlooUsername!,
+  };
+
+  try {
+    const sessionToken = await generateSessionToken(userPayload);
+    
+    return createAuthResponse({
+      message: `Registration successful, Hello ${username}`,
+      user: userPayload,
+    }, sessionToken);
+  } catch (error) {
+    console.error('Error generating session token:', error);
+    return new Response(
+      JSON.stringify({
+        message: "Internal Server Error",
+      }),
+      { status: 500 }
+    );
+  }
 }

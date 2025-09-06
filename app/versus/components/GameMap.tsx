@@ -32,9 +32,76 @@ export default function GameMap({
   mapContainerRef,
   disabled,
 }: GameMapProps) {
+  // Fast-paced WASD/arrow movement logic
+  const mapRef = React.useRef<any>(null);
+  const panIntervalRef = React.useRef<NodeJS.Timeout | null>(null);
+  const activeKeysRef = React.useRef<Set<string>>(new Set());
+  const PAN_STEP = 60; // px per tick
+  const PAN_INTERVAL = 10; // ms
+
+  React.useEffect(() => {
+    const panKeys = ['w', 'a', 's', 'd', 'arrowup', 'arrowleft', 'arrowdown', 'arrowright'];
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const key = e.key.toLowerCase();
+      if (panKeys.includes(key)) {
+        activeKeysRef.current.add(key);
+        if (!panIntervalRef.current) {
+          panIntervalRef.current = setInterval(() => {
+            let deltaX = 0;
+            let deltaY = 0;
+            activeKeysRef.current.forEach((activeKey) => {
+              switch (activeKey) {
+                case 'w':
+                case 'arrowup':
+                  deltaY += PAN_STEP;
+                  break;
+                case 'a':
+                case 'arrowleft':
+                  deltaX += PAN_STEP;
+                  break;
+                case 's':
+                case 'arrowdown':
+                  deltaY -= PAN_STEP;
+                  break;
+                case 'd':
+                case 'arrowright':
+                  deltaX -= PAN_STEP;
+                  break;
+              }
+            });
+            if (mapRef.current && mapRef.current.panBy) {
+              mapRef.current.panBy(deltaX, deltaY);
+            }
+          }, PAN_INTERVAL);
+        }
+      }
+    };
+    const handleKeyUp = (e: KeyboardEvent) => {
+      const key = e.key.toLowerCase();
+      if (panKeys.includes(key)) {
+        activeKeysRef.current.delete(key);
+        if (activeKeysRef.current.size === 0 && panIntervalRef.current) {
+          clearInterval(panIntervalRef.current);
+          panIntervalRef.current = null;
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+      if (panIntervalRef.current) {
+        clearInterval(panIntervalRef.current);
+        panIntervalRef.current = null;
+      }
+    };
+  }, []);
+
   return (
     <div className="relative w-full h-96 mb-4 rounded-lg overflow-hidden" ref={mapContainerRef}>
       <Map
+        ref={mapRef}
         xCoor={xCoor}
         yCoor={yCoor}
         setXCoor={setXCoor}

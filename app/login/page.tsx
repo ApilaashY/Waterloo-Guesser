@@ -1,15 +1,16 @@
 "use client";
 
 import { useRef, useState } from "react";
-import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useSession } from "../../components/SessionProvider";
 
 export default function LoginPage() {
   const [toast, setToast] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
   const processing = useRef(false);
+  const { login } = useSession();
 
   async function handleLogin(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -22,24 +23,14 @@ export default function LoginPage() {
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
 
-    const res = await fetch(`${process.env.NEXT_PUBLIC_LINK}/api/auth/login`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ email, password }),
-    });
+    const result = await login(email, password);
+    setToast(result.message);
 
-    const data = await res.json();
-
-    setToast(data.message);
-
-    if (res.ok) {
-      Cookies.set("user", JSON.stringify(data.user));
+    if (result.success) {
       await new Promise((resolve) => setTimeout(resolve, 1000));
-      processing.current = false;
       router.push("/");
     }
+    
     processing.current = false;
   }
 
