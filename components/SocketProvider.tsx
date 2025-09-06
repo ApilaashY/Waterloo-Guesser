@@ -1,42 +1,47 @@
 "use client";
 
-import React, { createContext, useContext, useMemo, useEffect, useState } from "react";
+import React, {
+  createContext,
+  useContext,
+  useMemo,
+  useEffect,
+  useState,
+} from "react";
 import { io, Socket } from "socket.io-client";
+import { useRouter } from "next/navigation";
 
 interface SocketContextType {
   socket: Socket | null;
   sessionId: string | null;
-  isRestoringSession: boolean;
 }
 
 const SocketContext = createContext<SocketContextType>({
   socket: null,
   sessionId: null,
-  isRestoringSession: false,
 });
 
 export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
   const [sessionId, setSessionId] = useState<string | null>(null);
-  const [isRestoringSession, setIsRestoringSession] = useState(false);
-  
+  const router = useRouter();
+
   // Try to restore session from localStorage on mount
-  useEffect(() => {
-    const savedSessionId = localStorage.getItem('sessionId');
-    if (savedSessionId) {
-      setSessionId(savedSessionId);
-    }
-  }, []);
+  // useEffect(() => {
+  //   const savedSessionId = localStorage.getItem('sessionId');
+  //   if (savedSessionId) {
+  //     setSessionId(savedSessionId);
+  //   }
+  // }, []);
 
   const socket = useMemo(() => {
     // Create socket connection
-    const socket = io({
+    const socket = io("http://localhost:3000", {
       path: "/socket.io/",
-      autoConnect: false, // We'll connect manually after setting up event listeners
+      autoConnect: true, // Auto connect to establish the connection immediately
       transports: ["websocket", "polling"],
       reconnection: true,
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
-      query: sessionId ? { sessionId } : {},
+      // Don't include sessionId in query - we'll send it via emit after connection
     });
 
     // Log connection events
@@ -57,7 +62,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
     });
 
     return socket;
-  }, []);
+  }, []); // Keep empty dependency array to create socket only once
 
   // Handle session restoration when socket or sessionId changes
   useEffect(() => {
@@ -65,33 +70,40 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
 
     const onConnect = () => {
       console.log("[Socket] Connected with ID:", socket.id);
-      
+
       // If we have a sessionId, identify ourselves to the server
       if (sessionId) {
         console.log("[Socket] Identifying session to server:", sessionId);
         socket.emit("identifySession", sessionId);
-        
+
         console.log("[Socket] Attempting to restore session:", sessionId);
-        setIsRestoringSession(true);
-        
-        socket.emit("restoreSession", sessionId, (response: { success: boolean; sessionId?: string }) => {
-          setIsRestoringSession(false);
-          if (response.success) {
-            console.log("[Socket] Successfully restored session:", response.sessionId);
-            // Update session ID in case it was refreshed
-            if (response.sessionId && response.sessionId !== sessionId) {
-              setSessionId(response.sessionId);
-              localStorage.setItem('sessionId', response.sessionId);
-              // Re-identify with the new session ID
-              socket.emit("identifySession", response.sessionId);
+
+        socket.emit(
+          "restoreSession",
+          sessionId,
+          (response: { success: boolean; sessionId?: string }) => {
+            if (response.success) {
+              console.log(
+                "[Socket] Successfully restored session:",
+                response.sessionId
+              );
+              // Update session ID in case it was refreshed
+              if (response.sessionId && response.sessionId !== sessionId) {
+                setSessionId(response.sessionId);
+                localStorage.setItem("sessionId", response.sessionId);
+                // Re-identify with the new session ID
+                socket.emit("identifySession", response.sessionId);
+              }
+            } else {
+              console.log(
+                "[Socket] Could not restore session, starting new one"
+              );
+              // Clear the invalid session ID
+              localStorage.removeItem("sessionId");
+              setSessionId(null);
             }
-          } else {
-            console.log("[Socket] Could not restore session, starting new one");
-            // Clear the invalid session ID
-            localStorage.removeItem('sessionId');
-            setSessionId(null);
           }
-        });
+        );
       }
     };
 
@@ -101,23 +113,33 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
 
     const onConnectError = (error: Error) => {
       console.error("[Socket] Connection error:", error);
-      setIsRestoringSession(false);
     };
 
-    const onQueueMatched = (data: { sessionId: string; partnerId: string; matchId: string; isReconnect?: boolean }) => {
+    const onQueueMatched = (data: {
+      sessionId: string;
+      partnerId: string;
+      matchId: string;
+      isReconnect?: boolean;
+    }) => {
       console.log("[Socket] Queue matched:", data);
       // Store the session ID for reconnection
       setSessionId(data.sessionId);
-      localStorage.setItem('sessionId', data.sessionId);
-      
+      localStorage.setItem("sessionId", data.sessionId);
+
       // Identify ourselves to the server with the new session ID
-      console.log("[Socket] Identifying session to server after match:", data.sessionId);
+      console.log(
+        "[Socket] Identifying session to server after match:",
+        data.sessionId
+      );
       socket.emit("identifySession", data.sessionId);
-      
+
       if (!data.isReconnect) {
         // Only trigger navigation for new matches, not reconnects
         // The round data will be sent separately for reconnects
-        window.location.href = `/versus?sessionId=${data.sessionId}&partnerId=${data.partnerId}`;
+        // Use Next.js router for client-side navigation to preserve socket connection
+        router.push(
+          `/versus?sessionId=${data.sessionId}&partnerId=${data.partnerId}`
+        );
       }
     };
 
@@ -127,25 +149,34 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
     socket.on("connect_error", onConnectError);
     socket.on("queueMatched", onQueueMatched);
 
-    // Connect the socket
-    socket.connect();
-
-    // Clean up
+    // Clean up - only remove event listeners, don't disconnect socket
     return () => {
-      console.log("[Socket] Cleaning up socket connection");
+      console.log("[Socket] Cleaning up event listeners");
       socket.off("connect", onConnect);
       socket.off("disconnect", onDisconnect);
       socket.off("connect_error", onConnectError);
       socket.off("queueMatched", onQueueMatched);
-      socket.disconnect();
+      // Don't disconnect the socket - keep the same connection
     };
-  }, [socket, sessionId]);
+  }, [socket, sessionId, router]);
 
-  const contextValue = useMemo(() => ({
-    socket,
-    sessionId,
-    isRestoringSession,
-  }), [socket, sessionId, isRestoringSession]);
+  // Cleanup socket connection only on component unmount
+  useEffect(() => {
+    return () => {
+      if (socket) {
+        console.log("[Socket] Component unmounting, disconnecting socket");
+        socket.disconnect();
+      }
+    };
+  }, [socket]);
+
+  const contextValue = useMemo(
+    () => ({
+      socket,
+      sessionId,
+    }),
+    [socket, sessionId]
+  );
 
   return (
     <SocketContext.Provider value={contextValue}>

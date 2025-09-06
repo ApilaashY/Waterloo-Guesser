@@ -3,15 +3,15 @@ interface GameHeaderProps {
   partnerId: string | null;
   totalPoints: number;
   partnerPoints: number;
-  onRequestCurrentRound: () => void;
+  roundNumber: number;
 }
 
-export default function GameHeader({ 
-  sessionId, 
-  partnerId, 
-  totalPoints, 
-  partnerPoints, 
-  onRequestCurrentRound 
+export default function GameHeader({
+  sessionId,
+  partnerId,
+  totalPoints,
+  partnerPoints,
+  roundNumber,
 }: GameHeaderProps) {
   return (
     <>
@@ -26,16 +26,15 @@ export default function GameHeader({
       <div className="mb-6">
         <div className="flex items-center justify-between mb-2">
           <div>
-            <span className="text-lg font-semibold text-gray-700">Your Points: {totalPoints}</span>
-            <span className="text-lg font-semibold text-gray-700 ml-4">Opponent Points: {partnerPoints}</span>
-          </div>
-          <div>
-            <button
-              onClick={onRequestCurrentRound}
-              className="px-4 py-2 text-sm font-semibold text-white bg-blue-600 rounded hover:bg-blue-700 transition-colors"
-            >
-              Request Current Round
-            </button>
+            <span className="text-lg font-semibold text-gray-700">
+              Your Points: {totalPoints}
+            </span>
+            <span className="text-lg font-semibold text-gray-700 ml-4">
+              Opponent Points: {partnerPoints}
+            </span>
+            <span className="text-lg font-semibold text-gray-700 ml-4">
+              Round: {roundNumber} / 5
+            </span>
           </div>
         </div>
       </div>
