@@ -39,7 +39,7 @@ function VersusPageContent() {
   // UI state
   const [toast, setToast] = useState<string | null>(null);
   const [showResult, setShowResult] = useState(false);
-  const [showPopup, setShowPopup] = useState<string | null>("oidsjofjsd");
+  const [showPopup, setShowPopup] = useState<string | null>(null);
 
   // Game data state
   const [imageIDs, setImageIDs] = useState<string[]>([]);
