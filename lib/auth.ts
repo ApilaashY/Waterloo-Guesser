@@ -40,7 +40,7 @@ export interface SessionPayload extends UserPayload {
 /**
  * Generate a PASETO token for a user session
  */
-export async function generateSessionToken(user: UserPayload, expiresIn: string = '24h'): Promise<string> {
+export async function generateSessionToken(user: UserPayload, expiresIn: string = '7d'): Promise<string> {
   const now = new Date();
   const expiration = new Date();
   
@@ -151,7 +151,7 @@ export function getSecureCookieOptions(isProduction: boolean = process.env.NODE_
     httpOnly: true,
     secure: isProduction,
     sameSite: 'strict' as const,
-    maxAge: 24 * 60 * 60 * 1000, // 24 hours in milliseconds
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in milliseconds
     path: '/'
   };
 }

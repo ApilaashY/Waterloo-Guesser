@@ -9,6 +9,7 @@ interface GameMapProps {
   onCoordinateClick: (x: number | null, y: number | null) => void;
   disabled: boolean;
   enlarged: boolean; // Added prop to track enlarged state from ImagePreview
+  currentScore: number; // Current round score
 }
 
 const GameMap = forwardRef<any, GameMapProps>(
@@ -21,6 +22,7 @@ const GameMap = forwardRef<any, GameMapProps>(
       onCoordinateClick,
       disabled,
       enlarged,
+      currentScore,
     },
     ref
   ) => {
@@ -197,7 +199,7 @@ const GameMap = forwardRef<any, GameMapProps>(
         disabled={disabled}
         aspectRatio={0.7 * (896 / 683)}
         showScoreDisplay={true}
-        currentScore={850}
+        currentScore={currentScore}
         maxScore={1000}
       />
     );

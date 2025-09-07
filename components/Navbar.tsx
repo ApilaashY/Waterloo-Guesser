@@ -1,23 +1,23 @@
 "use client";
 
-import { useState, useEffect } from 'react';
-import { usePathname } from 'next/navigation';
-import Link from 'next/link';
-import { Dialog, DialogPanel } from '@headlessui/react';
-import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
-import { useSession } from './SessionProvider';
+import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
+import Link from "next/link";
+import { Dialog, DialogPanel } from "@headlessui/react";
+import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
+import { useSession } from "./SessionProvider";
 export default function Navbar() {
   const pathname = usePathname();
   const { user, isAuthenticated, logout } = useSession();
-  
-  if (pathname && pathname.toLowerCase().endsWith('/game')) {
+
+  if (pathname && pathname.toLowerCase().endsWith("/game")) {
     return null;
   }
-  
-  const [active, setActive] = useState('home');
+
+  const [active, setActive] = useState("home");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [visible, setVisible] = useState(true);
-  
+
   useEffect(() => {
     setVisible(true);
   }, [pathname]);
@@ -31,14 +31,22 @@ export default function Navbar() {
     // { id: "home", label: "Home", href: "#" },
     // { id: 'profile', label: 'Profile', href: '#' },
     // { id: 'ranked', label: 'Ranked', href: '#' },
-    { id: 'play', label: 'Play', href: '/game' },
+    { id: "play", label: "Play", href: "/game" },
     // { id: 'collection', label: 'Collection', href: '#' },
     // { id: "leaderboard", label: "Leaderboard", href: "/leaderboard" },
     // { id: 'store', label: 'Store', href: '#' }
   ];
 
   return (
-    <header className={`w-full bg-transparent fixed top-0 left-0 z-50 transition-all duration-300 ${pathname && pathname.toLowerCase().endsWith('/game') ? (visible ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none') : 'opacity-100 pointer-events-auto'}`}>
+    <header
+      className={`w-full bg-transparent fixed top-0 left-0 z-50 transition-all duration-300 ${
+        pathname && pathname.toLowerCase().endsWith("/game")
+          ? visible
+            ? "opacity-100 pointer-events-auto"
+            : "opacity-0 pointer-events-none"
+          : "opacity-100 pointer-events-auto"
+      }`}
+    >
       <nav className="flex items-center justify-center px-6 py-4 max-w-7xl mx-auto relative">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 flex-shrink-0">
@@ -84,7 +92,7 @@ export default function Navbar() {
               </span>
               <button
                 onClick={handleLogout}
-                className="text-sm font-semibold text-white px-4 py-2 rounded transition shadow-xs hover:bg-white/10"
+                className="text-sm font-semibold text-white px-4 py-2 rounded transition shadow-xs hover:bg-white/10 cursor-pointer"
               >
                 Logout
               </button>

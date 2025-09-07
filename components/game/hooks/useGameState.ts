@@ -1,6 +1,6 @@
-import { useState, useCallback } from 'react';
-import { GameState, GameMode, GameResult, RoundResult } from '../types/game';
-import { GameService } from '../services/gameService';
+import { useState, useCallback } from "react";
+import { GameState, GameMode, GameResult, RoundResult } from "../types/game";
+import { GameService } from "../services/gameService";
 
 export const useGameState = () => {
   const [gameState, setGameState] = useState<GameState>({
@@ -19,16 +19,16 @@ export const useGameState = () => {
     distance: null,
     points: null,
     gameResults: [],
-    roundResults: []
+    roundResults: [],
   });
 
   const updateGameState = useCallback((updates: Partial<GameState>) => {
-    setGameState(prev => ({ ...prev, ...updates }));
+    setGameState((prev) => ({ ...prev, ...updates }));
   }, []);
 
   const startGame = useCallback((mode: GameMode = GameMode.SinglePlayer) => {
     const gameId = GameService.generateGameId();
-    setGameState(prev => ({
+    setGameState((prev) => ({
       ...prev,
       gameId,
       mode,
@@ -42,7 +42,7 @@ export const useGameState = () => {
       userCoordinates: null,
       correctCoordinates: null,
       distance: null,
-      points: null
+      points: null,
     }));
   }, []);
 
@@ -63,12 +63,17 @@ export const useGameState = () => {
       distance: null,
       points: null,
       gameResults: [],
-      roundResults: []
+      roundResults: [],
     });
   }, []);
 
   const submitCoordinates = useCallback(
-    async (x: number, y: number, imageId?: string | null) => {
+    async (
+      x: number,
+      y: number,
+      imageId: string | null,
+      userId: string | null
+    ) => {
       updateGameState({
         isSubmitted: true,
         isLoading: true,
@@ -77,7 +82,12 @@ export const useGameState = () => {
 
       try {
         // Use image/location ID for API, not game/session ID
-        const result = await GameService.submitCoordinates(x, y, imageId ?? null);
+        const result = await GameService.submitCoordinates(
+          x,
+          y,
+          imageId ?? null,
+          userId
+        );
 
         const roundResult: RoundResult = {
           round: gameState.currentRound,
@@ -97,11 +107,16 @@ export const useGameState = () => {
           roundResults: [...gameState.roundResults, roundResult],
         });
       } catch (error) {
-        console.error('Failed to submit coordinates:', error);
+        console.error("Failed to submit coordinates:", error);
         updateGameState({ isLoading: false });
       }
     },
-    [gameState.currentRound, gameState.score, gameState.roundResults, updateGameState]
+    [
+      gameState.currentRound,
+      gameState.score,
+      gameState.roundResults,
+      updateGameState,
+    ]
   );
 
   const nextRound = useCallback(() => {
@@ -110,12 +125,12 @@ export const useGameState = () => {
         mode: gameState.mode,
         totalScore: gameState.score,
         roundResults: gameState.roundResults,
-        completedAt: new Date().toISOString()
+        completedAt: new Date().toISOString(),
       };
 
       updateGameState({
         gameResults: [...gameState.gameResults, gameResult],
-        isStarted: false
+        isStarted: false,
       });
     } else {
       updateGameState({
@@ -125,29 +140,44 @@ export const useGameState = () => {
         userCoordinates: null,
         correctCoordinates: null,
         distance: null,
-        points: null
+        points: null,
       });
     }
-  }, [gameState.currentRound, gameState.maxRounds, gameState.score, gameState.mode, gameState.roundResults, gameState.gameResults, updateGameState]);
+  }, [
+    gameState.currentRound,
+    gameState.maxRounds,
+    gameState.score,
+    gameState.mode,
+    gameState.roundResults,
+    gameState.gameResults,
+    updateGameState,
+  ]);
 
   const loseLife = useCallback(() => {
     const newLives = gameState.lives - 1;
     updateGameState({ lives: newLives });
-    
+
     if (newLives <= 0) {
       const gameResult: GameResult = {
         mode: gameState.mode,
         totalScore: gameState.score,
         roundResults: gameState.roundResults,
-        completedAt: new Date().toISOString()
+        completedAt: new Date().toISOString(),
       };
 
       updateGameState({
         gameResults: [...gameState.gameResults, gameResult],
-        isStarted: false
+        isStarted: false,
       });
     }
-  }, [gameState.lives, gameState.mode, gameState.score, gameState.roundResults, gameState.gameResults, updateGameState]);
+  }, [
+    gameState.lives,
+    gameState.mode,
+    gameState.score,
+    gameState.roundResults,
+    gameState.gameResults,
+    updateGameState,
+  ]);
 
   return {
     gameState,
@@ -156,6 +186,6 @@ export const useGameState = () => {
     resetGame,
     submitCoordinates,
     nextRound,
-    loseLife
+    loseLife,
   };
 };

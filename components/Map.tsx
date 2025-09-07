@@ -69,7 +69,7 @@ interface MapProps extends PropsWithChildren {
   disabled?: boolean;
   aspectRatio?: number; // width / height
   showScoreDisplay?: boolean; // New prop to control score display
-  currentScore?: number; // Current round score
+  currentScore: number; // Current round score
   maxScore?: number; // Maximum possible score
 }
 

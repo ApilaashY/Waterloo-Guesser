@@ -1,6 +1,12 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+} from "react";
 
 export interface User {
   id: string;
@@ -15,8 +21,13 @@ interface SessionContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<{ success: boolean; message: string }>;
-  register: (userData: RegisterData) => Promise<{ success: boolean; message: string }>;
+  login: (
+    email: string,
+    password: string
+  ) => Promise<{ success: boolean; message: string }>;
+  register: (
+    userData: RegisterData
+  ) => Promise<{ success: boolean; message: string }>;
   logout: () => Promise<void>;
   refreshSession: () => Promise<void>;
 }
@@ -35,7 +46,7 @@ const SessionContext = createContext<SessionContextType | undefined>(undefined);
 export function useSession() {
   const context = useContext(SessionContext);
   if (context === undefined) {
-    throw new Error('useSession must be used within a SessionProvider');
+    throw new Error("useSession must be used within a SessionProvider");
   }
   return context;
 }
@@ -51,9 +62,9 @@ export function SessionProvider({ children }: SessionProviderProps) {
   // Check for existing session on mount
   const refreshSession = useCallback(async () => {
     try {
-      const response = await fetch('/api/auth/session', {
-        method: 'GET',
-        credentials: 'include', // Include cookies
+      const response = await fetch("/api/auth/session", {
+        method: "GET",
+        credentials: "include", // Include cookies
       });
 
       if (response.ok) {
@@ -63,7 +74,7 @@ export function SessionProvider({ children }: SessionProviderProps) {
         setUser(null);
       }
     } catch (error) {
-      console.error('Failed to refresh session:', error);
+      console.error("Failed to refresh session:", error);
       setUser(null);
     } finally {
       setIsLoading(false);
@@ -77,12 +88,12 @@ export function SessionProvider({ children }: SessionProviderProps) {
   const login = useCallback(async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        credentials: 'include', // Include cookies
+        credentials: "include", // Include cookies
         body: JSON.stringify({ email, password }),
       });
 
@@ -92,11 +103,11 @@ export function SessionProvider({ children }: SessionProviderProps) {
         setUser(data.user);
         return { success: true, message: data.message };
       } else {
-        return { success: false, message: data.message || 'Login failed' };
+        return { success: false, message: data.message || "Login failed" };
       }
     } catch (error) {
-      console.error('Login error:', error);
-      return { success: false, message: 'Network error occurred' };
+      console.error("Login error:", error);
+      return { success: false, message: "Network error occurred" };
     } finally {
       setIsLoading(false);
     }
@@ -105,12 +116,12 @@ export function SessionProvider({ children }: SessionProviderProps) {
   const register = useCallback(async (userData: RegisterData) => {
     setIsLoading(true);
     try {
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        credentials: 'include', // Include cookies
+        credentials: "include", // Include cookies
         body: JSON.stringify(userData),
       });
 
@@ -120,11 +131,14 @@ export function SessionProvider({ children }: SessionProviderProps) {
         setUser(data.user);
         return { success: true, message: data.message };
       } else {
-        return { success: false, message: data.message || 'Registration failed' };
+        return {
+          success: false,
+          message: data.message || "Registration failed",
+        };
       }
     } catch (error) {
-      console.error('Registration error:', error);
-      return { success: false, message: 'Network error occurred' };
+      console.error("Registration error:", error);
+      return { success: false, message: "Network error occurred" };
     } finally {
       setIsLoading(false);
     }
@@ -132,12 +146,12 @@ export function SessionProvider({ children }: SessionProviderProps) {
 
   const logout = useCallback(async () => {
     try {
-      await fetch('/api/auth/logout', {
-        method: 'POST',
-        credentials: 'include', // Include cookies
+      await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "include", // Include cookies
       });
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error("Logout error:", error);
     } finally {
       setUser(null);
     }
@@ -154,8 +168,6 @@ export function SessionProvider({ children }: SessionProviderProps) {
   };
 
   return (
-    <SessionContext.Provider value={value}>
-      {children}
-    </SessionContext.Provider>
+    <SessionContext.Provider value={value}>{children}</SessionContext.Provider>
   );
 }
