@@ -6,7 +6,13 @@
 "use client";
 
 // Fetch floorplans and buildings from API
-import React, { PropsWithChildren, useState, useRef, useImperativeHandle, forwardRef } from "react";
+import React, {
+  PropsWithChildren,
+  useState,
+  useRef,
+  useImperativeHandle,
+  forwardRef,
+} from "react";
 import { FaMapMarkerAlt } from "react-icons/fa";
 // import ReactDOM from "react-dom";
 import Image from "next/image";
@@ -84,7 +90,12 @@ const Map = forwardRef(function Map(props: MapProps, ref) {
    * Calculates the real-world distance (meters) between two normalized map points.
    * Uses user-provided reference points for calibration.
    */
-  const calculateDistance = (x1: number, y1: number, x2: number, y2: number) => {
+  const calculateDistance = (
+    x1: number,
+    y1: number,
+    x2: number,
+    y2: number
+  ) => {
     // Map image pixel dimensions
     const mapPixelWidth = 896;
     const mapPixelHeight = 683;
@@ -98,7 +109,9 @@ const Map = forwardRef(function Map(props: MapProps, ref) {
     const refPy2 = ref2.y * mapPixelHeight;
     const refDeltaPx = refPx2 - refPx1;
     const refDeltaPy = refPy2 - refPy1;
-    const refPixelDistance = Math.sqrt(refDeltaPx * refDeltaPx + refDeltaPy * refDeltaPy);
+    const refPixelDistance = Math.sqrt(
+      refDeltaPx * refDeltaPx + refDeltaPy * refDeltaPy
+    );
     // Calibrate meters-per-pixel so that refPixelDistance = 79.5 meters
     const metersPerPixel = 79.5 / refPixelDistance;
     // Calculate pixel distance for input points
@@ -116,10 +129,19 @@ const Map = forwardRef(function Map(props: MapProps, ref) {
    * Returns formatted distance string for overlay (meters or km).
    */
   const getDistanceDisplay = () => {
-    if (props.xCoor != null && props.yCoor != null && 
-        props.xRightCoor != null && props.yRightCoor != null) {
-      const distance = calculateDistance(props.xCoor, props.yCoor, props.xRightCoor, props.yRightCoor);
-      
+    if (
+      props.xCoor != null &&
+      props.yCoor != null &&
+      props.xRightCoor != null &&
+      props.yRightCoor != null
+    ) {
+      const distance = calculateDistance(
+        props.xCoor,
+        props.yCoor,
+        props.xRightCoor,
+        props.yRightCoor
+      );
+
       if (distance < 1000) {
         return `${Math.round(distance)}m`;
       } else {
@@ -134,9 +156,13 @@ const Map = forwardRef(function Map(props: MapProps, ref) {
    * Runs when both coordinates are present.
    */
   React.useEffect(() => {
-    if (props.xCoor != null && props.yCoor != null && 
-        props.xRightCoor != null && props.yRightCoor != null && 
-        transformRef.current) {
+    if (
+      props.xCoor != null &&
+      props.yCoor != null &&
+      props.xRightCoor != null &&
+      props.yRightCoor != null &&
+      transformRef.current
+    ) {
       setTimeout(() => {
         if (transformRef.current) {
           // Center between the two points (normalized coordinates)
@@ -165,7 +191,7 @@ const Map = forwardRef(function Map(props: MapProps, ref) {
             offsetY,
             finalZoom,
             800,
-            'easeOut'
+            "easeOut"
           );
         }
       }, 100);
@@ -173,21 +199,27 @@ const Map = forwardRef(function Map(props: MapProps, ref) {
   }, [props.xCoor, props.yCoor, props.xRightCoor, props.yRightCoor]);
 
   // Map image container dimensions
-  const containerWidth = 896;
-  const containerHeight = 683;
+  const containerWidth = 765; //896;
+  const containerHeight = 350; //683;
 
   /**
    * Clamps pan so the image always fills the container and doesn't move out of bounds.
    * Used for keyboard/mouse movement and zoom.
    */
   const clampPan = (x: number, y: number, zoomLevel = zoom) => {
-    const imgWz = containerWidth * zoomLevel;
-    const imgHz = containerHeight * zoomLevel;
-    const maxX = Math.max(0, (imgWz - containerWidth) / 2);
-    const maxY = Math.max(0, (imgHz - containerHeight) / 2);
+    const scaledWidth = containerWidth * zoomLevel;
+    const scaledHeight = containerHeight * zoomLevel;
+
+    // Calculate the actual transform bounds based on image edge alignment
+    // When zoomed in, image can move from "right edge aligned" to "left edge aligned"
+    const minX = Math.min(0, containerWidth - scaledWidth); // right edge aligned (negative when zoomed in)
+    const maxX = 0; // left edge aligned (always 0)
+    const minY = Math.min(0, containerHeight - scaledHeight); // bottom edge aligned (negative when zoomed in)
+    const maxY = 0; // top edge aligned (always 0)
+
     return {
-      x: Math.max(-maxX, Math.min(maxX, x)),
-      y: Math.max(-maxY, Math.min(maxY, y)),
+      x: Math.max(minX, Math.min(maxX, x)),
+      y: Math.max(minY, Math.min(maxY, y)),
     };
   };
 
@@ -201,114 +233,148 @@ const Map = forwardRef(function Map(props: MapProps, ref) {
    * - zoomIn/zoomOut: zoom controls
    * - getPan/getZoom: returns current pan/zoom
    */
-  useImperativeHandle(ref, () => {
-    return {
-      zoomToArea: (x1: number, y1: number, x2: number, y2: number) => {
-        if (!transformRef.current) return;
-        // Center between points
-        const centerX = (x1 + x2) / 2;
-        const centerY = (y1 + y2) / 2;
-        // Calculate zoom so both points are visible
-        const minX = Math.min(x1, x2), maxX = Math.max(x1, x2);
-        const minY = Math.min(y1, y2), maxY = Math.max(y1, y2);
-        // Add padding
-        const pad = 0.08;
-        const viewW = maxX - minX + pad;
-        const viewH = maxY - minY + pad;
-        // Clamp to [0,1]
-        const zoomLevel = 1 / Math.max(viewW, viewH);
-        transformRef.current.setTransform(centerX * 100, centerY * 100, Math.min(2.5, Math.max(zoomLevel, 1.2)), 200, 'easeOut');
-      },
-      resetZoom: () => {
-        if (!transformRef.current) return;
-        transformRef.current.resetTransform();
-      },
-      panBy: (deltaX: number, deltaY: number) => {
-        if (!transformRef.current || !transformRef.current.setTransform) return;
-        try {
+  useImperativeHandle(
+    ref,
+    () => {
+      return {
+        zoomToArea: (x1: number, y1: number, x2: number, y2: number) => {
+          if (!transformRef.current) return;
+          // Center between points
+          const centerX = (x1 + x2) / 2;
+          const centerY = (y1 + y2) / 2;
+          // Calculate zoom so both points are visible
+          const minX = Math.min(x1, x2),
+            maxX = Math.max(x1, x2);
+          const minY = Math.min(y1, y2),
+            maxY = Math.max(y1, y2);
+          // Add padding
+          const pad = 0.08;
+          const viewW = maxX - minX + pad;
+          const viewH = maxY - minY + pad;
+          // Clamp to [0,1]
+          const zoomLevel = 1 / Math.max(viewW, viewH);
+          transformRef.current.setTransform(
+            centerX * 100,
+            centerY * 100,
+            Math.min(2.5, Math.max(zoomLevel, 1.2)),
+            200,
+            "easeOut"
+          );
+        },
+        resetZoom: () => {
+          if (!transformRef.current) return;
+          transformRef.current.resetTransform();
+        },
+        panBy: (deltaX: number, deltaY: number) => {
+          if (!transformRef.current || !transformRef.current.setTransform)
+            return;
+          try {
+            const state = transformRef.current.instance?.transformState || {};
+            const { positionX = 0, positionY = 0, scale = 1 } = state;
+            const next = clampPan(
+              positionX + deltaX,
+              positionY + deltaY,
+              scale
+            );
+            transformRef.current.setTransform(next.x, next.y, scale);
+          } catch (error) {
+            console.warn("panBy error:", error);
+          }
+        },
+        panToTopLeft: () => {
+          if (!transformRef.current || !transformRef.current.setTransform)
+            return;
+          try {
+            const state = transformRef.current.instance?.transformState || {};
+            const { scale = 1 } = state;
+            // Top-left corner: show top-left of image (use max bounds)
+            transformRef.current.setTransform(0, 0, scale);
+          } catch (error) {
+            console.error("panToTopLeft error:", error);
+          }
+        },
+        panToTopRight: () => {
+          if (!transformRef.current || !transformRef.current.setTransform)
+            return;
+          try {
+            const state = transformRef.current.instance?.transformState || {};
+            const { scale = 1 } = state;
+            console.log(state);
+            // Top-right corner: show top-right of image (min X, max Y)
+            const scaledWidth = containerWidth * scale;
+            const minX = Math.min(0, containerWidth - scaledWidth);
+
+            transformRef.current.setTransform(minX, 0, scale);
+          } catch (error) {
+            console.warn("panToTopRight error:", error);
+          }
+        },
+        panToBottomLeft: () => {
+          if (!transformRef.current || !transformRef.current.setTransform)
+            return;
+          try {
+            const state = transformRef.current.instance?.transformState || {};
+            const { scale = 1 } = state;
+            // Bottom-left corner: show bottom-left of image (max X, min Y)
+            const scaledHeight = containerHeight * scale;
+            const minY = Math.min(0, containerHeight - scaledHeight);
+
+            transformRef.current.setTransform(0, minY, scale);
+          } catch (error) {
+            console.warn("panToBottomLeft error:", error);
+          }
+        },
+        panToBottomRight: () => {
+          if (!transformRef.current || !transformRef.current.setTransform)
+            return;
+          try {
+            const state = transformRef.current.instance?.transformState || {};
+            const { scale = 1 } = state;
+            // Bottom-right corner: show bottom-right of image (use min bounds)
+            const scaledWidth = containerWidth * scale;
+            const scaledHeight = containerHeight * scale;
+            const minX = Math.min(0, containerWidth - scaledWidth);
+            const minY = Math.min(0, containerHeight - scaledHeight);
+
+            transformRef.current.setTransform(minX, minY, scale);
+          } catch (error) {
+            console.warn("panToBottomRight error:", error);
+          }
+        },
+        setZoom: (newZoom: number) => {
+          if (!transformRef.current || !transformRef.current.setTransform)
+            return;
+          try {
+            const state = transformRef.current.instance?.transformState || {};
+            const { positionX = 0, positionY = 0 } = state;
+            const next = clampPan(positionX, positionY, newZoom);
+            transformRef.current.setTransform(next.x, next.y, newZoom);
+          } catch (error) {
+            console.warn("setZoom error:", error);
+          }
+        },
+        zoomIn: () => {
+          if (!transformRef.current || !transformRef.current.zoomIn) return;
+          transformRef.current.zoomIn();
+        },
+        zoomOut: () => {
+          if (!transformRef.current || !transformRef.current.zoomOut) return;
+          transformRef.current.zoomOut();
+        },
+        getPan: () => {
+          if (!transformRef.current) return { x: 0, y: 0 };
           const state = transformRef.current.instance?.transformState || {};
-          const { positionX = 0, positionY = 0, scale = 1 } = state;
-          const next = clampPan(positionX + deltaX, positionY + deltaY, scale);
-          transformRef.current.setTransform(next.x, next.y, scale);
-        } catch (error) {
-          console.warn('panBy error:', error);
-        }
-      },
-      panToTopLeft: () => {
-        if (!transformRef.current || !transformRef.current.setTransform) return;
-        try {
+          return { x: state.positionX || 0, y: state.positionY || 0 };
+        },
+        getZoom: () => {
+          if (!transformRef.current) return 1;
           const state = transformRef.current.instance?.transformState || {};
-          const { scale = 1 } = state;
-          const next = clampPan(999, 999, scale);
-          transformRef.current.setTransform(next.x, next.y, scale);
-        } catch (error) {
-          console.error('panToTopLeft error:', error);
-        }
-      },
-      panToTopRight: () => {
-        if (!transformRef.current || !transformRef.current.setTransform) return;
-        try {
-          const state = transformRef.current.instance?.transformState || {};
-          const { scale = 1 } = state;
-          const next = clampPan(-999, 999, scale);
-          transformRef.current.setTransform(next.x, next.y, scale);
-        } catch (error) {
-          console.warn('panToTopRight error:', error);
-        }
-      },
-      panToBottomLeft: () => {
-        if (!transformRef.current || !transformRef.current.setTransform) return;
-        try {
-          const state = transformRef.current.instance?.transformState || {};
-          const { scale = 1 } = state;
-          const next = clampPan(999, -999, scale);
-          transformRef.current.setTransform(next.x, next.y, scale);
-        } catch (error) {
-          console.warn('panToBottomLeft error:', error);
-        }
-      },
-      panToBottomRight: () => {
-        if (!transformRef.current || !transformRef.current.setTransform) return;
-        try {
-          const state = transformRef.current.instance?.transformState || {};
-          const { scale = 1 } = state;
-          const next = clampPan(-999, -999, scale);
-          transformRef.current.setTransform(next.x, next.y, scale);
-        } catch (error) {
-          console.warn('panToBottomRight error:', error);
-        }
-      },
-      setZoom: (newZoom: number) => {
-        if (!transformRef.current || !transformRef.current.setTransform) return;
-        try {
-          const state = transformRef.current.instance?.transformState || {};
-          const { positionX = 0, positionY = 0 } = state;
-          const next = clampPan(positionX, positionY, newZoom);
-          transformRef.current.setTransform(next.x, next.y, newZoom);
-        } catch (error) {
-          console.warn('setZoom error:', error);
-        }
-      },
-      zoomIn: () => {
-        if (!transformRef.current || !transformRef.current.zoomIn) return;
-        transformRef.current.zoomIn();
-      },
-      zoomOut: () => {
-        if (!transformRef.current || !transformRef.current.zoomOut) return;
-        transformRef.current.zoomOut();
-      },
-      getPan: () => {
-        if (!transformRef.current) return { x: 0, y: 0 };
-        const state = transformRef.current.instance?.transformState || {};
-        return { x: state.positionX || 0, y: state.positionY || 0 };
-      },
-      getZoom: () => {
-        if (!transformRef.current) return 1;
-        const state = transformRef.current.instance?.transformState || {};
-        return state.scale || 1;
-      }
-    };
-  }, [zoom]);
+          return state.scale || 1;
+        },
+      };
+    },
+    [zoom]
+  );
 
   /**
    * Handles user click on the map image.
@@ -353,8 +419,9 @@ const Map = forwardRef(function Map(props: MapProps, ref) {
         transform: `rotate(${angle}deg) translate(0, -50%)`,
         transformOrigin: "0 0",
         height: "1.5px",
-        background: "repeating-linear-gradient(to right, black 0 6px, transparent 6px 12px, #febe30 12px 18px, transparent 18px 24px)", // or just black
-        borderTop: "none"
+        background:
+          "repeating-linear-gradient(to right, black 0 6px, transparent 6px 12px, #febe30 12px 18px, transparent 18px 24px)", // or just black
+        borderTop: "none",
       };
     }
     return {};
@@ -363,13 +430,24 @@ const Map = forwardRef(function Map(props: MapProps, ref) {
   // Main render: map image, markers, result overlay
   return (
     <>
-      <div className="w-full h-full bg-gray-50" style={{ position: "relative" }}>
+      <div className="w-full h-full flex-1" style={{ position: "relative" }}>
         <TransformWrapper
           ref={transformRef}
           onZoom={(ref) => setZoom(ref.state.scale)}
+          centerOnInit={true}
         >
-          <TransformComponent>
-            <div onClick={handleClick} className="w-full h-full cursor-crosshair relative">
+          <TransformComponent
+            wrapperStyle={{
+              height: "100%",
+              width: "100%",
+              border:
+                zoom > 1.01 ? "2px solid #4ade80" : "2px solid transparent",
+            }}
+          >
+            <div
+              onClick={handleClick}
+              className="w-full h-full cursor-crosshair relative"
+            >
               <Image
                 /* ref={mapImgRef} */
                 className="MapPicture w-full h-full select-none"
@@ -380,8 +458,15 @@ const Map = forwardRef(function Map(props: MapProps, ref) {
                 draggable={false}
                 unoptimized
                 priority
-                style={{ width: "100%", height: "100%", display: "block", pointerEvents: "auto" }}
-                onError={e => { console.error('Campus map image failed to load', e); }}
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  display: "block",
+                  pointerEvents: "auto",
+                }}
+                onError={(e) => {
+                  console.error("Campus map image failed to load", e);
+                }}
               />
 
               {props.xCoor != null &&
@@ -428,34 +513,37 @@ const Map = forwardRef(function Map(props: MapProps, ref) {
             </div>
           </TransformComponent>
         </TransformWrapper>
-        
+
         {/* Score Display Overlay */}
-        {props.showScoreDisplay && props.xCoor != null && props.yCoor != null && 
-         props.xRightCoor != null && props.yRightCoor != null && (
-          <div 
-            className="absolute top-4 right-4 bg-black bg-opacity-75 text-white p-4 rounded-lg shadow-lg z-20"
-            style={{ backdropFilter: 'blur(5px)' }}
-          >
-            <div className="text-center">
-              <div className="text-sm font-semibold mb-2">Round Results</div>
-              <div className="space-y-1">
-                <div className="text-lg font-bold text-yellow-400">
-                  Distance: {getDistanceDisplay()}
+        {props.showScoreDisplay &&
+          props.xCoor != null &&
+          props.yCoor != null &&
+          props.xRightCoor != null &&
+          props.yRightCoor != null && (
+            <div
+              className="absolute top-4 right-4 bg-black bg-opacity-75 text-white p-4 rounded-lg shadow-lg z-20"
+              style={{ backdropFilter: "blur(5px)" }}
+            >
+              <div className="text-center">
+                <div className="text-sm font-semibold mb-2">Round Results</div>
+                <div className="space-y-1">
+                  <div className="text-lg font-bold text-yellow-400">
+                    Distance: {getDistanceDisplay()}
+                  </div>
+                  {props.currentScore != null && (
+                    <div className="text-lg font-bold text-green-400">
+                      Score: {props.currentScore}
+                    </div>
+                  )}
+                  {props.maxScore != null && (
+                    <div className="text-sm text-gray-300">
+                      Max Possible: {props.maxScore}
+                    </div>
+                  )}
                 </div>
-                {props.currentScore != null && (
-                  <div className="text-lg font-bold text-green-400">
-                    Score: {props.currentScore}
-                  </div>
-                )}
-                {props.maxScore != null && (
-                  <div className="text-sm text-gray-300">
-                    Max Possible: {props.maxScore}
-                  </div>
-                )}
               </div>
             </div>
-          </div>
-        )}
+          )}
       </div>
     </>
   );
