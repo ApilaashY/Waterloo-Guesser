@@ -30,7 +30,7 @@ export default function LoginPage() {
       await new Promise((resolve) => setTimeout(resolve, 1000));
       router.push("/");
     }
-    
+
     processing.current = false;
   }
 

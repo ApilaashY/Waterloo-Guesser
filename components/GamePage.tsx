@@ -10,8 +10,9 @@ import {
   useImageState,
   useMapControls,
   usePerformanceTracking,
-  GameMode
+  GameMode,
 } from "./game";
+import { useSession } from "./SessionProvider";
 
 export default function GamePage() {
   // Use modular hooks
@@ -21,32 +22,26 @@ export default function GamePage() {
     resetGame,
     submitCoordinates,
     nextRound,
-    updateGameState
+    updateGameState,
   } = useGameState();
+  const { user } = useSession();
 
-  const {
-    imageState,
-    loadNewImage,
-    resetImageState
-  } = useImageState();
+  const { imageState, loadNewImage, resetImageState } = useImageState();
 
-  const {
-    mapRef,
-    controls: mapControls
-  } = useMapControls();
+  const { mapRef, controls: mapControls } = useMapControls();
 
-  const {
-    recordImageLoaded,
-    recordFirstMapClick,
-    recordFirstSubmit
-  } = usePerformanceTracking();
+  const { recordImageLoaded, recordFirstMapClick, recordFirstSubmit } =
+    usePerformanceTracking();
 
   // Legacy state for backward compatibility during transition
   const [xCoor, setXCoor] = useState<number | null>(null);
   const [yCoor, setYCoor] = useState<number | null>(null);
   const [xRightCoor, setXRightCoor] = useState<number | null>(null);
   const [yRightCoor, setYRightCoor] = useState<number | null>(null);
-  const [naturalSize, setNaturalSize] = useState<{ w: number; h: number } | null>(null);
+  const [naturalSize, setNaturalSize] = useState<{
+    w: number;
+    h: number;
+  } | null>(null);
   const [isEnlarged, setIsEnlarged] = useState(false); // Track enlarged state
 
   // Initialize game
@@ -61,7 +56,7 @@ export default function GamePage() {
   useEffect(() => {
     let mounted = true;
     setNaturalSize(null);
-    
+
     if (!imageState.currentImageSrc) return;
 
     const img = new Image();
@@ -83,12 +78,13 @@ export default function GamePage() {
 
   const handleCoordinateClick = (x: number | null, y: number | null) => {
     recordFirstMapClick();
-    
+
     if (x !== null) setXCoor(x);
     if (y !== null) setYCoor(y);
-    
+
     updateGameState({
-      userCoordinates: x !== null && y !== null ? { x, y } : gameState.userCoordinates
+      userCoordinates:
+        x !== null && y !== null ? { x, y } : gameState.userCoordinates,
     });
   };
 
@@ -97,7 +93,12 @@ export default function GamePage() {
 
     recordFirstSubmit();
     // Pass image/location ID for backend validation
-    await submitCoordinates(xCoor, yCoor, imageState.currentImageName);
+    await submitCoordinates(
+      xCoor,
+      yCoor,
+      imageState.currentImageName,
+      user ? user.id : null
+    );
     // The correct coordinates will be set via useEffect below
   };
 
@@ -132,18 +133,19 @@ export default function GamePage() {
       setYCoor(null);
       setXRightCoor(null);
       setYRightCoor(null);
-      
+
       // Reset map zoom
       if (mapRef.current) {
         mapControls.resetZoom();
       }
-      
+
       nextRound();
     }
   };
 
   const isDisabled = xRightCoor !== null && yRightCoor !== null;
-  const hasSubmitted = gameState.isSubmitted && gameState.correctCoordinates !== null;
+  const hasSubmitted =
+    gameState.isSubmitted && gameState.correctCoordinates !== null;
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-gray-50 flex-wrap gap-1">
@@ -174,6 +176,12 @@ export default function GamePage() {
                 onCoordinateClick={handleCoordinateClick}
                 disabled={isDisabled}
                 enlarged={isEnlarged} // Pass enlarged state to GameMap
+                currentScore={
+                  gameState.roundResults.length > 0
+                    ? gameState.roundResults[gameState.roundResults.length - 1]
+                        .points
+                    : 0
+                } // Pass current round score
               />
             </div>
           </div>
