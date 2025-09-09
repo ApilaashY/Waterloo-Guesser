@@ -27,15 +27,15 @@ export default function Navbar() {
     setMobileMenuOpen(false);
   };
 
-  const items = [
-    // { id: "home", label: "Home", href: "#" },
-    // { id: 'profile', label: 'Profile', href: '#' },
-    // { id: 'ranked', label: 'Ranked', href: '#' },
-    { id: 'play', label: 'Play', href: '/game' },
-    // { id: 'collection', label: 'Collection', href: '#' },
-    // { id: "leaderboard", label: "Leaderboard", href: "/leaderboard" },
-    // { id: 'store', label: 'Store', href: '#' }
-  ];
+  // const items = [
+  //   // { id: "home", label: "Home", href: "#" },
+  //   // { id: 'profile', label: 'Profile', href: '#' },
+  //   // { id: 'ranked', label: 'Ranked', href: '#' },
+  //   // { id: 'play', label: 'Play', href: '/game' },
+  //   // { id: 'collection', label: 'Collection', href: '#' },
+  //   // { id: "leaderboard", label: "Leaderboard", href: "/leaderboard" },
+  //   // { id: 'store', label: 'Store', href: '#' }
+  // ];
 
   return (
     <header className={`w-full bg-transparent fixed top-0 left-0 z-50 transition-all duration-300 ${pathname && pathname.toLowerCase().endsWith('/game') ? (visible ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none') : 'opacity-100 pointer-events-auto'}`}>
@@ -54,7 +54,7 @@ export default function Navbar() {
           className="hidden md:flex flex-1 justify-center gap-8 relative"
           id="nav-items"
         >
-          {items.map((it, idx) => (
+          {/* {items.map((it, idx) => (
             <div
               key={it.id}
               className="relative flex items-center justify-center"
@@ -73,7 +73,7 @@ export default function Navbar() {
                 {it.label}
               </Link>
             </div>
-          ))}
+          ))} */}
         </div>
         {/* Auth section - desktop */}
         <div className="hidden md:flex flex-shrink-0 items-center gap-4">
@@ -141,7 +141,7 @@ export default function Navbar() {
           </div>
           <div className="mt-6 flow-root">
             <div className="-my-6 divide-y divide-white/10">
-              <div className="space-y-2 py-6">
+              {/* <div className="space-y-2 py-6">
                 {items.map((it) => (
                   <Link
                     key={it.id}
@@ -155,7 +155,7 @@ export default function Navbar() {
                     {it.label}
                   </Link>
                 ))}
-              </div>
+              </div> */}
               <div className="py-6">
                 {isAuthenticated ? (
                   <>
