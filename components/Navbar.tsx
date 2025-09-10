@@ -39,7 +39,7 @@ export default function Navbar() {
 
   return (
     <header
-      className={`w-full bg-transparent sticky top-0 left-0 z-50 transition-all duration-300 ${
+      className={`w-full sticky top-0 left-0 z-50 transition-all duration-300  bg-black ${
         pathname && pathname.toLowerCase().endsWith("/game")
           ? visible
             ? "opacity-100 pointer-events-auto"
@@ -47,7 +47,7 @@ export default function Navbar() {
           : "opacity-100 pointer-events-auto"
       }`}
     >
-      <nav className="flex items-center justify-center px-6 py-4 max-w-7xl mx-auto relative">
+      <nav className="flex items-center justify-center px-6 py-4 max-w-7xl mx-auto relative bg-black">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 flex-shrink-0">
           <img
