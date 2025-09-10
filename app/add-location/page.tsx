@@ -250,6 +250,7 @@ export default function LocationUploader() {
                   xRightCoor={null}
                   yRightCoor={null}
                   aspectRatio={0.25}
+                  currentScore={0}
                 />
               </div>
               {/* {xCoor != null && yCoor != null && (

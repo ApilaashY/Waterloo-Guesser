@@ -1,6 +1,5 @@
-import React from 'react';
+import React from "react";
 import Map from "../../../components/Map";
-
 
 interface GameMapProps {
   image: string | undefined;
@@ -16,7 +15,6 @@ interface GameMapProps {
   mapContainerRef: React.RefObject<HTMLDivElement | null>;
   disabled?: boolean;
 }
-
 
 export default function GameMap({
   image,
@@ -40,7 +38,16 @@ export default function GameMap({
   const PAN_INTERVAL = 10; // ms
 
   React.useEffect(() => {
-    const panKeys = ['w', 'a', 's', 'd', 'arrowup', 'arrowleft', 'arrowdown', 'arrowright'];
+    const panKeys = [
+      "w",
+      "a",
+      "s",
+      "d",
+      "arrowup",
+      "arrowleft",
+      "arrowdown",
+      "arrowright",
+    ];
     const handleKeyDown = (e: KeyboardEvent) => {
       const key = e.key.toLowerCase();
       if (panKeys.includes(key)) {
@@ -51,20 +58,20 @@ export default function GameMap({
             let deltaY = 0;
             activeKeysRef.current.forEach((activeKey) => {
               switch (activeKey) {
-                case 'w':
-                case 'arrowup':
+                case "w":
+                case "arrowup":
                   deltaY += PAN_STEP;
                   break;
-                case 'a':
-                case 'arrowleft':
+                case "a":
+                case "arrowleft":
                   deltaX += PAN_STEP;
                   break;
-                case 's':
-                case 'arrowdown':
+                case "s":
+                case "arrowdown":
                   deltaY -= PAN_STEP;
                   break;
-                case 'd':
-                case 'arrowright':
+                case "d":
+                case "arrowright":
                   deltaX -= PAN_STEP;
                   break;
               }
@@ -86,11 +93,11 @@ export default function GameMap({
         }
       }
     };
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('keyup', handleKeyUp);
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("keyup", handleKeyUp);
     return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('keyup', handleKeyUp);
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keyup", handleKeyUp);
       if (panIntervalRef.current) {
         clearInterval(panIntervalRef.current);
         panIntervalRef.current = null;
@@ -99,7 +106,10 @@ export default function GameMap({
   }, []);
 
   return (
-    <div className="relative w-full h-96 mb-4 rounded-lg overflow-hidden" ref={mapContainerRef}>
+    <div
+      className="relative w-full h-96 mb-4 rounded-lg overflow-hidden"
+      ref={mapContainerRef}
+    >
       <Map
         ref={mapRef}
         xCoor={xCoor}
@@ -109,6 +119,7 @@ export default function GameMap({
         xRightCoor={xRightCoor}
         yRightCoor={yRightCoor}
         disabled={disabled}
+        currentScore={0}
       />
       {showResult && (
         <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
@@ -121,7 +132,7 @@ export default function GameMap({
               {`Correct answer is ${xRightCoor}, ${yRightCoor}.`}
             </p>
             <p className="text-xl font-bold text-gray-800">
-              {isRoundComplete ? 'Round Complete!' : 'Round In Progress'}
+              {isRoundComplete ? "Round Complete!" : "Round In Progress"}
             </p>
             <div className="flex justify-center mt-4">
               <button
