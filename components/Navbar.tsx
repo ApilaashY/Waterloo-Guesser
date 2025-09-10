@@ -40,6 +40,8 @@ export default function Navbar() {
   return (
     <header
       className={`w-full sticky top-0 left-0 z-50 transition-all duration-300 ${
+        pathname === "/" ? "bg-black" : "bg-transparent"
+      } ${
         pathname && pathname.toLowerCase().endsWith("/game")
           ? visible
             ? "opacity-100 pointer-events-auto"
