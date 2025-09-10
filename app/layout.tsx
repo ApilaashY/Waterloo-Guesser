@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://uw-guesser.vercel.app"),
+  metadataBase: new URL("https://uwguesser.com"),
   title: "UW Guesser",
   description: "A game for guessing locations at the University of Waterloo",
   keywords:
