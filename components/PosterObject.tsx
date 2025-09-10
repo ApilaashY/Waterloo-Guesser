@@ -3,10 +3,11 @@ import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.share
 
 export function PosterObject({
   router,
-  clubName,
+  name,
   posterUrl,
   description,
   eventDateTime,
+  posterType,
 }: PosterObject & { router: AppRouterInstance }) {
   const addToCalendar = (
     eventDate: Date,
@@ -92,24 +93,28 @@ export function PosterObject({
     <div className="border rounded-lg overflow-hidden shadow-md m-4">
       <img
         src={posterUrl}
-        alt={`${clubName} poster`}
+        alt={`${name} poster`}
         className="w-full object-cover"
       />
       <div className="p-4">
         <h2
           className="text-xl font-bold cursor-pointer hover:underline"
-          onClick={() => router.push(`/poster-board/${clubName}`)}
+          onClick={() => router.push(`/poster-board/${name}`)}
         >
-          {clubName}
+          {name}
         </h2>
-        <p className="text-gray-600">{description}</p>
+        <p className="text-gray-600">
+          Type: {posterType}
+          <br />
+          {description}
+        </p>
         {eventDateTime && (
           <p
             className="text-blue-600 cursor-pointer hover:underline flex items-center gap-1"
             onClick={() =>
               addToCalendar(
                 new Date(eventDateTime),
-                `${clubName} Event`,
+                `${name} - ${posterType}`,
                 description
               )
             }

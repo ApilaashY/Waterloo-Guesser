@@ -3,10 +3,11 @@
 import { ClubPosterBoardClient } from "./[club]/client";
 
 export interface PosterObject {
-  clubName: string;
+  name: string;
   posterUrl: string;
   description: string;
   eventDateTime: Date | null;
+  posterType: "Club" | "Event";
 }
 
 export default function PosterBoardPage() {

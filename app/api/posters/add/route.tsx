@@ -29,13 +29,13 @@ export async function POST(req: NextRequest) {
 
     const formData = await req.formData();
 
-    const clubName = formData.get("clubName") as string;
+    const name = formData.get("name") as string;
     const posterFile = formData.get("posterFile") as File;
     const description = formData.get("description") as string;
     const eventDateTime = formData.get("eventDateTime") as string;
 
     console.log({
-      clubName,
+      name,
       posterFile: posterFile
         ? {
             name: posterFile.name,
@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
     });
 
     // Validate required fields
-    if (!clubName || !posterFile || !description) {
+    if (!name || !posterFile || !description) {
       return new Response(
         JSON.stringify({ message: "Missing required fields" }),
         { status: 400 }
@@ -88,11 +88,12 @@ export async function POST(req: NextRequest) {
 
     // Insert to database
     const insertResult = await collection.insertOne({
-      clubName,
+      name,
       posterUrl: (uploadResult as any).secure_url,
       description,
       eventDateTime: eventDateTime ? new Date(eventDateTime) : null,
       createdAt: new Date(),
+      posterType: formData.get("posterType"),
       show: false, // Posters are hidden by default until reviewed
     });
 

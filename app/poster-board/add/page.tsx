@@ -7,6 +7,7 @@ export default function AddPosterPage() {
   const router = useRouter();
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const [posterType, setPosterType] = useState<"Club" | "Event">("Club");
   const processing = useRef(false);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -56,12 +57,13 @@ export default function AddPosterPage() {
     // Send data to the API
     try {
       const payload = new FormData();
-      payload.append("clubName", clubName);
+      payload.append("name", clubName);
       payload.append("posterFile", posterFile);
       payload.append("description", description);
       if (eventDateTime) {
         payload.append("eventDateTime", eventDateTime);
       }
+      payload.append("posterType", posterType);
 
       const response = await fetch("/api/posters/add", {
         method: "POST",
@@ -93,14 +95,26 @@ export default function AddPosterPage() {
             className="block text-gray-700 text-sm font-bold mb-2"
             htmlFor="clubName"
           >
-            Club Name<span className="text-red-500">*</span>
+            {posterType} Name
+            <span className="text-red-500">*</span>
           </label>
-          <input
-            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-            name="clubName"
-            type="text"
-            placeholder="Enter club name"
-          />
+          <div className="flex row">
+            <select
+              className="shadow border rounded py-2 px-3 text-gray-700 focus:outline-none focus:shadow-outline"
+              onChange={(e) => {
+                setPosterType(e.currentTarget.value as "Club" | "Event");
+              }}
+            >
+              <option value="Club">Club</option>
+              <option value="Event">Event</option>
+            </select>
+            <input
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              name="clubName"
+              type="text"
+              placeholder={`Enter ${posterType} name`}
+            />
+          </div>
         </div>
         <div className="mb-4">
           <label
