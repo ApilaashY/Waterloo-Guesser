@@ -1,15 +1,16 @@
 "use client";
 
 import { useRef, useState } from "react";
-import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useSession } from "../../components/SessionProvider";
 
 export default function LoginPage() {
   const [toast, setToast] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
   const processing = useRef(false);
+  const { login } = useSession();
 
   async function handleLogin(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -22,31 +23,21 @@ export default function LoginPage() {
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
 
-    const res = await fetch(`${process.env.NEXT_PUBLIC_LINK}/api/auth/login`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ email, password }),
-    });
+    const result = await login(email, password);
+    setToast(result.message);
 
-    const data = await res.json();
-
-    setToast(data.message);
-
-    if (res.ok) {
-      Cookies.set("user", JSON.stringify(data.user));
+    if (result.success) {
       await new Promise((resolve) => setTimeout(resolve, 1000));
-      processing.current = false;
       router.push("/");
     }
+
     processing.current = false;
   }
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
       <form
-        className="bg-white p-8 rounded-lg shadow-md max-w-md w-full text-center text-black"
+        className="bg-white p-8 rounded-lg shadow-md max-w-md w-full text-center text-black relative"
         onSubmit={handleLogin}
       >
         <h1 className="text-2xl font-bold mb-6 text-gray-800">Login</h1>
@@ -75,13 +66,21 @@ export default function LoginPage() {
           </button>
         </div>
 
-        <input
-          type="submit"
-          value="Login"
-          className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 
-                      focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50
-                      transition-colors duration-200 cursor-pointer"
-        />
+        <div className="relative">
+          <input
+            type="submit"
+            value="Login"
+            className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 
+                        focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50
+                        transition-colors duration-200 cursor-pointer"
+            disabled={processing.current}
+          />
+          {processing.current && (
+            <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-70 rounded-lg">
+              <div className="w-8 h-8 border-4 border-blue-400 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          )}
+        </div>
 
         {toast && setTimeout(() => setToast(null), 5000) && (
           <div

@@ -1,4 +1,5 @@
-import { GameState, CoordinateState, Coordinates } from '../types/game';
+import { useSession } from "@/components/SessionProvider";
+import { GameState, CoordinateState, Coordinates } from "../types/game";
 
 export class GameService {
   private static instance: GameService;
@@ -14,31 +15,51 @@ export class GameService {
     return `game_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 
-  public static async submitCoordinates(x: number, y: number, gameId: string | null) {
+  public static async submitCoordinates(
+    x: number,
+    y: number,
+    gameId: string | null,
+    userId: string | null
+  ) {
     try {
+      console.log({
+        xCoor: x,
+        yCoor: y,
+        id: gameId,
+        userId: userId,
+      });
+
       // API expects xCoor, yCoor, and id
-      const response = await fetch('/api/validateCoordinate', {
-        method: 'POST',
+      const response = await fetch("/api/validateCoordinate", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify({ xCoor: x, yCoor: y, id: gameId })
+        body: JSON.stringify({
+          xCoor: x,
+          yCoor: y,
+          id: gameId,
+          userId: userId,
+        }),
       });
 
       if (!response.ok) {
-        const text = await response.text().catch(() => '');
+        const text = await response.text().catch(() => "");
         throw new Error(`HTTP error! status: ${response.status} ${text}`);
       }
 
       const result = await response.json();
       // response returns xCoor/yCoor for correct coordinates and points
       return {
-        correctCoordinates: { x: result.xCoor ?? result.correctX ?? null, y: result.yCoor ?? result.correctY ?? null },
+        correctCoordinates: {
+          x: result.xCoor ?? result.correctX ?? null,
+          y: result.yCoor ?? result.correctY ?? null,
+        },
         distance: result.distance ?? null,
-        points: result.points ?? 0
+        points: result.points ?? 0,
       };
     } catch (error) {
-      console.error('Failed to submit coordinates:', error);
+      console.error("Failed to submit coordinates:", error);
       throw error;
     }
   }

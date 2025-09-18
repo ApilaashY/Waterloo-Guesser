@@ -2,9 +2,9 @@
 
 import { useRef, useState } from "react";
 import { useCallback } from "react";
-import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useSession } from "@/components/SessionProvider";
 
 export default function RegisterPage() {
   const [toast, setToast] = useState<string | null>(null);
@@ -19,6 +19,7 @@ export default function RegisterPage() {
 
   const router = useRouter();
   const processing = useRef(false);
+  const { register } = useSession();
 
   async function handleRegister(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -33,34 +34,21 @@ export default function RegisterPage() {
     const password = formData.get("password") as string;
     const confirmPassword = formData.get("confirmPassword") as string;
 
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_LINK}/api/auth/register`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          username,
-          waterlooUsername,
-          email,
-          department,
-          password,
-          confirmPassword,
-        }),
-      }
-    );
+    const result = await register({
+      username,
+      waterlooUsername,
+      email,
+      department,
+      password,
+      confirmPassword,
+    });
+    setToast(result.message);
 
-    const data = await res.json();
-
-    setToast(data.message);
-
-    if (res.ok) {
-      Cookies.set("user", JSON.stringify(data.user));
-      await setTimeout(() => {
-        router.push("/");
-      }, 1000);
+    if (result.success) {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      router.push("/");
     }
+
     processing.current = false;
   }
 

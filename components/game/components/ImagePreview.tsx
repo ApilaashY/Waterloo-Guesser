@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect } from 'react';
-import { CldImage } from 'next-cloudinary';
+import { useState, useRef, useEffect } from "react";
+import { CldImage } from "next-cloudinary";
 
 
 interface ImagePreviewProps {
@@ -8,8 +8,12 @@ interface ImagePreviewProps {
   enlarged: boolean; // Accept enlarged state as a prop
   setEnlarged: (value: boolean) => void; // Accept setEnlarged as a prop
 }
-
-export default function ImagePreview({ imageSrc, naturalSize, enlarged, setEnlarged }: ImagePreviewProps) {
+export default function ImagePreview({
+  imageSrc,
+  naturalSize,
+  enlarged,
+  setEnlarged,
+}: ImagePreviewProps) {
   // Pan key hold logic
   const panIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const activeKeysRef = useRef<Set<string>>(new Set()); // Track all active keys
@@ -36,8 +40,20 @@ export default function ImagePreview({ imageSrc, naturalSize, enlarged, setEnlar
   }>(null);
 
   // Compute dynamic container size
-  const vw = typeof window !== 'undefined' ? Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0) : 1200;
-  const vh = typeof window !== 'undefined' ? Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0) : 800;
+  const vw =
+    typeof window !== "undefined"
+      ? Math.max(
+          document.documentElement.clientWidth || 0,
+          window.innerWidth || 0
+        )
+      : 1200;
+  const vh =
+    typeof window !== "undefined"
+      ? Math.max(
+          document.documentElement.clientHeight || 0,
+          window.innerHeight || 0
+        )
+      : 800;
   // Use enlarged OR hovered for sizing
   const isLarge = enlarged || hovered;
   const maxW = isLarge ? Math.floor(vw * 0.5) : Math.floor(vw * 0.3); // 50vw when enlarged/hovered, 30vw when not
@@ -67,13 +83,22 @@ export default function ImagePreview({ imageSrc, naturalSize, enlarged, setEnlar
   // Global key handling for zoom, pan, and reset
   useEffect(() => {
     const PAN_STEP = 40;
-    const panKeys = ['w', 'a', 's', 'd', 'arrowup', 'arrowleft', 'arrowdown', 'arrowright'];
-    const zoomKeys = ['1', '2', '3'];
-    const cornerKeys = ['q', 'e', 'z', 'c'];
+    const panKeys = [
+      "w",
+      "a",
+      "s",
+      "d",
+      "arrowup",
+      "arrowleft",
+      "arrowdown",
+      "arrowright",
+    ];
+    const zoomKeys = ["1", "2", "3"];
+    const cornerKeys = ["q", "e", "z", "c"];
 
     const handleWindowKeyDown = (e: KeyboardEvent) => {
       const key = e.key.toLowerCase();
-      if (key === 'control' && !e.repeat) {
+      if (key === "control" && !e.repeat) {
         if (enlargedRef.current) {
           setEnlarged(false);
           setHovered(false);
@@ -86,13 +111,13 @@ export default function ImagePreview({ imageSrc, naturalSize, enlarged, setEnlar
         if (zoomKeys.includes(key)) {
           e.preventDefault();
           switch (key) {
-            case '1':
+            case "1":
               setZoom(1);
               break;
-            case '2':
+            case "2":
               setZoom(2);
               break;
-            case '3':
+            case "3":
               setZoom(3);
               break;
           }
@@ -105,20 +130,21 @@ export default function ImagePreview({ imageSrc, naturalSize, enlarged, setEnlar
           const maxX = Math.max(0, (imgWz - viewW) / 2);
           const maxY = Math.max(0, (imgHz - viewH) / 2);
           switch (key) {
-            case 'q':
+            case "q":
               setPan({ x: maxX, y: maxY });
               break;
-            case 'e':
+            case "e":
               setPan({ x: -maxX, y: maxY });
               break;
-            case 'z':
+            case "z":
               setPan({ x: maxX, y: -maxY });
               break;
-            case 'c':
+            case "c":
               setPan({ x: -maxX, y: -maxY });
               break;
           }
-        } else if (key === 'shift' || key === 'escape') {
+        } else if (key === "shift" || key === "escape") {
+
           e.preventDefault();
           setZoom(1);
           setPan({ x: 0, y: 0 });
@@ -131,20 +157,20 @@ export default function ImagePreview({ imageSrc, naturalSize, enlarged, setEnlar
                 let deltaY = 0;
                 activeKeysRef.current.forEach((activeKey) => {
                   switch (activeKey) {
-                    case 'w':
-                    case 'arrowup':
+                    case "w":
+                    case "arrowup":
                       deltaY += PAN_STEP;
                       break;
-                    case 'a':
-                    case 'arrowleft':
+                    case "a":
+                    case "arrowleft":
                       deltaX += PAN_STEP;
                       break;
-                    case 's':
-                    case 'arrowdown':
+                    case "s":
+                    case "arrowdown":
                       deltaY -= PAN_STEP;
                       break;
-                    case 'd':
-                    case 'arrowright':
+                    case "d":
+                    case "arrowright":
                       deltaX -= PAN_STEP;
                       break;
                   }
@@ -168,11 +194,11 @@ export default function ImagePreview({ imageSrc, naturalSize, enlarged, setEnlar
       }
     };
 
-    window.addEventListener('keydown', handleWindowKeyDown);
-    window.addEventListener('keyup', handleWindowKeyUp);
+    window.addEventListener("keydown", handleWindowKeyDown);
+    window.addEventListener("keyup", handleWindowKeyUp);
     return () => {
-      window.removeEventListener('keydown', handleWindowKeyDown);
-      window.removeEventListener('keyup', handleWindowKeyUp);
+      window.removeEventListener("keydown", handleWindowKeyDown);
+      window.removeEventListener("keyup", handleWindowKeyUp);
       if (panIntervalRef.current) {
         clearInterval(panIntervalRef.current);
         panIntervalRef.current = null;
@@ -190,7 +216,10 @@ export default function ImagePreview({ imageSrc, naturalSize, enlarged, setEnlar
       const dx = pts[0].x - pts[1].x;
       const dy = pts[0].y - pts[1].y;
       const dist = Math.hypot(dx, dy) || 1;
-      const mid = { x: (pts[0].x + pts[1].x) / 2, y: (pts[0].y + pts[1].y) / 2 };
+      const mid = {
+        x: (pts[0].x + pts[1].x) / 2,
+        y: (pts[0].y + pts[1].y) / 2,
+      };
       pinchRef.current = {
         distance: dist,
         startZoom: zoom,
@@ -215,9 +244,15 @@ export default function ImagePreview({ imageSrc, naturalSize, enlarged, setEnlar
       const dx = pts[0].x - pts[1].x;
       const dy = pts[0].y - pts[1].y;
       const dist = Math.hypot(dx, dy) || 1;
-      const mid = { x: (pts[0].x + pts[1].x) / 2, y: (pts[0].y + pts[1].y) / 2 };
+      const mid = {
+        x: (pts[0].x + pts[1].x) / 2,
+        y: (pts[0].y + pts[1].y) / 2,
+      };
       const scaleRatio = dist / pinchRef.current.distance;
-      const newZoom = Math.max(1, Math.min(3, pinchRef.current.startZoom * scaleRatio));
+      const newZoom = Math.max(
+        1,
+        Math.min(3, pinchRef.current.startZoom * scaleRatio)
+      );
       // keep midpoint under fingers
       const deltaMidX = mid.x - pinchRef.current.startMid.x;
       const deltaMidY = mid.y - pinchRef.current.startMid.y;
@@ -259,9 +294,9 @@ export default function ImagePreview({ imageSrc, naturalSize, enlarged, setEnlar
         return Math.max(minZoom, Math.min(3, newZoom));
       });
     };
-    container.addEventListener('wheel', handleImageWheel, { passive: false });
+    container.addEventListener("wheel", handleImageWheel, { passive: false });
     return () => {
-      container.removeEventListener('wheel', handleImageWheel);
+      container.removeEventListener("wheel", handleImageWheel);
     };
   }, [containerWidth, containerHeight]);
 
@@ -279,16 +314,15 @@ export default function ImagePreview({ imageSrc, naturalSize, enlarged, setEnlar
     if (!enlarged) setHovered(false);
   };
 
-
   // Dynamic container style
   const containerStyle = {
     width: `${containerWidth}px`,
     height: `${containerHeight}px`,
     zIndex: 99999,
-    position: 'absolute' as const,
-    left: '50px',
-    bottom: '50px',
-    transition: 'width 0.2s, height 0.2s',
+    position: "absolute" as const,
+    left: "50px",
+    bottom: "50px",
+    transition: "width 0.2s, height 0.2s",
   };
 
   // Image transform
@@ -303,33 +337,33 @@ export default function ImagePreview({ imageSrc, naturalSize, enlarged, setEnlar
       style={containerStyle}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-  tabIndex={0}
+      tabIndex={0}
     >
       <div
         className="w-full h-full flex items-center justify-center"
-        style={{ background: 'transparent' }}
+        style={{ background: "transparent" }}
       >
         <CldImage
-            src={imageSrc}
-            width={imgW}
-            height={imgH}
-            alt="Campus location"
-            className="block w-auto h-auto max-w-none max-h-none object-contain transition-opacity duration-500 opacity-100"
-            style={{
-              maxWidth: '100%',
-              maxHeight: '100%',
-              width: 'auto',
-              height: 'auto',
-              transform: imageTransform,
-              transformOrigin: 'center center',
-              transition: 'transform 0.1s',
-              cursor: 'grab',
-            }}
-            onPointerDown={handlePointerDown}
-            onPointerMove={handlePointerMove}
-            onPointerUp={handlePointerUp}
-            onPointerCancel={handlePointerCancel}
-          />
+          src={imageSrc}
+          width={imgW}
+          height={imgH}
+          alt="Campus location"
+          className="block w-auto h-auto max-w-none max-h-none object-contain transition-opacity duration-500 opacity-100"
+          style={{
+            maxWidth: "100%",
+            maxHeight: "100%",
+            width: "auto",
+            height: "auto",
+            transform: imageTransform,
+            transformOrigin: "center center",
+            transition: "transform 0.1s",
+            cursor: "grab",
+          }}
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+          onPointerCancel={handlePointerCancel}
+        />
       </div>
     </div>
   );

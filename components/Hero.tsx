@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import styles from './dialogFont.module.css'
 import bgStyles from './dialogBg.module.css'
+import Link from 'next/link'
 
 const navigation = [
   { name: 'Product', href: '#' },
@@ -59,13 +60,13 @@ export default function Hero() {
           fill
           priority
           className="object-cover"
-        //   style={{ filter: 'blur(6px) brightness(0.5)' }}
+          // style={{ filter: 'blur(6px) brightness(0.5)' }}
         />
       </div>
       {/* Overlay for readability */}
       <div className="absolute inset-0 bg-black/60 z-10" />
       <div className="relative isolate px-6 pt-4 lg:pt-8 z-20">
-        <div
+        {/* <div
           aria-hidden="true"
           className="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80"
         >
@@ -76,7 +77,7 @@ export default function Hero() {
             }}
             className="relative left-[calc(50%-11rem)] aspect-1155/678 w-144.5 -translate-x-1/2 rotate-30 bg-linear-to-tr from-[#ff80b5] to-[#9089fc] opacity-30 sm:left-[calc(50%-30rem)] sm:w-288.75"
           />
-        </div>
+        </div> */}
         <div className="mx-auto max-w-6xl py-12 sm:py-20 lg:py-24 flex flex-col lg:flex-row items-center justify-center gap-12">
           <div className="flex-1 w-full lg:max-w-3xl">
             {/* <div className="hidden sm:mb-8 sm:flex sm:justify-center">
@@ -99,19 +100,19 @@ export default function Hero() {
                 Lead your faculty to the top of the leaderboard!
               </p>
               <div className="mt-10 flex items-center justify-center gap-x-6">
-                <a
-                  href="#"
+                <Link
+                  href="/game"
                   className="rounded-md px-3.5 py-2.5 text-sm font-semibold text-white shadow-xs"
                   style={{ backgroundColor: '#f4b834' }}
                 >
                   Play Now
-                </a>
-                <a href="#" className="text-sm/6 font-semibold flex items-center gap-2" style={{ color: '#f4b834' }}>
+                </Link>
+                <Link href="/leaderboard" className="text-sm/6 font-semibold flex items-center gap-2" style={{ color: '#f4b834' }}>
                   <span className="relative flex items-center">
                     <span className="animate-pulse inline-block h-3 w-3 rounded-full bg-red-500 mr-2" style={{ boxShadow: '0 0 8px 2px #f87171' }}></span>
                     Live Leaderboards
                   </span>
-                </a>
+                </Link>
               </div>
             </div>
           </div>
@@ -135,7 +136,7 @@ export default function Hero() {
           */}
         </div>
         {/* Subtle bottom right color overlay */}
-        <div
+        {/* <div
           aria-hidden="true"
           className="absolute inset-x-0 top-[calc(100%-13rem)] -z-10 transform-gpu overflow-hidden blur-2xl sm:top-[calc(100%-30rem)]"
         >
@@ -146,7 +147,7 @@ export default function Hero() {
             }}
             className="relative left-[calc(50%+3rem)] aspect-1155/678 w-144.5 -translate-x-1/2 bg-gradient-to-tr from-[#ff80b5] to-[#9089fc] opacity-10 sm:left-[calc(50%+36rem)] sm:w-288.75"
           />
-        </div>
+        </div> */}
       </div>
     </div>
   )

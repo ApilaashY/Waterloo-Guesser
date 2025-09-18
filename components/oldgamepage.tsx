@@ -463,6 +463,7 @@ export default function GamePage() {
               yRightCoor={yRightCoor}
               disabled={xRightCoor != null && yRightCoor != null}
               aspectRatio={0.7 * (896 / 683)}
+              currentScore={0}
             />
             <div className="absolute top-4 right-4 z-50">
               <button

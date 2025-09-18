@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { SocketProvider } from "../components/SocketProvider";
+import { SessionProvider } from "../components/SessionProvider";
 import Navbar from "../components/Navbar";
 import Script from "next/script";
 
@@ -16,7 +17,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://uw-guesser.vercel.app"),
+  metadataBase: new URL("https://uwguesser.com"),
   title: "UW Guesser",
   description: "A game for guessing locations at the University of Waterloo",
   keywords:
@@ -99,10 +100,12 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <SocketProvider>
-          <Navbar />
-          {children}
-        </SocketProvider>
+        <SessionProvider>
+          <SocketProvider>
+            <Navbar />
+            {children}
+          </SocketProvider>
+        </SessionProvider>
       </body>
       <Script
         src="https://www.googletagmanager.com/gtag/js?id=G-8YNLGB5Q9Z"
