@@ -45,7 +45,7 @@ export default function GamePage() {
     h: number;
   } | null>(null);
   const [isEnlarged, setIsEnlarged] = useState(false); // Track enlarged state
-  
+
 
   // Initialize game
   useEffect(() => {

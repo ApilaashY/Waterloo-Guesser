@@ -422,6 +422,7 @@ const Map = forwardRef(function Map(props: MapProps, ref) {
         background:
           "repeating-linear-gradient(to right, black 0 6px, transparent 6px 12px, #febe30 12px 18px, transparent 18px 24px)", // or just black
         borderTop: "none",
+
       };
     }
     return {};
@@ -435,6 +436,7 @@ const Map = forwardRef(function Map(props: MapProps, ref) {
           ref={transformRef}
           onZoom={(ref) => setZoom(ref.state.scale)}
           centerOnInit={true}
+
         >
           <TransformComponent
             wrapperStyle={{
@@ -513,7 +515,6 @@ const Map = forwardRef(function Map(props: MapProps, ref) {
             </div>
           </TransformComponent>
         </TransformWrapper>
-
         {/* Score Display Overlay */}
         {props.showScoreDisplay &&
           props.xCoor != null &&
