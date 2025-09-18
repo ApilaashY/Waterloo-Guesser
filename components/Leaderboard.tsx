@@ -16,7 +16,7 @@ type Faculty = {
   imagePath: string
   color: string
   totalScore: number
-  players: Array<{ player: Player; score: number }>
+  players: Array<{ player: Player; score: number; rank: number | null }>
 }
 
 export default function Leaderboard() {
@@ -54,7 +54,8 @@ export default function Leaderboard() {
       .filter((entry: any) => facultyMapping[entry.playerId] === name)
       .map((entry: any) => ({
         player: players[entry.playerId] || { name: 'Unknown', avatar: null, rank: null },
-        score: entry.score
+        score: entry.score,
+        rank: entry.rank
       }))
       .sort((a: any, b: any) => b.score - a.score)
 
@@ -138,22 +139,22 @@ export default function Leaderboard() {
             <span className="text-sm text-gray-300">Top players</span>
           </div>
           <ol className="space-y-3">
-            {selectedFacultyData.players.slice(0, 6).map((playerData, idx) => (
-              <li key={playerData.player.id} className="flex items-center gap-3">
-                <div className="flex items-center gap-3 w-full">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-md bg-gradient-to-tr from-yellow-400 to-orange-400 text-black font-bold">
-                    {idx + 1}
+              {selectedFacultyData.players.slice(0, 6).map((playerData, idx) => (
+                <li key={playerData.player.id ?? `player-${idx}`} className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 w-full">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-md bg-gradient-to-tr from-yellow-400 to-orange-400 text-black font-bold">
+                      {idx + 1}
+                    </div>
+                    <div className="flex-1">
+                      <div className="font-medium text-white">{playerData.player.name}</div>
+                      <div className="text-sm text-gray-300">Rank: {playerData.rank ?? '—'}</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-mono font-semibold text-white">{playerData.score.toLocaleString()}</div>
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <div className="font-medium text-white">{playerData.player.name}</div>
-                    <div className="text-sm text-gray-300">Rank: {playerData.player.rank ?? '—'}</div>
-                  </div>
-                  <div className="text-right">
-                    <div className="font-mono font-semibold text-white">{playerData.score.toLocaleString()}</div>
-                  </div>
-                </div>
-              </li>
-            ))}
+                </li>
+              ))}
           </ol>
           <div className="mt-4 text-sm text-gray-300">Updated: mock data</div>
         </div>

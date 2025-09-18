@@ -56,7 +56,7 @@ import {
  * @property disabled - If true, disables interaction
  * @property aspectRatio - Optional aspect ratio for layout
  * @property showScoreDisplay - Show score/distance overlay
- * @property currentScore - Current round score
+ * @property currentScore - Optional current round score
  * @property maxScore - Maximum possible score
  */
 interface MapProps extends PropsWithChildren {
@@ -69,7 +69,7 @@ interface MapProps extends PropsWithChildren {
   disabled?: boolean;
   aspectRatio?: number; // width / height
   showScoreDisplay?: boolean; // New prop to control score display
-  currentScore: number; // Current round score
+  currentScore?: number; // Current round score
   maxScore?: number; // Maximum possible score
 }
 

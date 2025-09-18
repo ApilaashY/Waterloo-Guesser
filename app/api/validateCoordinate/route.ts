@@ -53,8 +53,8 @@ export async function POST(req: NextRequest) {
       correctY = doc.yCoordinate;
     }
 
-    // Calculate points based on distance (simple Euclidean for now)
-    const points = calculatePoints(xCoor, yCoor, correctX!, correctY!);
+    // Calculate distance and points
+    const result = calculatePointsAndDistance(xCoor, yCoor, correctX!, correctY!);
 
     // Check if the request is coming from a logged-in user and add the points to their account total
     if (userId) {
@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
       });
 
       if (userObject) {
-        const newTotalPoints = (userObject.totalPoints || 0) + points;
+        const newTotalPoints = (userObject.totalPoints || 0) + result.points;
         await usersCollection.updateOne(
           { _id: ObjectId.createFromHexString(userId) },
           { $set: { totalPoints: newTotalPoints } }
@@ -74,7 +74,12 @@ export async function POST(req: NextRequest) {
     }
 
     return new Response(
-      JSON.stringify({ xCoor: correctX, yCoor: correctY, points }),
+      JSON.stringify({ 
+        xCoor: correctX, 
+        yCoor: correctY, 
+        points: result.points,
+        distance: result.distance 
+      }),
       { status: 200 }
     );
   } catch (err) {
@@ -85,17 +90,17 @@ export async function POST(req: NextRequest) {
   }
 }
 
-function calculatePoints(
+function calculatePointsAndDistance(
   xCoor: number,
   yCoor: number,
   correctX: number,
   correctY: number
-): number {
-  // Calculate points based on distance (simple Euclidean for now)
+): { points: number; distance: number } {
+  // Calculate distance (simple Euclidean)
   const dx = xCoor - correctX!;
   const dy = yCoor - correctY!;
   const distance = Math.sqrt(dx * dx + dy * dy);
   // Example scoring: max 1000, lose 200 per 0.1 distance
   const points = Math.max(0, Math.round(1000 - distance * 2000));
-  return points;
+  return { points, distance };
 }
