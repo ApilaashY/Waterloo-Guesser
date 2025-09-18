@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { Dialog, DialogPanel } from "@headlessui/react";
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
 import { useSession } from "./SessionProvider";
 
@@ -43,7 +42,9 @@ export default function Navbar() {
 
   return (
     <header
-      className={`w-full bg-transparent fixed top-0 left-0 z-50 transition-all duration-300 ${
+      className={`w-full sticky top-0 left-0 z-50 transition-all duration-300 ${
+        pathname === "/" ? "bg-black" : "bg-transparent"
+      } ${
         pathname && pathname.toLowerCase().endsWith("/game")
           ? visible
             ? "opacity-100 pointer-events-auto"
@@ -134,15 +135,18 @@ export default function Navbar() {
         </div>
       </nav>
       {/* Mobile menu */}
-      <Dialog
-        open={mobileMenuOpen}
-        onClose={setMobileMenuOpen}
-        className="md:hidden"
-      >
-        <div className="fixed inset-0 z-50" />
-        <DialogPanel className="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-gray-900 p-6 sm:max-w-sm sm:ring-1 sm:ring-gray-100/10">
+      <div className="md:hidden">
+        <div
+          className={`fixed inset-y-0 left-0 z-50 w-3/4 overflow-y-auto bg-gray-900 p-6 sm:max-w-sm sm:ring-1 sm:ring-gray-100/10 transform transition-transform duration-500 ease-in-out ${
+            mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
+        >
           <div className="flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-2">
+            <Link
+              href="/"
+              className="flex items-center gap-2"
+              onClick={() => setMobileMenuOpen(false)}
+            >
               <img
                 src="/UWguesser-logo.png"
                 alt="UW Guesser Logo"
@@ -214,8 +218,17 @@ export default function Navbar() {
               </div>
             </div>
           </div>
-        </DialogPanel>
-      </Dialog>
+        </div>
+
+        <div
+          className={`fixed inset-0 bg-black/50 z-40 transition-opacity duration-500 ease-in-out ${
+            mobileMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+          }`}
+          onClick={() => setMobileMenuOpen(false)}
+        >
+          {" "}
+        </div>
+      </div>
     </header>
   );
 }

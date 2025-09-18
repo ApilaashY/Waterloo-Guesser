@@ -8,3 +8,5 @@ photos
 .superdesign
 .vercel
 .env*.local
+poster-approver/env
+poster-approver/venv

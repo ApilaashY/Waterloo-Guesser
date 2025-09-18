@@ -234,7 +234,9 @@ export default function GamePage() {
               {/* You can add more info or UI here if desired */}
             </div>
             {/* Right side: map */}
-            <div className="flex justify-center items-center w-2/3 h-full">
+            <div
+              className={`flex justify-center items-center h-full w-2/3 max-md:fixed max-md:w-screen`}
+            >
               <GameMap
                 ref={mapRef}
                 xCoor={xCoor}
