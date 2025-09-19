@@ -8,6 +8,7 @@ export * from './hooks';
 export { ImageService } from './services/imageService';
 export { GameService } from './services/gameService';
 export { CoordinateService } from './services/coordinateService';
+export { MatchService } from './services/matchService';
 
 // Types
 export * from './types/game';

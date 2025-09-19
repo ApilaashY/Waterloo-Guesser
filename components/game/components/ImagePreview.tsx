@@ -1,13 +1,13 @@
 import { useState, useRef, useEffect } from "react";
 import { CldImage } from "next-cloudinary";
 
+
 interface ImagePreviewProps {
   imageSrc: string;
   naturalSize: { w: number; h: number } | null;
   enlarged: boolean; // Accept enlarged state as a prop
   setEnlarged: (value: boolean) => void; // Accept setEnlarged as a prop
 }
-
 export default function ImagePreview({
   imageSrc,
   naturalSize,
@@ -144,6 +144,7 @@ export default function ImagePreview({
               break;
           }
         } else if (key === "shift" || key === "escape") {
+
           e.preventDefault();
           setZoom(1);
           setPan({ x: 0, y: 0 });

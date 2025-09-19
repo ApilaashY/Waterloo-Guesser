@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
 import { useSession } from "./SessionProvider";
+
 export default function Navbar() {
   const pathname = usePathname();
   const { user, isAuthenticated, logout } = useSession();
@@ -16,13 +17,16 @@ export default function Navbar() {
   const [active, setActive] = useState("home");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [visible, setVisible] = useState(true);
+  const [loggingOut, setLoggingOut] = useState(false);
 
   useEffect(() => {
     setVisible(true);
   }, [pathname]);
 
   const handleLogout = async () => {
+    setLoggingOut(true);
     await logout();
+    setLoggingOut(false);
     setMobileMenuOpen(false);
   };
 
@@ -48,8 +52,8 @@ export default function Navbar() {
           : "opacity-100 pointer-events-auto"
       }`}
     >
-      <nav className="flex items-center justify-center px-6 py-4 max-w-7xl mx-auto relative">
-        {/* Logo */}
+      <nav className="flex items-center px-6 py-4 max-w-7xl mx-auto relative md:justify-center justify-between">
+        {/* Logo - left on mobile */}
         <Link href="/" className="flex items-center gap-2 flex-shrink-0">
           <img
             src="/UWguesser-logo.png"
@@ -91,12 +95,22 @@ export default function Navbar() {
               <span className="text-sm text-white/80">
                 Welcome, {user?.username}
               </span>
-              <button
-                onClick={handleLogout}
-                className="text-sm font-semibold text-white px-4 py-2 rounded transition shadow-xs hover:bg-white/10 cursor-pointer"
-              >
-                Logout
-              </button>
+              <div className="relative">
+                <button
+                  onClick={handleLogout}
+                  className="text-sm font-semibold text-white px-4 py-2 rounded transition shadow-xs hover:bg-white/10 cursor-pointer"
+                  disabled={loggingOut}
+                >
+                  {loggingOut ? (
+                    <span className="flex items-center justify-center">
+                      <span className="w-5 h-5 border-2 border-yellow-400 border-t-transparent rounded-full animate-spin mr-2"></span>
+                      Logging out...
+                    </span>
+                  ) : (
+                    "Logout"
+                  )}
+                </button>
+              </div>
             </>
           ) : (
             <Link
@@ -108,8 +122,8 @@ export default function Navbar() {
             </Link>
           )}
         </div>
-        {/* Hamburger for mobile */}
-        <div className="md:hidden flex items-center">
+        {/* Hamburger for mobile - right side */}
+        <div className="md:hidden flex items-center ml-auto">
           <button
             type="button"
             onClick={() => setMobileMenuOpen(true)}
@@ -174,12 +188,22 @@ export default function Navbar() {
                     <div className="mb-4 text-white/80 text-sm px-3">
                       Welcome, {user?.username}
                     </div>
-                    <button
-                      onClick={handleLogout}
-                      className="-mx-3 block w-full text-left rounded-lg px-3 py-2.5 text-base font-semibold text-white hover:bg-white/10"
-                    >
-                      Logout
-                    </button>
+                    <div className="relative">
+                      <button
+                        onClick={handleLogout}
+                        className="-mx-3 block w-full text-left rounded-lg px-3 py-2.5 text-base font-semibold text-white hover:bg-white/10"
+                        disabled={loggingOut}
+                      >
+                        {loggingOut ? (
+                          <span className="flex items-center justify-center">
+                            <span className="w-5 h-5 border-2 border-yellow-400 border-t-transparent rounded-full animate-spin mr-2"></span>
+                            Logging out...
+                          </span>
+                        ) : (
+                          "Logout"
+                        )}
+                      </button>
+                    </div>
                   </>
                 ) : (
                   <Link

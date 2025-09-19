@@ -12,12 +12,12 @@ type Player = {
 };
 
 type Faculty = {
-  name: string;
-  imagePath: string;
-  color: string;
-  totalScore: number;
-  players: Array<{ player: Player; score: number }>;
-};
+  name: string
+  imagePath: string
+  color: string
+  totalScore: number
+  players: Array<{ player: Player; score: number; rank: number | null }>
+}
 
 export default function Leaderboard() {
   const [selectedFaculty, setSelectedFaculty] = useState<string>("Engineering");
@@ -69,6 +69,7 @@ export default function Leaderboard() {
             rank: null,
           },
           score: entry.score,
+        rank: entry.rank,
         }))
         .sort((a: any, b: any) => b.score - a.score);
 
@@ -154,43 +155,32 @@ export default function Leaderboard() {
             ))}
           </div>
 
-          {/* Right: Selected Faculty Players */}
-          <div className="rounded-xl bg-white/5 p-6 shadow-md">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-white">Leaderboard</h3>
-              <span className="text-sm text-gray-300">Top players</span>
-            </div>
-            <ol className="space-y-3">
-              {selectedFacultyData.players
-                .slice(0, 6)
-                .map((playerData, idx) => (
-                  <li
-                    key={playerData.player.id}
-                    className="flex items-center gap-3"
-                  >
-                    <div className="flex items-center gap-3 w-full">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-md bg-gradient-to-tr from-yellow-400 to-orange-400 text-black font-bold">
-                        {idx + 1}
-                      </div>
-                      <div className="flex-1">
-                        <div className="font-medium text-white">
-                          {playerData.player.name}
-                        </div>
-                        <div className="text-sm text-gray-300">
-                          Rank: {playerData.player.rank ?? "—"}
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="font-mono font-semibold text-white">
-                          {playerData.score.toLocaleString()}
-                        </div>
-                      </div>
-                    </div>
-                  </li>
-                ))}
-            </ol>
-            <div className="mt-4 text-sm text-gray-300">Updated: mock data</div>
+        {/* Right: Selected Faculty Players */}
+  <div className="rounded-xl bg-white/5 p-6 shadow-md">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-white">Leaderboard</h3>
+            <span className="text-sm text-gray-300">Top players</span>
           </div>
+          <ol className="space-y-3">
+              {selectedFacultyData.players.slice(0, 6).map((playerData, idx) => (
+                <li key={playerData.player.id ?? `player-${idx}`} className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 w-full">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-md bg-gradient-to-tr from-yellow-400 to-orange-400 text-black font-bold">
+                      {idx + 1}
+                    </div>
+                    <div className="flex-1">
+                      <div className="font-medium text-white">{playerData.player.name}</div>
+                      <div className="text-sm text-gray-300">Rank: {playerData.rank ?? '—'}</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-mono font-semibold text-white">{playerData.score.toLocaleString()}</div>
+                    </div>
+                  </div>
+                </li>
+              ))}
+          </ol>
+          <div className="mt-4 text-sm text-gray-300">Updated: mock data</div>
+        </div>
         </div>
       </div>
     </div>
