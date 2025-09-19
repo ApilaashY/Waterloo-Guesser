@@ -2,6 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
+import { posterCategories } from "../[club]/client";
+import { PosterChip } from "@/components/PosterChip";
 
 export default function AddPosterPage() {
   const router = useRouter();
@@ -9,6 +11,9 @@ export default function AddPosterPage() {
   const [toast, setToast] = useState<string | null>(null);
   const [posterType, setPosterType] = useState<"Club" | "Event">("Club");
   const processing = useRef(false);
+  const [selectedCategory, setSelectedCategory] = useState<boolean[]>(
+    Array(posterCategories.length).fill(false)
+  );
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -64,6 +69,13 @@ export default function AddPosterPage() {
         payload.append("eventDateTime", eventDateTime);
       }
       payload.append("posterType", posterType);
+      payload.append(
+        "categories",
+        selectedCategory
+          .map((selected, index) => (selected ? posterCategories[index] : null))
+          .filter((category) => category)
+          .join(",")
+      );
 
       const response = await fetch("/api/posters/add", {
         method: "POST",
@@ -81,6 +93,17 @@ export default function AddPosterPage() {
       setToast("Failed to submit form.");
     }
     processing.current = false;
+  }
+
+  // Function to handle clicks on the chips
+  function handleChipClick(category: string) {
+    setSelectedCategory((prevSelected) => {
+      const index = posterCategories.indexOf(category);
+      const newSelected = [...prevSelected];
+      newSelected[index] = !newSelected[index];
+
+      return newSelected;
+    });
   }
 
   return (
@@ -169,6 +192,22 @@ export default function AddPosterPage() {
             type="datetime-local"
             placeholder="Select Date & Time of Event"
           />
+        </div>
+
+        <div className="mb-4">
+          <label className="block text-gray-700 text-sm font-bold mb-2">
+            Categories
+          </label>
+          <div className="flex flex-wrap">
+            {posterCategories.map((category, index) => (
+              <PosterChip
+                key={category}
+                category={category}
+                onClick={handleChipClick}
+                enabled={selectedCategory[index]}
+              />
+            ))}
+          </div>
         </div>
 
         {toast && (
