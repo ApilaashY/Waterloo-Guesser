@@ -21,6 +21,7 @@ import {
   TransformComponent,
   ReactZoomPanPinchRef,
 } from "react-zoom-pan-pinch";
+import { get } from "http";
 
 // interface Floorplan {
 //   _id: string;
@@ -71,6 +72,9 @@ interface MapProps extends PropsWithChildren {
   showScoreDisplay?: boolean; // New prop to control score display
   currentScore: number; // Current round score
   maxScore?: number; // Maximum possible score
+  zoom: number; // Additional styles for the score display
+  pan: { x: number; y: number }; // Additional styles for the score display
+  imageRef: React.RefObject<HTMLImageElement | null>; // Ref to the image element for dimension calculations
 }
 
 /**
@@ -85,6 +89,23 @@ const Map = forwardRef(function Map(props: MapProps, ref) {
   const [zoom, setZoom] = useState(1);
   // Ref to react-zoom-pan-pinch instance
   const transformRef = useRef<ReactZoomPanPinchRef>(null);
+
+  /**
+   * Gets the actual rendered dimensions of the image element
+   */
+  const getImageDimensions = () => {
+    if (props.imageRef.current) {
+      return {
+        width: props.imageRef.current.clientWidth,
+        height: props.imageRef.current.clientHeight,
+      };
+    }
+    // Fallback to the container dimensions or hardcoded values
+    return {
+      width: containerWidth,
+      height: containerHeight,
+    };
+  };
 
   /**
    * Calculates the real-world distance (meters) between two normalized map points.
@@ -379,15 +400,69 @@ const Map = forwardRef(function Map(props: MapProps, ref) {
   /**
    * Handles user click on the map image.
    * Converts click position to normalized coordinates and sets guess.
+   * Accounts for both zoom and pan transformations.
    */
   function handleClick(event: React.MouseEvent<HTMLImageElement>) {
     if (props.disabled) return;
+
     const img = event.currentTarget as HTMLImageElement;
-    const x = event.nativeEvent.offsetX / img.clientWidth;
-    const y = event.nativeEvent.offsetY / img.clientHeight;
-    // console.log('Map click:', { x, y });
-    props.setXCoor(x);
-    props.setYCoor(y);
+    const rect = img.getBoundingClientRect();
+
+    // Get click position relative to the image element
+    const clickX = event.clientX - rect.left;
+    const clickY = event.clientY - rect.top;
+
+    // Account for the image transform (zoom and pan)
+    // The image is transformed with: scale(zoom) translate(pan.x, pan.y)
+    // To get the original coordinates, we need to reverse this transform
+
+    // First, adjust for the center-based scaling
+    const centerX = img.clientWidth / 2;
+    const centerY = img.clientHeight / 2;
+
+    // Convert click position to be relative to the image center
+    const centeredX = clickX - centerX;
+    const centeredY = clickY - centerY;
+
+    // Reverse the zoom scaling
+    const unscaledX = centeredX / props.zoom;
+    const unscaledY = centeredY / props.zoom;
+
+    // Reverse the pan translation (pan is applied after scaling)
+    const unpannedX = unscaledX - props.pan.x;
+    const unpannedY = unscaledY - props.pan.y;
+
+    // Convert back to absolute coordinates (relative to image center)
+    const finalX = unpannedX + centerX;
+    const finalY = unpannedY + centerY;
+
+    // Convert to normalized coordinates (0-1)
+    const normalizedX = finalX / img.clientWidth;
+    const normalizedY = finalY / img.clientHeight;
+
+    console.log("Map click:", {
+      original: { x: clickX, y: clickY },
+      centered: { x: centeredX, y: centeredY },
+      unscaled: { x: unscaledX, y: unscaledY },
+      unpanned: { x: unpannedX, y: unpannedY },
+      final: { x: finalX, y: finalY },
+      normalized: { x: normalizedX, y: normalizedY },
+      zoom: props.zoom,
+      pan: props.pan,
+    });
+
+    // Only set coordinates if they're within valid bounds (0-1)
+    if (
+      normalizedX >= 0 &&
+      normalizedX <= 1 &&
+      normalizedY >= 0 &&
+      normalizedY <= 1
+    ) {
+      props.setXCoor(normalizedX);
+      props.setYCoor(normalizedY);
+    } else {
+      console.log("Click outside map bounds, ignoring");
+    }
   }
 
   /**
@@ -401,14 +476,11 @@ const Map = forwardRef(function Map(props: MapProps, ref) {
       props.xRightCoor != null &&
       props.yRightCoor != null
     ) {
-      const parent = document.querySelector(".MapPicture");
-      if (!parent) return {};
-      const parentWidth = parent.clientWidth;
-      const parentHeight = parent.clientHeight;
-      const x1 = props.xCoor * parentWidth;
-      const y1 = props.yCoor * parentHeight;
-      const x2 = props.xRightCoor * parentWidth;
-      const y2 = props.yRightCoor * parentHeight;
+      const { width: imageWidth, height: imageHeight } = getImageDimensions();
+      const x1 = props.xCoor * imageWidth;
+      const y1 = props.yCoor * imageHeight;
+      const x2 = props.xRightCoor * imageWidth;
+      const y2 = props.yRightCoor * imageHeight;
       const length = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
       const angle = Math.atan2(y2 - y1, x2 - x1) * (180 / Math.PI);
       return {
@@ -416,8 +488,8 @@ const Map = forwardRef(function Map(props: MapProps, ref) {
         top: `${y1}px`,
         left: `${x1}px`,
         width: `${length}px`,
-        transform: `rotate(${angle}deg) translate(0, -50%)`,
-        transformOrigin: "0 0",
+        transform: `rotate(${angle}deg) translate(0, -50%) scale(${props.zoom}) translate(${props.pan.x}px, ${props.pan.y}px)`,
+        transformOrigin: "0 50%",
         height: "1.5px",
         background:
           "repeating-linear-gradient(to right, black 0 6px, transparent 6px 12px, #febe30 12px 18px, transparent 18px 24px)", // or just black
@@ -431,13 +503,14 @@ const Map = forwardRef(function Map(props: MapProps, ref) {
   return (
     <>
       <div className="w-full h-full flex-1" style={{ position: "relative" }}>
-        <TransformWrapper
-          ref={transformRef}
-          onZoom={(ref) => setZoom(ref.state.scale)}
-          centerOnInit={true}
+        <div
+          className="relative rounded-2xl overflow-hidden bg-gray-200 border-4 border-black"
+          style={{}}
+          tabIndex={0}
         >
-          <TransformComponent
-            wrapperStyle={{
+          <div
+            className="w-full h-full flex items-center justify-center"
+            style={{
               height: "100%",
               width: "100%",
               border:
@@ -446,10 +519,16 @@ const Map = forwardRef(function Map(props: MapProps, ref) {
           >
             <div
               onClick={handleClick}
-              className="w-full h-full cursor-crosshair relative"
+              className={`w-full h-full relative ${
+                props.zoom > 1 ? "cursor-grab" : "cursor-crosshair"
+              }`}
+              style={{
+                cursor: props.zoom > 1 ? "grab" : "crosshair",
+                transition: "cursor 0.2s ease",
+              }}
             >
               <Image
-                /* ref={mapImgRef} */
+                ref={props.imageRef}
                 className="MapPicture w-full h-full select-none"
                 src="/uw campus map.png"
                 alt="Campus Map"
@@ -463,6 +542,8 @@ const Map = forwardRef(function Map(props: MapProps, ref) {
                   height: "100%",
                   display: "block",
                   pointerEvents: "auto",
+                  transform: `scale(${props.zoom}) translate(${props.pan.x}px, ${props.pan.y}px)`,
+                  // transition: "transform 0.3s ease", April 1st update
                 }}
                 onError={(e) => {
                   console.error("Campus map image failed to load", e);
@@ -476,16 +557,27 @@ const Map = forwardRef(function Map(props: MapProps, ref) {
               {props.xCoor != null && props.yCoor != null && (
                 <div
                   style={{
-                    top: `${(props.yCoor as number) * 100}%`,
-                    left: `${(props.xCoor as number) * 100}%`,
+                    top: `${
+                      ((props.yCoor as number) * getImageDimensions().height -
+                        getImageDimensions().height / 2) *
+                        props.zoom +
+                      getImageDimensions().height / 2
+                    }px`,
+                    left: `${
+                      ((props.xCoor as number) * getImageDimensions().width -
+                        getImageDimensions().width / 2) *
+                        props.zoom +
+                      getImageDimensions().width / 2
+                    }px`,
                     position: "absolute",
                     pointerEvents: "none",
-                    transform: "translate(-50%, -100%)", // marker tip at point
+                    transform: `translate(-50%, -100%) scale(${props.zoom}) translate(${props.pan.x}px, ${props.pan.y}px)`,
+                    transformOrigin: "50% 100%",
                     zIndex: 10,
                   }}
                 >
                   <FaMapMarkerAlt
-                    size={Math.max(10, 28 / zoom)}
+                    size={28}
                     color="red"
                     style={{ filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.2))" }}
                   />
@@ -494,16 +586,29 @@ const Map = forwardRef(function Map(props: MapProps, ref) {
               {props.xRightCoor != null && props.yRightCoor != null && (
                 <div
                   style={{
-                    top: `${(props.yRightCoor as number) * 100}%`,
-                    left: `${(props.xRightCoor as number) * 100}%`,
+                    top: `${
+                      ((props.yRightCoor as number) *
+                        getImageDimensions().height -
+                        getImageDimensions().height / 2) *
+                        props.zoom +
+                      getImageDimensions().height / 2
+                    }px`,
+                    left: `${
+                      ((props.xRightCoor as number) *
+                        getImageDimensions().width -
+                        getImageDimensions().width / 2) *
+                        props.zoom +
+                      getImageDimensions().width / 2
+                    }px`,
                     position: "absolute",
                     pointerEvents: "none",
-                    transform: "translate(-50%, -100%)", // marker tip at point
+                    transform: `translate(-50%, -100%) scale(${props.zoom}) translate(${props.pan.x}px, ${props.pan.y}px)`,
+                    transformOrigin: "50% 100%",
                     zIndex: 10,
                   }}
                 >
                   <FaMapMarkerAlt
-                    size={Math.max(10, 28 / zoom)}
+                    size={28}
                     color="limegreen"
                     style={{ filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.2))" }}
                   />
@@ -511,8 +616,8 @@ const Map = forwardRef(function Map(props: MapProps, ref) {
               )}
               {props.children}
             </div>
-          </TransformComponent>
-        </TransformWrapper>
+          </div>
+        </div>
 
         {/* Score Display Overlay */}
         {props.showScoreDisplay &&

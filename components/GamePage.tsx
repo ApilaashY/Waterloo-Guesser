@@ -151,7 +151,7 @@ export default function GamePage() {
     <div className="fixed inset-0 flex items-center justify-center bg-gray-50 flex-wrap gap-1">
       <div className="relative flex flex-col items-center justify-center w-full h-full">
         <div className="flex items-center justify-center w-full h-full">
-          <div className="flex flex-row items-center justify-between w-full h-full max-w-6xl max-h-[92vh] mx-auto my-auto bg-white rounded shadow-lg overflow-hidden relative">
+          <div className="flex flex-row items-center justify-between w-full h-full mx-auto my-auto bg-white rounded shadow-lg overflow-hidden relative">
             {/* Left side: controls (optional, can add more UI here) */}
             <div className="flex flex-col justify-center items-center w-1/3 h-full">
               <GameControls

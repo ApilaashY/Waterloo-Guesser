@@ -1,4 +1,4 @@
-import { forwardRef, useEffect, useRef as useReactRef } from "react";
+import { forwardRef, useEffect, useRef as useReactRef, useState } from "react";
 import Map from "../../Map";
 
 interface GameMapProps {
@@ -28,29 +28,92 @@ const GameMap = forwardRef<any, GameMapProps>(
   ) => {
     const panIntervalRef = useReactRef<NodeJS.Timeout | null>(null);
     const activeKeysRef = useReactRef<Set<string>>(new Set()); // Track all active keys
+    const mapRef = useReactRef<any>(null); // Ref to access Map component
+    const [zoom, setZoom] = useState(1);
+    const [pan, setPan] = useState({ x: 0, y: 0 });
+    const [containerDimensions, setContainerDimensions] = useState({
+      width: 765,
+      height: 350,
+    });
+    const imageRef = useReactRef<HTMLImageElement | null>(null); // Ref to the image element
+    const isAnimatingZoom = useReactRef(false);
+    const isDragging = useReactRef(false);
+    const dragStart = useReactRef({ x: 0, y: 0 });
+    const panStart = useReactRef({ x: 0, y: 0 });
 
     // Clamp pan so the map always stays within its container
     const clampPan = (x: number, y: number, zoomLevel = 1) => {
       if (zoomLevel <= 1) {
+        // When not zoomed in, don't allow any panning
         return { x: 0, y: 0 };
       }
-      const containerWidth = 896; // Example container width, adjust as needed
-      const containerHeight = 683; // Example container height, adjust as needed
-      const mapWidth = containerWidth * zoomLevel;
-      const mapHeight = containerHeight * zoomLevel;
-      const maxX = Math.max(0, (mapWidth - containerWidth) / 2);
-      const maxY = Math.max(0, (mapHeight - containerHeight) / 2);
+
+      const { width, height } = getImageDimensions();
+
+      const borderx = width / 2 - width / 2 / zoomLevel;
+      const bordery = height / 2 - height / 2 / zoomLevel;
+
+      const clampedX = Math.min(borderx, Math.max(-borderx, x));
+      const clampedY = Math.min(bordery, Math.max(-bordery, y));
+
       return {
-        x: Math.max(-maxX, Math.min(maxX, x)),
-        y: Math.max(-maxY, Math.min(maxY, y)),
+        x: clampedX,
+        y: clampedY,
       };
     };
+
+    // Function to animate zooming
+    async function animateZoom(targetZoom: number) {
+      if (isAnimatingZoom.current) return; // Prevent overlapping animations
+      isAnimatingZoom.current = true;
+
+      let prev = zoom;
+
+      while (prev !== targetZoom) {
+        if (prev < targetZoom) {
+          prev = Math.min(prev + 0.05, targetZoom);
+        } else {
+          prev = Math.max(prev - 0.05, targetZoom);
+        }
+        setZoom(prev);
+        await new Promise((resolve) => setTimeout(resolve, 4));
+      }
+      isAnimatingZoom.current = false;
+    }
+
+    // Reset pan when zoom changes to ensure proper bounds
+    useEffect(() => {
+      setPan((prev) => clampPan(prev.x, prev.y, zoom));
+    }, [zoom]);
+
+    // Update container dimensions when map ref is available
+    useEffect(() => {
+      const updateDimensions = () => {
+        if (mapRef.current) {
+          const mapElement = mapRef.current.querySelector?.(".MapPicture");
+          if (mapElement) {
+            setContainerDimensions({
+              width: mapElement.clientWidth,
+              height: mapElement.clientHeight,
+            });
+          }
+        }
+      };
+
+      // Update dimensions initially and on resize
+      updateDimensions();
+      window.addEventListener("resize", updateDimensions);
+
+      return () => {
+        window.removeEventListener("resize", updateDimensions);
+      };
+    }, [mapRef.current]);
 
     useEffect(() => {
       if (disabled || enlarged) return; // Disable movement if enlarged is true
 
-      const PAN_STEP = 600;
-      const PAN_INTERVAL = 30; // ms (smoother, ~60fps)
+      const PAN_STEP = 4;
+      const PAN_INTERVAL = 10; // ms (smoother, ~60fps)
       const panKeys = [
         "arrowup",
         "arrowleft",
@@ -62,96 +125,153 @@ const GameMap = forwardRef<any, GameMapProps>(
         "d",
       ]; // Added WASD keys
       const zoomKeys = ["1", "2", "3"]; // Zoom preset keys
+      const cornerKeys = ["q", "e", "z", "c"];
+
+      // Handle wheel/scroll events for zooming
+      const handleWheel = (e: WheelEvent) => {
+        if (disabled || enlarged) return;
+
+        e.preventDefault();
+
+        const zoomStep = 0.3; // Increased for more responsive zooming
+        const minZoom = 1;
+        const maxZoom = 5;
+
+        let newZoom = zoom;
+
+        if (e.deltaY < 0) {
+          // Scrolling up - zoom in
+          newZoom = Math.min(zoom + zoomStep, maxZoom);
+        } else {
+          // Scrolling down - zoom out
+          newZoom = Math.max(zoom - zoomStep, minZoom);
+        }
+
+        if (newZoom !== zoom) {
+          animateZoom(newZoom);
+        }
+      };
+
+      // Handle mouse events for dragging
+      const handleMouseDown = (e: MouseEvent) => {
+        // Only handle left mouse button
+        if (e.button !== 0 || disabled || enlarged || zoom <= 1) return;
+
+        e.preventDefault();
+        isDragging.current = true;
+        dragStart.current = { x: e.clientX, y: e.clientY };
+        panStart.current = { x: pan.x, y: pan.y };
+      };
+
+      const handleMouseMove = (e: MouseEvent) => {
+        if (!isDragging.current || disabled || enlarged) return;
+
+        e.preventDefault();
+
+        const deltaX = (e.clientX - dragStart.current.x) / zoom;
+        const deltaY = (e.clientY - dragStart.current.y) / zoom;
+
+        const newPan = clampPan(
+          panStart.current.x + deltaX,
+          panStart.current.y + deltaY,
+          zoom
+        );
+
+        setPan(newPan);
+      };
+
+      const handleMouseUp = (e: MouseEvent) => {
+        if (!isDragging.current) return;
+
+        e.preventDefault();
+        isDragging.current = false;
+      };
+
+      // Handle mouse leave to end dragging if mouse leaves the window
+      const handleMouseLeave = () => {
+        if (isDragging.current) {
+          isDragging.current = false;
+        }
+      };
 
       const handleKeyDown = (e: KeyboardEvent) => {
-        console.log(`Key pressed: ${e.key}`); // Debugging log to confirm key press
-
-        if (
-          document.activeElement?.tagName === "INPUT" ||
-          document.activeElement?.tagName === "TEXTAREA" ||
-          document.activeElement?.tagName === "SELECT"
-        ) {
-          return;
-        }
-
-        if (!ref || typeof ref === "function") return;
-        if (!ref.current) return;
-
-        if (disabled) return;
-
         const key = e.key.toLowerCase();
 
-        switch (key) {
-          case "q":
-            console.log("Calling panToTopLeft");
-            console.log("ref.current:", ref.current); // Debugging log to inspect ref.current
-            ref.current.panToTopLeft?.();
+        if (!enlarged) {
+          if (zoomKeys.includes(key)) {
             e.preventDefault();
-            break;
-          case "e":
-            ref.current.panToTopRight?.();
-            e.preventDefault();
-            break;
-          case "z":
-            ref.current.panToBottomLeft?.();
-            e.preventDefault();
-            break;
-          case "c":
-            ref.current.panToBottomRight?.();
-            e.preventDefault();
-            break;
-          case "1":
-            ref.current.setZoom?.(1); // Zoom preset 1
-            e.preventDefault();
-            break;
-          case "2":
-            ref.current.setZoom?.(2); // Zoom preset 2
-            e.preventDefault();
-            break;
-          case "3":
-            ref.current.setZoom?.(3); // Zoom preset 3
-            e.preventDefault();
-            break;
-        }
+            let newZoom;
+            switch (key) {
+              case "1":
+                newZoom = 1;
+                break;
+              case "2":
+                newZoom = 3;
+                break;
+              case "3":
+                newZoom = 5;
+                break;
+            }
 
-        if (panKeys.includes(key)) {
-          activeKeysRef.current.add(key);
-          if (!panIntervalRef.current) {
-            panIntervalRef.current = setInterval(() => {
-              let deltaX = 0;
-              let deltaY = 0;
-              activeKeysRef.current.forEach((activeKey) => {
-                switch (activeKey) {
-                  case "arrowup":
-                  case "w":
-                    deltaY += PAN_STEP;
-                    break;
-                  case "arrowleft":
-                  case "a":
-                    deltaX += PAN_STEP;
-                    break;
-                  case "arrowdown":
-                  case "s":
-                    deltaY -= PAN_STEP;
-                    break;
-                  case "arrowright":
-                  case "d":
-                    deltaX -= PAN_STEP;
-                    break;
-                }
-              });
-              const currentPan = ref.current.getPan?.() || { x: 0, y: 0 };
-              const currentZoom = ref.current.getZoom?.() || 1;
-              const newPan = clampPan(
-                currentPan.x + deltaX,
-                currentPan.y + deltaY,
-                currentZoom
-              );
-              ref.current.panBy?.(
-                newPan.x - currentPan.x,
-                newPan.y - currentPan.y
-              );
-            }, PAN_INTERVAL);
+            if (newZoom !== undefined) {
+              animateZoom(newZoom);
+            }
+          } else if (cornerKeys.includes(key)) {
+            e.preventDefault();
+            const { width, height } = getImageDimensions();
+            const totalWidth = width / 2 - width / 2 / zoom;
+            const totalHeight = height / 2 - height / 2 / zoom;
+            switch (key) {
+              case "q":
+                setPan(clampPan(totalWidth, totalHeight, zoom));
+                break;
+              case "e":
+                setPan(clampPan(-totalWidth, totalHeight, zoom));
+                break;
+              case "z":
+                setPan(clampPan(totalWidth, -totalHeight, zoom));
+                break;
+              case "c":
+                setPan(clampPan(-totalWidth, -totalHeight, zoom));
+                break;
+            }
+          } else if (key === "shift" || key === "escape") {
+            e.preventDefault();
+            setZoom(1);
+            setPan({ x: 0, y: 0 });
+          } else if (panKeys.includes(key)) {
+            e.preventDefault();
+
+            activeKeysRef.current.add(key);
+            if (!panIntervalRef.current) {
+              panIntervalRef.current = setInterval(() => {
+                setPan((prev) => {
+                  let deltaX = 0;
+                  let deltaY = 0;
+                  activeKeysRef.current.forEach((activeKey) => {
+                    switch (activeKey) {
+                      case "w":
+                      case "arrowup":
+                        deltaY += PAN_STEP / zoom;
+                        break;
+                      case "a":
+                      case "arrowleft":
+                        deltaX += PAN_STEP / zoom;
+                        break;
+                      case "s":
+                      case "arrowdown":
+                        deltaY -= PAN_STEP / zoom;
+                        break;
+                      case "d":
+                      case "arrowright":
+                        deltaX -= PAN_STEP / zoom;
+                        break;
+                    }
+                  });
+                  return clampPan(prev.x + deltaX, prev.y + deltaY, zoom);
+                });
+              }, PAN_INTERVAL);
+            }
           }
         }
       };
@@ -169,19 +289,60 @@ const GameMap = forwardRef<any, GameMapProps>(
 
       window.addEventListener("keydown", handleKeyDown);
       window.addEventListener("keyup", handleKeyUp);
+
+      // Add wheel event listener to the document for broader capture
+      document.addEventListener("wheel", handleWheel, { passive: false });
+
+      // Add mouse event listeners for dragging
+      document.addEventListener("mousedown", handleMouseDown);
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp);
+      document.addEventListener("mouseleave", handleMouseLeave);
+
       return () => {
         window.removeEventListener("keydown", handleKeyDown);
         window.removeEventListener("keyup", handleKeyUp);
+
+        // Remove wheel event listener
+        document.removeEventListener("wheel", handleWheel);
+
+        // Remove mouse event listeners
+        document.removeEventListener("mousedown", handleMouseDown);
+        document.removeEventListener("mousemove", handleMouseMove);
+        document.removeEventListener("mouseup", handleMouseUp);
+        document.removeEventListener("mouseleave", handleMouseLeave);
+
         if (panIntervalRef.current) {
           clearInterval(panIntervalRef.current);
           panIntervalRef.current = null;
         }
       };
-    }, [disabled, enlarged, ref]); // Added enlarged to dependency array
+    }, [disabled, enlarged, zoom, pan]); // Added pan to dependency array
+
+    const getImageDimensions = () => {
+      if (imageRef.current) {
+        return {
+          width: imageRef.current.clientWidth,
+          height: imageRef.current.clientHeight,
+        };
+      }
+
+      // Fallback to the container dimensions or hardcoded values
+      return containerDimensions;
+    };
 
     return (
       <Map
-        ref={ref}
+        ref={(mapInstance) => {
+          mapRef.current = mapInstance;
+          if (ref) {
+            if (typeof ref === "function") {
+              ref(mapInstance);
+            } else {
+              ref.current = mapInstance;
+            }
+          }
+        }}
         xCoor={xCoor}
         yCoor={yCoor}
         setXCoor={
@@ -197,10 +358,12 @@ const GameMap = forwardRef<any, GameMapProps>(
         xRightCoor={xRightCoor}
         yRightCoor={yRightCoor}
         disabled={disabled}
-        aspectRatio={0.7 * (896 / 683)}
         showScoreDisplay={true}
         currentScore={currentScore}
         maxScore={1000}
+        zoom={zoom}
+        pan={pan}
+        imageRef={imageRef}
       />
     );
   }
