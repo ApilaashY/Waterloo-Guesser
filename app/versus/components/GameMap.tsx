@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef, useState } from "react";
 import Map from "../../../components/Map";
 
 interface GameMapProps {
@@ -36,6 +36,9 @@ export default function GameMap({
   const activeKeysRef = React.useRef<Set<string>>(new Set());
   const PAN_STEP = 60; // px per tick
   const PAN_INTERVAL = 10; // ms
+  const [zoom, setZoom] = useState(1);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const imageRef = useRef<HTMLImageElement | null>(null); // Ref to the image element
 
   React.useEffect(() => {
     const panKeys = [
@@ -120,6 +123,9 @@ export default function GameMap({
         yRightCoor={yRightCoor}
         disabled={disabled}
         currentScore={0}
+        zoom={zoom}
+        pan={pan}
+        imageRef={imageRef}
       />
       {showResult && (
         <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">

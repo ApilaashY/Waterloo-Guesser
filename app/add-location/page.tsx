@@ -3,21 +3,87 @@
 import { useRouter } from "next/navigation";
 // components/LocationUploader.tsx
 
-import { useState, useEffect } from "react";
-import { Combobox } from '@headlessui/react';
-import { ChevronUpDownIcon, CheckIcon } from '@heroicons/react/20/solid';
+import { useState, useEffect, useRef } from "react";
+import { Combobox } from "@headlessui/react";
+import { ChevronUpDownIcon, CheckIcon } from "@heroicons/react/20/solid";
 import Map from "../../components/Map";
 import Image from "next/image";
 
 // Building list for dropdown
 const buildings = [
-  'Outdoors','AL', 'AVR', 'B1', 'B2', 'BMH', 'BRH', 'BSC', 'C2', 'CGR', 'CIF', 'CIM', 
-  'CLN', 'CLV', 'CMH', 'COG', 'COM', 'CPH', 'CSB', 'DC', 'DWE', 'E2', 'E3', 
-  'E5', 'E6', 'E7', 'EC1', 'EC2', 'EC3', 'EC4', 'EC5', 'ECH', 'EIT', 'ERC', 
-  'ESC', 'EV1', 'EV2', 'EV3', 'EXP', 'FED', 'GH', 'GSC', 'HH', 'HS', 'IOG', 
-  'LHI', 'LIB', 'M3', 'MC', 'MKV', 'ML', 'NH', 'OPT', 'PAC', 'PAS', 'PHY', 
-  'QNC', 'RA2', 'RAC', 'RCH', 'REN', 'REV', 'SCH', 'SLC', 'STC', 'STJ', 'TC', 
-  'TH', 'TJB', 'UC', 'UTD', 'UWP', 'V1'
+  "Outdoors",
+  "AL",
+  "AVR",
+  "B1",
+  "B2",
+  "BMH",
+  "BRH",
+  "BSC",
+  "C2",
+  "CGR",
+  "CIF",
+  "CIM",
+  "CLN",
+  "CLV",
+  "CMH",
+  "COG",
+  "COM",
+  "CPH",
+  "CSB",
+  "DC",
+  "DWE",
+  "E2",
+  "E3",
+  "E5",
+  "E6",
+  "E7",
+  "EC1",
+  "EC2",
+  "EC3",
+  "EC4",
+  "EC5",
+  "ECH",
+  "EIT",
+  "ERC",
+  "ESC",
+  "EV1",
+  "EV2",
+  "EV3",
+  "EXP",
+  "FED",
+  "GH",
+  "GSC",
+  "HH",
+  "HS",
+  "IOG",
+  "LHI",
+  "LIB",
+  "M3",
+  "MC",
+  "MKV",
+  "ML",
+  "NH",
+  "OPT",
+  "PAC",
+  "PAS",
+  "PHY",
+  "QNC",
+  "RA2",
+  "RAC",
+  "RCH",
+  "REN",
+  "REV",
+  "SCH",
+  "SLC",
+  "STC",
+  "STJ",
+  "TC",
+  "TH",
+  "TJB",
+  "UC",
+  "UTD",
+  "UWP",
+  "V1",
 ];
 
 // This page can be placed in app/upload/page.tsx for Next.js routing
@@ -71,10 +137,13 @@ export default function LocationUploader() {
   const [buildingQuery, setBuildingQuery] = useState("");
   const [latitude, setLatitude] = useState("");
   const [longitude, setLongitude] = useState("");
+  const [zoom, setZoom] = useState(1);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const imageRef = useRef<HTMLImageElement | null>(null); // Ref to the image element
 
   // Filter buildings based on query
-  const filteredBuildings = 
-    buildingQuery === ''
+  const filteredBuildings =
+    buildingQuery === ""
       ? buildings
       : buildings.filter((building) =>
           building.toLowerCase().includes(buildingQuery.toLowerCase())
@@ -228,7 +297,10 @@ export default function LocationUploader() {
               className="mb-2"
             />
             <label className="block font-medium text-gray-700">Building</label>
-            <Combobox value={building} onChange={(value: string | null) => setBuilding(value || "")}>
+            <Combobox
+              value={building}
+              onChange={(value: string | null) => setBuilding(value || "")}
+            >
               <div className="relative">
                 <Combobox.Input
                   className="w-full border rounded px-3 py-2 pr-10"
@@ -243,7 +315,7 @@ export default function LocationUploader() {
                   />
                 </Combobox.Button>
                 <Combobox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                  {filteredBuildings.length === 0 && buildingQuery !== '' ? (
+                  {filteredBuildings.length === 0 && buildingQuery !== "" ? (
                     <div className="relative cursor-default select-none py-2 px-4 text-gray-700">
                       Nothing found.
                     </div>
@@ -253,7 +325,9 @@ export default function LocationUploader() {
                         key={building}
                         className={({ active }) =>
                           `relative cursor-default select-none py-2 pl-10 pr-4 ${
-                            active ? 'bg-yellow-600 text-white' : 'text-gray-900'
+                            active
+                              ? "bg-yellow-600 text-white"
+                              : "text-gray-900"
                           }`
                         }
                         value={building}
@@ -262,7 +336,7 @@ export default function LocationUploader() {
                           <>
                             <span
                               className={`block truncate ${
-                                selected ? 'font-medium' : 'font-normal'
+                                selected ? "font-medium" : "font-normal"
                               }`}
                             >
                               {building}
@@ -270,10 +344,13 @@ export default function LocationUploader() {
                             {selected ? (
                               <span
                                 className={`absolute inset-y-0 left-0 flex items-center pl-3 ${
-                                  active ? 'text-white' : 'text-yellow-600'
+                                  active ? "text-white" : "text-yellow-600"
                                 }`}
                               >
-                                <CheckIcon className="h-5 w-5" aria-hidden="true" />
+                                <CheckIcon
+                                  className="h-5 w-5"
+                                  aria-hidden="true"
+                                />
                               </span>
                             ) : null}
                           </>
@@ -292,8 +369,8 @@ export default function LocationUploader() {
                 width={896}
                 height={683}
                 style={{
-                  width: '100%',
-                  height: 'auto',
+                  width: "100%",
+                  height: "auto",
                 }}
               />
             )}
@@ -323,8 +400,11 @@ export default function LocationUploader() {
                   yRightCoor={null}
                   aspectRatio={0.25}
                   currentScore={0}
+                  zoom={zoom}
+                  pan={pan}
+                  imageRef={imageRef}
                 />
-                
+
                 {/* Precision Controls Overlay - Only show if coordinates are selected */}
                 {xCoor !== null && yCoor !== null && (
                   <div className="absolute inset-0 pointer-events-none">
@@ -336,59 +416,103 @@ export default function LocationUploader() {
                           <button
                             type="button"
                             className="absolute top-2 left-1/2 -translate-x-1/2 w-10 h-10 flex items-center justify-center bg-yellow-600 hover:bg-yellow-700 text-white rounded-full shadow transition"
-                            style={{boxShadow: '0 2px 8px rgba(0,0,0,0.10)'}}
+                            style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.10)" }}
                             onClick={() => {
                               const newY = Math.max(0, (yCoor || 0) - 0.002);
                               setYCoor(newY);
                             }}
                             aria-label="Move up"
                           >
-                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>
+                            <svg
+                              width="22"
+                              height="22"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            >
+                              <polyline points="18 15 12 9 6 15"></polyline>
+                            </svg>
                           </button>
                           {/* Left Arrow */}
                           <button
                             type="button"
                             className="absolute left-2 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center bg-yellow-600 hover:bg-yellow-700 text-white rounded-full shadow transition"
-                            style={{boxShadow: '0 2px 8px rgba(0,0,0,0.10)'}}
+                            style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.10)" }}
                             onClick={() => {
                               const newX = Math.max(0, (xCoor || 0) - 0.002);
                               setXCoor(newX);
                             }}
                             aria-label="Move left"
                           >
-                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                            <svg
+                              width="22"
+                              height="22"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            >
+                              <polyline points="15 18 9 12 15 6"></polyline>
+                            </svg>
                           </button>
                           {/* Right Arrow */}
                           <button
                             type="button"
                             className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center bg-yellow-600 hover:bg-yellow-700 text-white rounded-full shadow transition"
-                            style={{boxShadow: '0 2px 8px rgba(0,0,0,0.10)'}}
+                            style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.10)" }}
                             onClick={() => {
                               const newX = Math.min(1, (xCoor || 0) + 0.002);
                               setXCoor(newX);
                             }}
                             aria-label="Move right"
                           >
-                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                            <svg
+                              width="22"
+                              height="22"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            >
+                              <polyline points="9 18 15 12 9 6"></polyline>
+                            </svg>
                           </button>
                           {/* Down Arrow */}
                           <button
                             type="button"
                             className="absolute bottom-2 left-1/2 -translate-x-1/2 w-10 h-10 flex items-center justify-center bg-yellow-600 hover:bg-yellow-700 text-white rounded-full shadow transition"
-                            style={{boxShadow: '0 2px 8px rgba(0,0,0,0.10)'}}
+                            style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.10)" }}
                             onClick={() => {
                               const newY = Math.min(1, (yCoor || 0) + 0.002);
                               setYCoor(newY);
                             }}
                             aria-label="Move down"
                           >
-                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                            <svg
+                              width="22"
+                              height="22"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            >
+                              <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
                           </button>
                           {/* Center Reset Button */}
                           <button
                             type="button"
                             className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center bg-gray-400 hover:bg-gray-500 text-white rounded-full shadow transition"
-                            style={{boxShadow: '0 2px 8px rgba(0,0,0,0.10)'}}
+                            style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.10)" }}
                             onClick={() => {
                               setXCoor(null);
                               setYCoor(null);
@@ -396,11 +520,27 @@ export default function LocationUploader() {
                             title="Clear selection"
                             aria-label="Clear selection"
                           >
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                            <svg
+                              width="18"
+                              height="18"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            >
+                              <line x1="18" y1="6" x2="6" y2="18"></line>
+                              <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
                           </button>
                           {/* Coordinate display inside circle */}
-                          <div className="absolute left-1/2 bottom-3 -translate-x-1/2 text-xs text-gray-700 bg-white bg-opacity-70 rounded px-2 py-1 shadow" style={{fontWeight:500}}>
-                            ({(xCoor || 0).toFixed(3)}, {(yCoor || 0).toFixed(3)})
+                          <div
+                            className="absolute left-1/2 bottom-3 -translate-x-1/2 text-xs text-gray-700 bg-white bg-opacity-70 rounded px-2 py-1 shadow"
+                            style={{ fontWeight: 500 }}
+                          >
+                            ({(xCoor || 0).toFixed(3)},{" "}
+                            {(yCoor || 0).toFixed(3)})
                           </div>
                         </div>
                       </div>
@@ -444,9 +584,7 @@ export default function LocationUploader() {
                 </button>
               </>
             )}
-            {error && (
-              <div className="text-red-600 font-semibold">{error}</div>
-            )}
+            {error && <div className="text-red-600 font-semibold">{error}</div>}
           </form>
           {/* ManualDotPlacer is now only accessible via redirect, not rendered here */}
         </div>
