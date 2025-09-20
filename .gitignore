@@ -34,5 +34,5 @@ aws-credentials.json
 *.dump
 *.backup
 
-# Terrform files
+# Terraform files
 terraform-guesser/
