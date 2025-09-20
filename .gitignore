@@ -1,12 +1,35 @@
 node_modules
 photos
 .env
+.env*.local
 .github
 /.next/
 .next
 .vscode
 .superdesign
 .vercel
-.env*.local
 poster-approver/env
 poster-approver/venv
+
+# WebSocket Server Security
+websocket-server/.env
+websocket-server/.env.*
+websocket-server/*.pem
+websocket-server/*.key
+websocket-server/*.p12
+websocket-server/*.pfx
+websocket-server/secrets/
+websocket-server/credentials/
+
+# AWS Credentials and Keys
+*.pem
+*.key
+*.p12
+*.pfx
+aws-credentials.json
+.aws/
+
+# Database backups and dumps
+*.sql
+*.dump
+*.backup
