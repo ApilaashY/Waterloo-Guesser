@@ -40,7 +40,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+        <link rel="apple-touch-icon" href="/apple-icon.png" />
         <meta name="apple-mobile-web-app-title" content="UW Guesser" />
+        <meta name="google-site-verification" content="-ATXFZ-e2LLTZwZsMAqDIq9LGpGzp49c4qP_pGsx4Ik" />
         <meta
           name="google-site-verification"
           content="N5yttaGD2H0Le5FUfRPbNRnAbWkVaQQ3gw16YdSRiUc"
@@ -56,7 +60,7 @@ export default function RootLayout({
         />
         <meta
           name="description"
-          content="A fun, interactive game for guessing locations at the University of Waterloo. Challenge your friends, test your campus knowledge, and explore the UW campus virtually!"
+          content="A Multiplayer and Team-based game for guessing locations at the University of Waterloo. Challenge your friends or work as a team!"
         />
         <link rel="canonical" href="https://uw-guesser.vercel.app/" />
         {/* Open Graph */}
@@ -102,7 +106,7 @@ export default function RootLayout({
       >
         <SessionProvider>
           <SocketProvider>
-            <Navbar />
+            {/* <Navbar /> */}
             {children}
           </SocketProvider>
         </SessionProvider>

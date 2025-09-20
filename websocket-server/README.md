@@ -6,7 +6,8 @@ This is the WebSocket server for the Waterloo Guesser multiplayer game. It handl
 
 The server is currently deployed using a simple AWS EC2 instance with Docker containers. This approach is cost-effective and suitable for the current scale (40-200 concurrent users).
 
-**Current Production Server**: `http://98.88.78.67:3001`
+**Current Production Server**: `https://ws.uwguesser.com` (SSL-enabled)
+- **Fallback**: `http://98.88.78.67:3001` (for development only)
 
 ## Prerequisites
 
@@ -15,6 +16,7 @@ The server is currently deployed using a simple AWS EC2 instance with Docker con
 3. **AWS Account** with appropriate permissions
 4. **MongoDB Database** (MongoDB Atlas recommended)
 5. **SSH Key Pair** for EC2 access
+6. **Domain Name** - Required for SSL setup (e.g., `ws.uwguesser.com`)
 
 ## Quick Start (EC2 Deployment)
 
@@ -64,11 +66,30 @@ This script will:
 - Deploy the WebSocket server container
 - Configure health checks
 
-### 4. Connect Frontend
+### 4. Set Up SSL (Required for Production)
+
+✅ **SSL is already configured for `ws.uwguesser.com`**
+
+For production use with HTTPS frontends, SSL has been set up with:
+- NGINX reverse proxy with SSL termination
+- Free SSL certificate from Let's Encrypt
+- Secure WebSocket connections (WSS)
+- Automatic certificate renewal
+
+**Current secure endpoint**: `https://ws.uwguesser.com`
+
+See `SSL_SETUP.md` for detailed setup instructions if you need to configure additional domains.
+
+### 5. Connect Frontend
 
 After deployment, update your Vercel environment variables:
 ```env
-NEXT_PUBLIC_WEBSOCKET_URL=http://YOUR_EC2_IP:3001
+NEXT_PUBLIC_WEBSOCKET_URL=https://ws.uwguesser.com
+```
+
+For development/testing (non-HTTPS), you can use:
+```env
+NEXT_PUBLIC_WEBSOCKET_URL=http://98.88.78.67:3001
 ```
 
 ## File Structure
@@ -98,7 +119,8 @@ NEXT_PUBLIC_WEBSOCKET_URL=http://YOUR_EC2_IP:3001
 See the `unused-deployment-methods/` folder for:
 - AWS ECS/Fargate CloudFormation templates
 - Railway deployment guide
-- Alternative deployment scripts
+- Alternative deployment and SSL setup scripts
+- nginx configuration templates and docker-compose variants
 - Complex orchestration setups
 
 These are kept for reference but not currently used in production.
@@ -125,6 +147,10 @@ Much more cost-effective than ECS Fargate (~$33-49/month).
 
 ### Health Check
 ```bash
+# For SSL-enabled (production)
+curl https://ws.uwguesser.com/health
+
+# For development
 curl http://98.88.78.67:3001/health
 ```
 
@@ -198,11 +224,27 @@ aws ec2 reboot-instances --instance-ids i-YOUR_INSTANCE_ID
 
 ## Security Considerations
 
-1. **Environment Variables**: Never commit `.env` files with production secrets
-2. **MongoDB**: Use strong passwords and IP whitelisting
-3. **SSH Keys**: Keep private keys secure, use proper permissions
-4. **Security Groups**: Restrict access to necessary ports only
-5. **Updates**: Regularly update instance and container images
+1. **SSL/HTTPS**: **REQUIRED** for production use with HTTPS frontends
+   - Use `setup-ssl.ps1` to configure SSL certificates
+   - Browsers block mixed content (HTTPS → HTTP WebSocket)
+   - Free SSL certificates via Let's Encrypt
+
+2. **Environment Variables**: Never commit `.env` files with production secrets
+3. **MongoDB**: Use strong passwords and IP whitelisting
+4. **SSH Keys**: Keep private keys secure, use proper permissions
+5. **Security Groups**: Restrict access to necessary ports only
+6. **Updates**: Regularly update instance and container images
+
+### SSL Setup (REQUIRED for Production)
+
+If your frontend runs on HTTPS (like `https://uwguesser.com`), you MUST set up SSL for your WebSocket server:
+
+```powershell
+# Set up DNS A record first: ws.uwguesser.com → 98.88.78.67
+.\setup-ssl.ps1 -Domain "ws.uwguesser.com"
+```
+
+See `SSL_SETUP.md` for detailed instructions.
 
 ## Cleanup
 

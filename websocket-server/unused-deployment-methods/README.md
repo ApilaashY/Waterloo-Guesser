@@ -4,6 +4,15 @@ This folder contains alternative deployment methods and configurations that are 
 
 ## Contents
 
+### SSL Setup Scripts (Recently Added)
+- `setup-ssl-fixed.ps1` - SSL setup script with PowerShell syntax fixes
+- `setup-ssl-clean.ps1` - Alternative SSL setup script approach
+- `websocket-temp.conf` - Temporary nginx configuration used during SSL setup
+- `websocket.conf` - nginx configuration template for SSL
+- `docker-compose-ssl.yml` - Docker compose variant without port 80 mapping
+
+These files were used during the SSL configuration process and are kept for reference.
+
 ### AWS ECS/Fargate (aws/)
 - `01-vpc.yml` - CloudFormation template for VPC setup
 - `02-ecs-fargate.yml` - CloudFormation template for ECS Fargate deployment

@@ -42,9 +42,7 @@ export default function Navbar() {
 
   return (
     <header
-      className={`w-full sticky top-0 left-0 z-50 transition-all duration-300 ${
-        pathname === "/" ? "bg-black" : "bg-transparent"
-      } ${
+      className={`w-full sticky top-0 left-0 z-50 transition-all duration-300 bg-transparent ${
         pathname && pathname.toLowerCase().endsWith("/game")
           ? visible
             ? "opacity-100 pointer-events-auto"
@@ -56,9 +54,9 @@ export default function Navbar() {
         {/* Logo - left on mobile */}
         <Link href="/" className="flex items-center gap-2 flex-shrink-0">
           <img
-            src="/UWguesser-logo.png"
+            src="/UWguesser-logo-beige.png"
             alt="UW Guesser Logo"
-            className="h-10 rounded-lg shadow-lg"
+            className="h-14 w-auto"
           />
           <span className="sr-only">UW Guesser</span>
         </Link>
@@ -148,9 +146,9 @@ export default function Navbar() {
               onClick={() => setMobileMenuOpen(false)}
             >
               <img
-                src="/UWguesser-logo.png"
+                src="/UWguesser-logo-beige.png"
                 alt="UW Guesser Logo"
-                className="h-14 rounded-lg shadow-lg"
+                className="h-10"
               />
               <span className="text-white text-lg font-bold tracking-tight">
                 UW Guesser

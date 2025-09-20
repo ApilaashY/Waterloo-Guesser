@@ -45,3 +45,26 @@ html,
   overflow-x: hidden;
   background: #f2efe9;
 } */
+
+@font-face {
+  font-family: 'Dangrek';
+  src: url('/Dangrek/Dangrek-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Casko';
+  src: url('/Casko/Casko Luxury/CaskoLuxury-Regular.woff') format('woff'),
+       url('/Casko/Casko Luxury/CaskoLuxury-Regular.ttf') format('truetype'),
+       url('/Casko/Casko Luxury/CaskoLuxury-Regular.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Calista';
+  src: url('/Calista/Calista.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
