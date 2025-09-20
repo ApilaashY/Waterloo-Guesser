@@ -10,6 +10,8 @@ import React, {
 import { io, Socket } from "socket.io-client";
 import { useRouter } from "next/navigation";
 
+// "http://98.88.78.67:3001/"
+
 interface SocketContextType {
   socket: Socket | null;
   sessionId: string | null;
@@ -34,10 +36,11 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
 
   const socket = useMemo(() => {
     // Get WebSocket server URL from environment variable or default to local
-    const WEBSOCKET_URL = process.env.NEXT_PUBLIC_WEBSOCKET_URL || "http://localhost:3001";
-    
+    const WEBSOCKET_URL =
+      process.env.NEXT_PUBLIC_WEBSOCKET_URL || "http://localhost:3001";
+
     console.log("[Socket] Connecting to WebSocket server:", WEBSOCKET_URL);
-    
+
     // Create socket connection
     const socket = io(WEBSOCKET_URL, {
       path: "/socket.io/",

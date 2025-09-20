@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { CldImage } from "next-cloudinary";
 
-
 interface ImagePreviewProps {
   imageSrc: string;
   naturalSize: { w: number; h: number } | null;
@@ -98,6 +97,7 @@ export default function ImagePreview({
 
     const handleWindowKeyDown = (e: KeyboardEvent) => {
       const key = e.key.toLowerCase();
+      console.log("Key down:", key);
       if (key === "control" && !e.repeat) {
         if (enlargedRef.current) {
           setEnlarged(false);
@@ -144,7 +144,6 @@ export default function ImagePreview({
               break;
           }
         } else if (key === "shift" || key === "escape") {
-
           e.preventDefault();
           setZoom(1);
           setPan({ x: 0, y: 0 });
