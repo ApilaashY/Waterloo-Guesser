@@ -33,8 +33,13 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
   // }, []);
 
   const socket = useMemo(() => {
+    // Get WebSocket server URL from environment variable or default to local
+    const WEBSOCKET_URL = process.env.NEXT_PUBLIC_WEBSOCKET_URL || "http://localhost:3001";
+    
+    console.log("[Socket] Connecting to WebSocket server:", WEBSOCKET_URL);
+    
     // Create socket connection
-    const socket = io("http://localhost:3000", {
+    const socket = io(WEBSOCKET_URL, {
       path: "/socket.io/",
       autoConnect: true, // Auto connect to establish the connection immediately
       transports: ["websocket", "polling"],
