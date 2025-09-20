@@ -114,7 +114,7 @@ export async function handleSubmitGuess(
       const player2Socket = io.sockets.sockets.get(game.player2Id);
 
       // End the game if the round is 4 (5 rounds total)
-      if (game.currentRoundIndex >= 1) {
+      if (game.currentRoundIndex >= 4) {
         // Figure out the winner
         const winner: string =
           game.player1Points > game.player2Points
