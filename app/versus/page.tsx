@@ -20,6 +20,7 @@ import GameControls from "./components/GameControls";
 import { LoadingState, ErrorState } from "./components/States";
 import { CldImage } from "next-cloudinary";
 import ResultsPopup from "./components/ResultsPopup";
+import ImagePreview from "@/components/game/components/ImagePreview";
 
 function VersusPageContent() {
   // Search params and connection state
@@ -28,6 +29,11 @@ function VersusPageContent() {
   const urlPartnerId = searchParams.get("partnerId");
   const [sessionId, setSessionId] = useState<string | null>(urlSessionId);
   const [partnerId, setPartnerId] = useState<string | null>(urlPartnerId);
+  const [isEnlarged, setIsEnlarged] = useState(false); // Track enlarged state
+  const [naturalSize, setNaturalSize] = useState<{
+    w: number;
+    h: number;
+  } | null>(null);
 
   // Game state
   const [state, setState] = useState<GameState>({
@@ -153,9 +159,32 @@ function VersusPageContent() {
     }
   }, []);
 
+  // Load natural size when image changes
+  useEffect(() => {
+    let mounted = true;
+    setNaturalSize(null);
+
+    if (!state.image) return;
+
+    const img = new Image();
+    img.onload = () => {
+      if (!mounted) return;
+      setNaturalSize({ w: img.naturalWidth, h: img.naturalHeight });
+    };
+    img.onerror = () => {
+      if (!mounted) return;
+      setNaturalSize(null);
+    };
+    img.src = state.image;
+
+    return () => {
+      mounted = false;
+    };
+  }, [state.image]);
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen py-6 bg-gray-50">
-      <div className="w-full max-w-4xl p-6 bg-white rounded-lg shadow-md">
+      <div className="w-full max-w-4xl p-6 bg-white rounded-lg shadow-md flex flex-col h-[calc(100vh-3rem)]">
         <GameHeader
           sessionId={sessionId}
           partnerId={partnerId}
@@ -192,17 +221,12 @@ function VersusPageContent() {
 
         {/* Floating image display, styled like GamePage */}
         {state.image && (
-          <div className="absolute bottom-4 left-4 flex justify-start items-start z-50">
-            <CldImage
-              src={state.image}
-              width={400}
-              height={300}
-              crop={{ type: "auto", source: true }}
-              alt="Campus location"
-              className="rounded shadow scale-100 opacity-80 hover:opacity-100 hover:scale-125 origin-bottom-left transition-all duration-200"
-              style={{ zIndex: 99999 }}
-            />
-          </div>
+          <ImagePreview
+            imageSrc={state.image}
+            naturalSize={naturalSize}
+            enlarged={isEnlarged} // Pass enlarged state to ImagePreview
+            setEnlarged={setIsEnlarged} // Allow ImagePreview to update enlarged state
+          />
         )}
 
         <ResultsPopup show={showPopup} setShow={setShowPopup} />

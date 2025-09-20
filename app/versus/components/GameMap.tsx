@@ -110,7 +110,7 @@ export default function GameMap({
 
   return (
     <div
-      className="relative w-full h-96 mb-4 rounded-lg overflow-hidden"
+      className="relative w-full flex-1 mb-4 rounded-lg overflow-hidden min-h-[400px]"
       ref={mapContainerRef}
     >
       <Map
