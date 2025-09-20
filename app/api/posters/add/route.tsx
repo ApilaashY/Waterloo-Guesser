@@ -33,6 +33,11 @@ export async function POST(req: NextRequest) {
     const posterFile = formData.get("posterFile") as File;
     const description = formData.get("description") as string;
     const eventDateTime = formData.get("eventDateTime") as string;
+    const posterType = formData.get("posterType") as string;
+    const categories = formData.get("categories") as string;
+
+    const categoryList =
+      !categories || categories.length === 0 ? null : categories?.split(",");
 
     console.log({
       name,
@@ -93,7 +98,8 @@ export async function POST(req: NextRequest) {
       description,
       eventDateTime: eventDateTime ? new Date(eventDateTime) : null,
       createdAt: new Date(),
-      posterType: formData.get("posterType"),
+      posterType: posterType,
+      categories: categoryList,
       show: false, // Posters are hidden by default until reviewed
     });
 

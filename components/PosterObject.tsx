@@ -98,8 +98,12 @@ export function PosterObject({
       />
       <div className="p-4">
         <h2
-          className="text-xl font-bold cursor-pointer hover:underline"
-          onClick={() => router.push(`/poster-board/${name}`)}
+          className={`text-xl font-bold ${
+            posterType == "Club" ? "cursor-pointer" : ""
+          } ${posterType == "Club" ? "hover:underline" : ""}`}
+          onClick={() =>
+            posterType == "Club" ? router.push(`/poster-board/${name}`) : null
+          }
         >
           {name}
         </h2>

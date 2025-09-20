@@ -4,6 +4,20 @@ import { PosterObject } from "@/components/PosterObject";
 import { type PosterObject as PosterObjectType } from "@/app/poster-board/page";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { PosterChip } from "@/components/PosterChip";
+
+export const posterCategories = [
+  "Academic",
+  "Business",
+  "Community",
+  "Creative",
+  "Cultural",
+  "Recreational",
+  "Health",
+  "Media",
+  "Social Awareness",
+  "Spiritual",
+];
 
 export function ClubPosterBoardClient({
   clubName,
@@ -13,14 +27,22 @@ export function ClubPosterBoardClient({
   // Hooks and Variables
   const router = useRouter();
   const [posters, setPosters] = useState<PosterObjectType[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<boolean[]>(
+    Array(posterCategories.length).fill(false)
+  );
 
   // function to fetch posters from the API
   async function fetchPosters() {
     try {
       const queryParam = clubName
-        ? `?clubname=${encodeURIComponent(clubName)}`
+        ? `clubname=${encodeURIComponent(clubName)}&`
         : "";
-      const response = await fetch(`/api/posters/retrieve${queryParam}`);
+      const response = await fetch(
+        `/api/posters/retrieve?${queryParam}categories=${selectedCategory
+          .map((selected, index) => (selected ? posterCategories[index] : null))
+          .filter((category) => category)
+          .join(",")}`
+      );
       if (response.ok) {
         const data = await response.json();
         setPosters(data.posters);
@@ -32,12 +54,21 @@ export function ClubPosterBoardClient({
     }
   }
 
+  // Function to handle clicks on the chips
+  function handleChipClick(category: string) {
+    setSelectedCategory((prevSelected) => {
+      const index = posterCategories.indexOf(category);
+      const newSelected = [...prevSelected];
+      newSelected[index] = !newSelected[index];
+
+      return newSelected;
+    });
+  }
+
   // Fetch posters from the API on startup
   useEffect(() => {
-    console.log(clubName);
-
     fetchPosters();
-  }, [clubName]);
+  }, [clubName, selectedCategory]);
 
   // Function that adds poster to the board
   function addImage() {
@@ -57,7 +88,18 @@ export function ClubPosterBoardClient({
         Add Poster
       </button>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-4">
+      <div className="flex flex-wrap">
+        {posterCategories.map((category, index) => (
+          <PosterChip
+            key={category}
+            category={category}
+            onClick={handleChipClick}
+            enabled={selectedCategory[index]}
+          />
+        ))}
+      </div>
+
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 p-4">
         {posters.map((poster, index) => (
           <PosterObject key={index} router={router} {...poster} />
         ))}
