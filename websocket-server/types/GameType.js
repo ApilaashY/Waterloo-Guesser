@@ -47,7 +47,11 @@ export class GameType {
       }
 
       const randomSkip = Math.floor(Math.random() * count);
-      const doc = await collection.find().skip(randomSkip).limit(1).next();
+      const doc = await collection
+        .find({ status: "approved" })
+        .skip(randomSkip)
+        .limit(1)
+        .next();
 
       if (!doc) {
         console.log("[ROUND] Failed to fetch random image");
@@ -137,10 +141,14 @@ export class GameType {
 
       do {
         const randomSkip = Math.floor(Math.random() * count);
-        doc = await collection.find().skip(randomSkip).limit(1).next();
+        doc = await collection
+          .find({ status: "approved" })
+          .skip(randomSkip)
+          .limit(1)
+          .next();
         attempts++;
       } while (
-        this.previousImages.includes(doc?.image.toString() || "") && 
+        this.previousImages.includes(doc?.image.toString() || "") &&
         attempts < maxAttempts
       );
 

@@ -10,7 +10,14 @@ export function calculatePoints(xCoor, yCoor, correctX, correctY) {
 }
 
 // This function handles a player's guess submission
-export async function handleSubmitGuess(socket, xCoor, yCoor, sessionId, socketId, gameRooms) {
+export async function handleSubmitGuess(
+  socket,
+  xCoor,
+  yCoor,
+  sessionId,
+  socketId,
+  gameRooms
+) {
   const game = gameRooms[sessionId];
 
   if (!game) {
@@ -99,9 +106,12 @@ export async function handleSubmitGuess(socket, xCoor, yCoor, sessionId, socketI
       const player2Socket = io.sockets.sockets.get(game.player2Id);
 
       // End the game if the round is 4 (5 rounds total)
-      if (game.currentRoundIndex >= 1) {
+      if (game.currentRoundIndex >= 4) {
         // Figure out the winner
-        const winner = game.player1Points > game.player2Points ? game.player1Id : game.player2Id;
+        const winner =
+          game.player1Points > game.player2Points
+            ? game.player1Id
+            : game.player2Id;
         const tie = game.player1Points === game.player2Points;
 
         // Notify both players that the game is over

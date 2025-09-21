@@ -148,13 +148,13 @@ export default function LocationUploader() {
     const newZoom =
       e.deltaY > 0
         ? Math.max(0.5, zoom - zoomFactor)
-        : Math.min(4, zoom + zoomFactor);
+        : Math.min(7, zoom + zoomFactor);
     setZoom(newZoom);
   };
 
   // Handle zoom controls
   const handleZoomIn = () => {
-    setZoom((prevZoom) => Math.min(3, prevZoom + 0.2));
+    setZoom((prevZoom) => Math.min(7, prevZoom + 0.2));
   };
 
   const handleZoomOut = () => {

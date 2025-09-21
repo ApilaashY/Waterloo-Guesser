@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
       }
     } else {
       // Convert previousCodes to ObjectId
-      let query = {};
+      let query: any = { status: "approved" };
       if (previousCodes.length > 0) {
         const objectIds = previousCodes
           .filter((id) => ObjectId.isValid(id))
