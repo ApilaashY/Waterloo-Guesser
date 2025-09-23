@@ -26,7 +26,7 @@ body {
       transparent 18%
     ),
     linear-gradient(180deg, rgba(12, 10, 15, 0.92), rgba(18, 12, 30, 0.96)); */
-  /* background-color: var(--background); */
+  background-color: transparent;
   background-attachment: fixed;
   color: var(--foreground);
   font-family: "Roboto", sans-serif;
@@ -66,5 +66,12 @@ html,
   font-family: 'Calista';
   src: url('/Calista/Calista.ttf') format('truetype');
   font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Felgine';
+  src: url('/Felgine/Felgine-Regular.ttf') format('opentype');
+  font: normal;
   font-style: normal;
 }
