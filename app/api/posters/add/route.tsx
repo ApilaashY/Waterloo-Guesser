@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
-import cloudinary from "cloudinary";
 import { getDb } from "@/lib/mongodb";
+import cloudinary from "cloudinary";
 
 cloudinary.v2.config({
   cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
