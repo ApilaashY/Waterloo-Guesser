@@ -10,6 +10,12 @@ interface GameMapProps {
   disabled: boolean;
   enlarged: boolean; // Added prop to track enlarged state from ImagePreview
   currentScore: number; // Current round score
+  overrideZoom?: number; // Optional zoom level
+  setOverrideZoom?: React.Dispatch<React.SetStateAction<number>>; // Optional zoom setter
+  overridePan?: { x: number; y: number }; // Optional pan position
+  setOverridePan?: React.Dispatch<
+    React.SetStateAction<{ x: number; y: number }>
+  >; // Optional pan setter
 }
 
 const GameMap = forwardRef<any, GameMapProps>(
@@ -23,14 +29,24 @@ const GameMap = forwardRef<any, GameMapProps>(
       disabled,
       enlarged,
       currentScore,
+      overrideZoom,
+      setOverrideZoom,
+      overridePan,
+      setOverridePan,
     },
     ref
   ) => {
     const panIntervalRef = useReactRef<NodeJS.Timeout | null>(null);
     const activeKeysRef = useReactRef<Set<string>>(new Set()); // Track all active keys
     const mapRef = useReactRef<any>(null); // Ref to access Map component
-    const [zoom, setZoom] = useState(1);
-    const [pan, setPan] = useState({ x: 0, y: 0 });
+    const [zoom, setZoom] =
+      overrideZoom !== undefined && setOverrideZoom !== undefined
+        ? [overrideZoom, setOverrideZoom]
+        : useState(1);
+    const [pan, setPan] =
+      overridePan !== undefined && setOverridePan !== undefined
+        ? [overridePan, setOverridePan]
+        : useState({ x: 0, y: 0 });
     const [containerDimensions, setContainerDimensions] = useState({
       width: 765,
       height: 350,
@@ -40,6 +56,9 @@ const GameMap = forwardRef<any, GameMapProps>(
     const isDragging = useReactRef(false);
     const dragStart = useReactRef({ x: 0, y: 0 });
     const panStart = useReactRef({ x: 0, y: 0 });
+    const isPinching = useReactRef(false);
+    const lastPinchDistance = useReactRef(0);
+    const pinchCenter = useReactRef({ x: 0, y: 0 });
 
     // Clamp pan so the map always stays within its container
     const clampPan = (x: number, y: number, zoomLevel = 1) => {
@@ -83,7 +102,9 @@ const GameMap = forwardRef<any, GameMapProps>(
 
     // Reset pan when zoom changes to ensure proper bounds
     useEffect(() => {
-      setPan((prev) => clampPan(prev.x, prev.y, zoom));
+      setPan((prev: { x: number; y: number }) =>
+        clampPan(prev.x, prev.y, zoom)
+      );
     }, [zoom]);
 
     // Update container dimensions when map ref is available
@@ -113,7 +134,7 @@ const GameMap = forwardRef<any, GameMapProps>(
       if (disabled || enlarged) return; // Disable movement if enlarged is true
 
       const PAN_STEP = 4;
-      const PAN_INTERVAL = 10; // ms (smoother, ~60fps)
+      const PAN_INTERVAL = 1; // ms (much more responsive, ~1000fps)
       const panKeys = [
         "arrowup",
         "arrowleft",
@@ -194,6 +215,119 @@ const GameMap = forwardRef<any, GameMapProps>(
         }
       };
 
+      // Helper function to get distance between two touch points
+      const getTouchDistance = (touch1: Touch, touch2: Touch) => {
+        const dx = touch1.clientX - touch2.clientX;
+        const dy = touch1.clientY - touch2.clientY;
+        return Math.sqrt(dx * dx + dy * dy);
+      };
+
+      // Helper function to get center point between two touches
+      const getTouchCenter = (touch1: Touch, touch2: Touch) => {
+        return {
+          x: (touch1.clientX + touch2.clientX) / 2,
+          y: (touch1.clientY + touch2.clientY) / 2,
+        };
+      };
+
+      // Handle touch events for pinch-to-zoom
+      const handleTouchStart = (e: TouchEvent) => {
+        if (disabled || enlarged) return;
+
+        if (e.touches.length === 2) {
+          // Two fingers - start pinch gesture
+          e.preventDefault();
+          isPinching.current = true;
+          isDragging.current = false; // Stop any dragging
+
+          const touch1 = e.touches[0];
+          const touch2 = e.touches[1];
+
+          lastPinchDistance.current = getTouchDistance(touch1, touch2);
+          pinchCenter.current = getTouchCenter(touch1, touch2);
+        } else if (e.touches.length === 1 && zoom > 1 && !isPinching.current) {
+          // Single finger - start panning (only when zoomed in)
+          e.preventDefault();
+          isDragging.current = true;
+          dragStart.current = {
+            x: e.touches[0].clientX,
+            y: e.touches[0].clientY,
+          };
+          panStart.current = { x: pan.x, y: pan.y };
+        }
+      };
+
+      const handleTouchMove = (e: TouchEvent) => {
+        if (disabled || enlarged) return;
+
+        if (e.touches.length === 2 && isPinching.current) {
+          // Two fingers - handle pinch zoom
+          e.preventDefault();
+
+          const touch1 = e.touches[0];
+          const touch2 = e.touches[1];
+
+          const currentDistance = getTouchDistance(touch1, touch2);
+          const currentCenter = getTouchCenter(touch1, touch2);
+
+          if (lastPinchDistance.current > 0) {
+            // Calculate zoom change based on distance change
+            const distanceRatio = currentDistance / lastPinchDistance.current;
+            const zoomChange = (distanceRatio - 1) * 2; // Adjust sensitivity
+
+            const minZoom = 1;
+            const maxZoom = 5;
+            const newZoom = Math.min(
+              maxZoom,
+              Math.max(minZoom, zoom + zoomChange)
+            );
+
+            if (newZoom !== zoom) {
+              setZoom(newZoom);
+            }
+          }
+
+          lastPinchDistance.current = currentDistance;
+          pinchCenter.current = currentCenter;
+        } else if (
+          e.touches.length === 1 &&
+          isDragging.current &&
+          !isPinching.current
+        ) {
+          // Single finger - handle panning
+          e.preventDefault();
+
+          const touch = e.touches[0];
+          const deltaX = (touch.clientX - dragStart.current.x) / zoom;
+          const deltaY = (touch.clientY - dragStart.current.y) / zoom;
+
+          const newPan = clampPan(
+            panStart.current.x + deltaX,
+            panStart.current.y + deltaY,
+            zoom
+          );
+
+          setPan(newPan);
+        }
+      };
+
+      const handleTouchEnd = (e: TouchEvent) => {
+        if (disabled || enlarged) return;
+
+        if (e.touches.length < 2) {
+          // Less than two fingers - end pinch gesture
+          isPinching.current = false;
+          lastPinchDistance.current = 0;
+        }
+
+        if (e.touches.length === 0) {
+          // No fingers - end all gestures
+          isDragging.current = false;
+          isPinching.current = false;
+          lastPinchDistance.current = 0;
+        }
+      };
+
       const handleKeyDown = (e: KeyboardEvent) => {
         const key = e.key.toLowerCase();
 
@@ -245,10 +379,11 @@ const GameMap = forwardRef<any, GameMapProps>(
             activeKeysRef.current.add(key);
             if (!panIntervalRef.current) {
               panIntervalRef.current = setInterval(() => {
-                setPan((prev) => {
+                setPan((prev: { x: number; y: number }) => {
                   let deltaX = 0;
                   let deltaY = 0;
                   activeKeysRef.current.forEach((activeKey) => {
+                    console.log(activeKey);
                     switch (activeKey) {
                       case "w":
                       case "arrowup":
@@ -299,6 +434,15 @@ const GameMap = forwardRef<any, GameMapProps>(
       document.addEventListener("mouseup", handleMouseUp);
       document.addEventListener("mouseleave", handleMouseLeave);
 
+      // Add touch event listeners for pinch-to-zoom and touch panning
+      document.addEventListener("touchstart", handleTouchStart, {
+        passive: false,
+      });
+      document.addEventListener("touchmove", handleTouchMove, {
+        passive: false,
+      });
+      document.addEventListener("touchend", handleTouchEnd, { passive: false });
+
       return () => {
         window.removeEventListener("keydown", handleKeyDown);
         window.removeEventListener("keyup", handleKeyUp);
@@ -311,6 +455,11 @@ const GameMap = forwardRef<any, GameMapProps>(
         document.removeEventListener("mousemove", handleMouseMove);
         document.removeEventListener("mouseup", handleMouseUp);
         document.removeEventListener("mouseleave", handleMouseLeave);
+
+        // Remove touch event listeners
+        document.removeEventListener("touchstart", handleTouchStart);
+        document.removeEventListener("touchmove", handleTouchMove);
+        document.removeEventListener("touchend", handleTouchEnd);
 
         if (panIntervalRef.current) {
           clearInterval(panIntervalRef.current);
