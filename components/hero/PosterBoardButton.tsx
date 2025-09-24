@@ -5,7 +5,10 @@ interface PosterBoardButtonProps {
   size?: "desktop" | "mobile";
 }
 
-export default function PosterBoardButton({ animationComplete, size = "desktop" }: PosterBoardButtonProps) {
+export default function PosterBoardButton({
+  animationComplete,
+  size = "desktop",
+}: PosterBoardButtonProps) {
   const isDesktop = size === "desktop";
   const containerSize = isDesktop ? "max-w-[6rem] max-h-[6rem]" : "w-12 h-12";
   const textSize = isDesktop ? "text-xs sm:text-sm" : "text-sm";
@@ -16,23 +19,27 @@ export default function PosterBoardButton({ animationComplete, size = "desktop" 
     <Link href="/poster-board">
       <button
         className={`group relative transition-all duration-500 ${
-          size === "desktop" 
-            ? (animationComplete
-                ? "opacity-100 scale-100"
-                : "opacity-0 scale-75 pointer-events-none")
+          size === "desktop"
+            ? animationComplete
+              ? "opacity-100 scale-100"
+              : "opacity-0 scale-75 pointer-events-none"
             : "p-2"
         }`}
       >
         <div className="relative flex flex-col items-center justify-center">
           <div className={`${containerSize} flex items-center justify-center`}>
             <img
-              src="/globe.png"
+              src="/Globe.png"
               alt="Globe Icon"
               className="max-w-full max-h-full group-hover:scale-110 transition-transform duration-300 relative z-10"
               style={imageFilter ? { filter: imageFilter } : {}}
             />
           </div>
-          <div className={`mt-${isDesktop ? '1 sm:mt-2' : '2'} text-[#090C9B] ${textSize} font-semibold ${textOpacity} transition-opacity duration-300 relative z-10`}>
+          <div
+            className={`mt-${
+              isDesktop ? "1 sm:mt-2" : "2"
+            } text-[#090C9B] ${textSize} font-semibold ${textOpacity} transition-opacity duration-300 relative z-10`}
+          >
             Poster Board
           </div>
         </div>
