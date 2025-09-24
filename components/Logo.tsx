@@ -5,25 +5,33 @@ function LogoStar({
   y,
   color,
   animationComplete,
+  isHeroPage = false,
 }: {
   x: number;
   y: number;
   color: string;
   animationComplete: boolean;
+  isHeroPage?: boolean;
 }) {
   console.log("LogoStar x:", x, "y:", y);
 
-  // Keep the same relative positioning but scale proportionally when animation completes
-  const adjustedX = animationComplete ? (x / 4) * 0.5 : x / 4;
-  const adjustedY = animationComplete
-    ? (y / 3.5 - (x != 0 ? (Math.abs(y) / y) * 25 : 0)) * 0.5
-    : y / 3.5 - (x != 0 ? (Math.abs(y) / y) * 25 : 0);
+  // Position spokes relative to the logo center, accounting for the animation state
+  const adjustedX = isHeroPage
+    ? (animationComplete ? x * 0.125 : x * 0.25) // Scale for final vs initial position
+    : x * 0.125; // Always use final position when not on hero page
+  const adjustedY = isHeroPage
+    ? (animationComplete
+        ? y * 0.125 - (x != 0 ? (Math.abs(y) / y) * 6.25 : 0)
+        : y * 0.285 - (x != 0 ? (Math.abs(y) / y) * 7.14 : 0))
+    : y * 0.125 - (x != 0 ? (Math.abs(y) / y) * 6.25 : 0); // Always use final position when not on hero page
 
   return (
     <img
       src={"/1-spoke.png"}
       className={`absolute z-10 transition-all duration-1000 ${
-        animationComplete ? "h-4 w-3" : "h-7 w-5.2"
+        isHeroPage
+          ? (animationComplete ? "h-4 w-3" : "h-7 w-5.2")
+          : "h-4 w-3" // Always use final size when not on hero page
       }`}
       style={{
         left: `calc(50% + ${adjustedX}px)`,
@@ -38,12 +46,15 @@ function LogoStar({
 
 export default function Logo({
   animationComplete,
+  isHeroPage = false,
 }: {
   animationComplete: boolean;
+  isHeroPage?: boolean;
 }) {
   const logoRef = useRef<HTMLImageElement>(null);
   const [logoHeight, setLogoHeight] = useState<number>(0);
   const [logoWidth, setLogoWidth] = useState<number>(0);
+  const [windowDimensions, setWindowDimensions] = useState({ width: 0, height: 0 });
 
   useEffect(() => {
     const updateLogoDim = () => {
@@ -52,6 +63,16 @@ export default function Logo({
         setLogoWidth(logoRef.current.offsetWidth);
       }
     };
+
+    const updateWindowDimensions = () => {
+      setWindowDimensions({
+        width: window.innerWidth,
+        height: window.innerHeight
+      });
+    };
+
+    // Initialize window dimensions
+    updateWindowDimensions();
 
     // Update height when image loads
     const logoElement = logoRef.current;
@@ -63,14 +84,16 @@ export default function Logo({
       }
     }
 
-    // Update height on window resize
+    // Update height and window dimensions on resize
     window.addEventListener("resize", updateLogoDim);
+    window.addEventListener("resize", updateWindowDimensions);
 
     return () => {
       if (logoElement) {
         logoElement.removeEventListener("load", updateLogoDim);
       }
       window.removeEventListener("resize", updateLogoDim);
+      window.removeEventListener("resize", updateWindowDimensions);
     };
   }, []);
 
@@ -88,19 +111,25 @@ export default function Logo({
       "brightness(0) saturate(100%) invert(32%) sepia(96%) saturate(4515%) hue-rotate(226deg) brightness(98%) contrast(105%)", // #365cef
   } as const;
 
+  // Final left offset in pixels (smaller value moves the logo further left)
+  const finalLeftOffset = 24; // was 40
+
   return (
     <div
-      className="fixed left-1/2 top-1/2 z-40"
+      className="fixed z-40"
       style={{
-        transform: animationComplete
-          ? `translate(-${window.innerWidth / 2 - 40}px, -${
-              window.innerHeight / 2 - 40
-            }px) scale(1)`
-          : "translate(-50%, -50%) scale(1.2)",
-        transition:
-          "transform 1.2s cubic-bezier(0.77,0,0.175,1), width 1.2s cubic-bezier(0.77,0,0.175,1), height 1.2s cubic-bezier(0.77,0,0.175,1)",
-        width: animationComplete ? undefined : "auto",
-        height: animationComplete ? undefined : "auto",
+        left: isHeroPage ? (animationComplete ? `${finalLeftOffset}px` : '50%') : `${finalLeftOffset}px`,
+        top: isHeroPage ? (animationComplete ? '40px' : '50%') : '40px',
+        transform: isHeroPage
+          ? (animationComplete
+              ? 'translate(0, 0) scale(1)'
+              : 'translate(-50%, -50%) scale(1.2)')
+          : 'translate(0, 0) scale(1)',
+        transition: isHeroPage
+          ? "transform 1.2s cubic-bezier(0.77,0,0.175,1), left 1.2s cubic-bezier(0.77,0,0.175,1), top 1.2s cubic-bezier(0.77,0,0.175,1)"
+          : "none", // No transition when not on hero page
+        width: animationComplete || !isHeroPage ? 'auto' : undefined,
+        height: animationComplete || !isHeroPage ? 'auto' : undefined,
       }}
     >
       <div className="text-center">
@@ -111,36 +140,42 @@ export default function Logo({
               y={-logoHeight}
               color={colorFilters.brightBlue}
               animationComplete={animationComplete}
+              isHeroPage={isHeroPage}
             />
             <LogoStar
               x={0}
               y={-logoHeight}
               color={colorFilters.coral}
               animationComplete={animationComplete}
+              isHeroPage={isHeroPage}
             />
             <LogoStar
               x={logoWidth}
               y={-logoHeight}
               color={colorFilters.darkGreen}
               animationComplete={animationComplete}
+              isHeroPage={isHeroPage}
             />
             <LogoStar
               x={-logoWidth}
               y={logoHeight}
               color={colorFilters.indigo}
               animationComplete={animationComplete}
+              isHeroPage={isHeroPage}
             />
             <LogoStar
               x={0}
               y={logoHeight}
               color={colorFilters.magenta}
               animationComplete={animationComplete}
+              isHeroPage={isHeroPage}
             />
             <LogoStar
               x={logoWidth}
               y={logoHeight}
               color={colorFilters.teal}
               animationComplete={animationComplete}
+              isHeroPage={isHeroPage}
             />
             <img
               ref={logoRef}

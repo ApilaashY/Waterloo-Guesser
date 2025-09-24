@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSession } from "./SessionProvider";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
-import { useSession } from "./SessionProvider";
+import Logo from "./Logo";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -30,23 +31,40 @@ export default function Navbar() {
     setMobileMenuOpen(false);
   };
 
+  const isHomePage = pathname === "/";
+  const [animationComplete, setAnimationComplete] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (isHomePage) {
+      const animationTimer = setTimeout(() => {
+        setAnimationComplete(true);
+      }, 2000);
+
+      return () => {
+        clearTimeout(animationTimer);
+      };
+    }
+  }, [isHomePage]);
+
   return (
-    <nav className="w-full sticky top-0 left-0 z-50 bg-transparent flex items-center px-0 py-0 max-w-7xl mx-auto md:justify-center justify-between">
+    <nav className="w-full absolute top-4 left-0 z-50 bg-transparent flex items-center px-4 py-2 max-w-7xl mx-auto md:justify-center justify-between">
       {/* Logo - left on mobile */}
-        <Link href="/" className="flex items-center gap-2 flex-shrink-0">
-          <img
-            src="/UWguesser-logo-beige.png"
-            alt="UW Guesser Logo"
-            className="h-14 w-auto opacity-50"
-          />
+      <div className="flex items-center gap-2 flex-shrink-0">
+        <Link href="/" className="flex items-center gap-2">
+          {isHomePage ? (
+            <Logo animationComplete={animationComplete} isHeroPage={isHomePage} />
+          ) : (
+            <img src="/6-UWGuesser logo-colored.png" alt="UW Guesser Logo" className="h-25 w-auto" />
+          )}
           <span className="sr-only">UW Guesser</span>
         </Link>
-        {/* Desktop Nav items centered */}
-        <div
-          className="hidden md:flex flex-1 justify-center gap-8 relative"
-          id="nav-items"
-        >
-        </div>
+      </div>
+
+      {/* Desktop Nav items centered */}
+      <div
+        className="hidden md:flex flex-1 justify-center gap-8 relative"
+        id="nav-items"
+      ></div>
         {/* Auth section - desktop */}
         <div className="hidden md:flex flex-shrink-0 items-center gap-4">
           {isAuthenticated ? (
@@ -62,7 +80,7 @@ export default function Navbar() {
                 >
                   {loggingOut ? (
                     <span className="flex items-center justify-center">
-                      <span className="w-5 h-5 border-2 border-yellow-400 border-t-transparent rounded-full animate-spin mr-2"></span>
+                      <span className="w-5 h-5 border-2 border-blue-400 border-t-transparent rounded-full animate-spin mr-2"></span>
                       Logging out...
                     </span>
                   ) : (
@@ -75,7 +93,7 @@ export default function Navbar() {
             <Link
               href="/login"
               className="text-sm font-semibold text-white px-4 py-2 rounded transition shadow-xs"
-              style={{ backgroundColor: "#f4b834" }}
+              style={{ backgroundColor: "#3D52D5" }}
             >
               Log in &rarr;
             </Link>

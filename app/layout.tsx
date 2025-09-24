@@ -106,7 +106,7 @@ export default function RootLayout({
       >
         <SessionProvider>
           <SocketProvider>
-            {/* <Navbar /> */}
+            <Navbar />
             {children}
           </SocketProvider>
         </SessionProvider>

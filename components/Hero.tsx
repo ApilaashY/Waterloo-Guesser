@@ -7,6 +7,12 @@ import styles from "./dialogFont.module.css";
 import bgStyles from "./dialogBg.module.css";
 import Link from "next/link";
 import Logo from "./Logo";
+import PlayButton from "./hero/PlayButton";
+import LeaderboardButton from "./hero/LeaderboardButton";
+import LoreButton from "./hero/LoreButton";
+import PosterBoardButton from "./hero/PosterBoardButton";
+import AddLocationButton from "./hero/AddLocationButton";
+import HeroBackground from "./hero/HeroBackground";
 
 const targetDate = new Date("2025-09-04T00:00:00");
 
@@ -19,41 +25,42 @@ function getTimeRemaining(endDate: Date) {
   return { total, days, hours, minutes, seconds };
 }
 
-function LogoStar({
-  x,
-  y,
-  color,
-  animationComplete,
-}: {
-  x: number;
-  y: number;
-  color: string;
-  animationComplete: boolean;
-}) {
-  console.log("LogoStar x:", x, "y:", y);
+// function LogoStar({
+//   x,
+//   y,
+//   color,
+//   animationComplete,
+// }: {
+//   x: number;
+//   y: number;
+//   color: string;
+//   animationComplete: boolean;
+// }) 
+// {
+//   // console.log("LogoStar x:", x, "y:", y);
 
-  // Keep the same relative positioning but scale proportionally when animation completes
-  const adjustedX = animationComplete ? (x / 4) * 0.5 : x / 4;
-  const adjustedY = animationComplete
-    ? (y / 3.5 - (x != 0 ? (Math.abs(y) / y) * 25 : 0)) * 0.5
-    : y / 3.5 - (x != 0 ? (Math.abs(y) / y) * 25 : 0);
+//   // Keep the same relative positioning but scale proportionally when animation completes
+//   const adjustedX = animationComplete ? (x / 4) * 0.5 : x / 4;
+//   const adjustedY = animationComplete
+//     ? (y / 3.5 - (x != 0 ? (Math.abs(y) / y) * 25 : 0)) * 0.5
+//     : y / 3.5 - (x != 0 ? (Math.abs(y) / y) * 25 : 0);
 
-  return (
-    <img
-      src={"/1-spoke.png"}
-      className={`absolute z-10 transition-all duration-1000 ${
-        animationComplete ? "h-4 w-3" : "h-7 w-5.2"
-      }`}
-      style={{
-        left: `calc(50% + ${adjustedX}px)`,
-        top: `calc(50% + ${adjustedY}px)`,
-        transform: "translate(-50%, -50%)",
-        filter: color,
-      }}
-      alt="Spoke"
-    />
-  );
-}
+//   return (
+//     <img
+//       src={"/1-spoke.png"}
+//       className={`absolute z-10 transition-all duration-1000 ${
+//         animationComplete ? "h-4 w-3" : "h-7 w-5.2"
+//       }`}
+//       style={{
+//         left: `calc(50% + ${adjustedX}px)`,
+//         top: `calc(50% + ${adjustedY}px)`,
+//         transform: "translate(-50%, -50%)",
+//         filter: color,
+//       }}
+//       alt="Spoke"
+//     />
+//   );
+// }
 
 export default function Hero() {
   const [animationComplete, setAnimationComplete] = useState<boolean>(false);
@@ -238,7 +245,7 @@ export default function Hero() {
           }}
         />
       </Head>
-      <div className="bg-gradient-to-br from-blue-200 via-blue-100 to-blue-300 relative min-h-screen w-full overflow-hidden">
+      <HeroBackground>
         {/* Random popup image */}
         {randomImage.visible && (
           <div
@@ -258,200 +265,66 @@ export default function Hero() {
           </div>
         )}
 
-        {/* Border frame around the screen edges */}
-        <div className="absolute inset-4 border-2 border-[#090C9B] rounded-lg z-30 pointer-events-none"></div>
-
-        {/* Book Button - Far Left position */}
-        <div
-          className="absolute left-1/2 top-1/2 transform z-[110]"
-          style={{ transform: "translate(calc(-50% - 25rem), -50%)" }}
-        >
-          <Link href="/poster-board">
-            <button
-              className={`group relative transition-all duration-500 ${
-                animationComplete
-                  ? "opacity-100 scale-100"
-                  : "opacity-0 scale-75 pointer-events-none"
-              }`}
-            >
-              <div className="relative flex flex-col items-center justify-center">
-                <div className="max-w-[6rem] max-h-[6rem] flex items-center justify-center">
-                  <img
-                    src="/book icon.png"
-                    alt="Book Icon"
-                    className="max-w-full max-h-full group-hover:scale-110 transition-transform duration-300 relative z-10"
-                  />
-                </div>
-                <div className="mt-1 sm:mt-2 text-[#090C9B] text-xs sm:text-sm font-semibold opacity-0 group-hover:opacity-100 transition-opacity duration-300 relative z-10">
-                  Lore
-                </div>
-              </div>
-            </button>
-          </Link>
-        </div>
-
-        {/* Laurel Button - Left position */}
-        <div
-          className="absolute left-1/2 top-1/2 transform z-[110]"
-          style={{ transform: "translate(calc(-50% - 12rem), -50%)" }}
-        >
-          <Link href="/leaderboard">
-            <button
-              className={`group relative transition-all duration-500 ${
-                animationComplete
-                  ? "opacity-100 scale-100"
-                  : "opacity-0 scale-75 pointer-events-none"
-              }`}
-            >
-              <div className="relative flex flex-col items-center justify-center">
-                <div className="max-w-[6rem] max-h-[6rem] flex items-center justify-center">
-                  <img
-                    src="/laurel icon.png"
-                    alt="Leaderboard Icon"
-                    className="max-w-full max-h-full group-hover:scale-110 transition-transform duration-300 relative z-10"
-                  />
-                </div>
-                <div className="mt-1 sm:mt-2 text-[#090C9B] text-xs sm:text-sm font-semibold opacity-0 group-hover:opacity-100 transition-opacity duration-300 relative z-10">
-                  Leaderboard
-                </div>
-              </div>
-            </button>
-          </Link>
-        </div>
-
-        {/* Play Button - Center position */}
-        <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 z-[110]">
-          <Link href="/modes">
-            <button
-              className={`group relative transition-all duration-500 ${
-                animationComplete
-                  ? "opacity-100 scale-100"
-                  : "opacity-0 scale-75 pointer-events-none"
-              }`}
-            >
-              <div className="relative flex flex-col items-center justify-center">
-                <div className="w-16 h-16 flex items-center justify-center">
-                  <svg
-                    width="64"
-                    height="64"
-                    viewBox="0 0 80 80"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="group-hover:scale-110 transition-transform duration-300 relative z-10 play-button"
-                  >
-                    <polygon
-                      points="25,15 65,40 25,65"
-                      fill="#090C9B"
-                      className="group-hover:fill-[#d97f40] transition-colors duration-300"
-                    />
-                  </svg>
-                </div>
-                <div className="mt-1 sm:mt-2 text-[#090C9B] text-xs sm:text-sm font-semibold opacity-0 group-hover:opacity-100 transition-opacity duration-300 relative z-10">
-                  Play
-                </div>
-              </div>
-            </button>
-          </Link>
-        </div>
-
-        {/* Globe Button - Right position */}
-        <div
-          className="absolute left-1/2 top-1/2 transform z-[110]"
-          style={{ transform: "translate(calc(-50% + 12rem), -50%)" }}
-        >
-          <Link href="/poster-board">
-            <button
-              className={`group relative transition-all duration-500 ${
-                animationComplete
-                  ? "opacity-100 scale-100"
-                  : "opacity-0 scale-75 pointer-events-none"
-              }`}
-            >
-              <div className="relative flex flex-col items-center justify-center">
-                <div className="max-w-[6rem] max-h-[6rem] flex items-center justify-center">
-                  <img
-                    src="/globe.png"
-                    alt="Globe Icon"
-                    className="max-w-full max-h-full group-hover:scale-110 transition-transform duration-300 relative z-10"
-                  />
-                </div>
-                <div className="mt-1 sm:mt-2 text-[#090C9B] text-xs sm:text-sm font-semibold opacity-0 group-hover:opacity-100 transition-opacity duration-300 relative z-10">
-                  Poster Board
-                </div>
-              </div>
-            </button>
-          </Link>
-        </div>
-
-        {/* Camera Button - Far Right position */}
-        <div
-          className="absolute left-1/2 top-1/2 transform z-[110]"
-          style={{ transform: "translate(calc(-50% + 25rem), -50%)" }}
-        >
-          <Link href="/leaderboard">
-            <button
-              className={`group relative transition-all duration-500 ${
-                animationComplete
-                  ? "opacity-100 scale-100"
-                  : "opacity-0 scale-75 pointer-events-none"
-              }`}
-            >
-              <div className="relative flex flex-col items-center justify-center">
-                <div className="max-w-[6rem] max-h-[6rem] flex items-center justify-center">
-                  <img
-                    src="/camera icon clean.png"
-                    alt="Camera Icon"
-                    className="max-w-full max-h-full group-hover:scale-110 transition-transform duration-300 relative z-10"
-                  />
-                </div>
-                <div className="mt-1 sm:mt-2 text-[#090C9B] text-xs sm:text-sm font-semibold opacity-0 group-hover:opacity-100 transition-opacity duration-300 relative z-10">
-                  Add Location
-                </div>
-              </div>
-            </button>
-          </Link>
-        </div>
-
-        <div className="relative isolate px-6 pt-4 lg:pt-8 z-20">
-          {/* Top gradient background effect */}
+        {/* Desktop Layout - Hidden on mobile */}
+        <div className="hidden md:block">
+          {/* Book Button - Far Left position */}
           <div
-            aria-hidden="true"
-            className="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80"
+            className="absolute left-1/2 top-1/2 transform z-[110]"
+            style={{ transform: "translate(calc(-50% - 25rem), -50%)" }}
           >
-            <div
-              style={{
-                clipPath:
-                  "polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)",
-              }}
-              className="relative left-[calc(50%-11rem)] aspect-1155/678 w-144.5 -translate-x-1/2 rotate-30 bg-gradient-to-tr from-blue-200/40 to-blue-500/30 opacity-60 sm:left-[calc(50%-30rem)] sm:w-288.75"
-            />
+            <LoreButton size="desktop" animationComplete={animationComplete} />
           </div>
 
-          {/* Main content - logo positioning */}
-          <Logo animationComplete={animationComplete} />
-
-          {/* Bottom gradient background effect */}
+          {/* Laurel Button - Left position */}
           <div
-            aria-hidden="true"
-            className="absolute inset-x-0 top-[calc(100%-16rem)] -z-10 transform-gpu overflow-hidden blur-3xl sm:top-[calc(100%-30rem)]"
+            className="absolute left-1/2 top-1/2 transform z-[110]"
+            style={{ transform: "translate(calc(-50% - 12rem), -50%)" }}
           >
-            <div
-              style={{
-                clipPath:
-                  "polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)",
-              }}
-              className="relative left-[calc(50%+6rem)] aspect-1155/678 w-144.5 -translate-x-1/2 bg-gradient-to-tr from-blue-400/30 to-blue-700/40 opacity-50 sm:left-[calc(50%+36rem)] sm:w-288.75"
-            />
+            <LeaderboardButton size="desktop" animationComplete={animationComplete} />
+          </div>
+
+          {/* Play Button - Center position */}
+          <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 z-[110]">
+            <PlayButton size="desktop" animationComplete={animationComplete} />
+          </div>
+
+          {/* Globe Button - Right position */}
+          <div
+            className="absolute left-1/2 top-1/2 transform z-[110]"
+            style={{ transform: "translate(calc(-50% + 12rem), -50%)" }}
+          >
+            <PosterBoardButton size="desktop" animationComplete={animationComplete} />
+          </div>
+
+          {/* Camera Button - Far Right position */}
+          <div
+            className="absolute left-1/2 top-1/2 transform z-[110]"
+            style={{ transform: "translate(calc(-50% + 25rem), -50%)" }}
+          >
+            <AddLocationButton size="desktop" animationComplete={animationComplete} />
           </div>
         </div>
-      </div>
-      {/* UW GUESSER text at bottom right */}
-      {/* <div
-        className="absolute bottom-4 right-4 sm:bottom-6 sm:right-6 md:bottom-8 md:right-8 z-[100] text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-semibold tracking-wide pointer-events-none select-none text-amber-800"
-        style={{ fontFamily: 'Felgine, sans-serif'}}
-      >
-        UW GUESSER
-      </div> */}
+
+        {/* Mobile Layout - Vertical stack, visible only on mobile */}
+        <div className="block md:hidden">
+          <div 
+            className={`absolute left-1/2 bottom-20 transform -translate-x-1/2 z-[110] transition-all duration-500 ${
+              animationComplete 
+                ? 'opacity-100 scale-100 translate-y-0' 
+                : 'opacity-0 scale-75 pointer-events-none translate-y-16'
+            }`}
+          >
+            <div className="flex flex-col items-center space-y-4">
+              <LeaderboardButton size="mobile" animationComplete={animationComplete} />
+              <LoreButton size="mobile" animationComplete={animationComplete} />
+              <PlayButton size="mobile" animationComplete={animationComplete} />
+              <PosterBoardButton size="mobile" animationComplete={animationComplete} />
+              <AddLocationButton size="mobile" animationComplete={animationComplete} />
+            </div>
+          </div>
+        </div>
+
+      </HeroBackground>
     </>
   );
 }

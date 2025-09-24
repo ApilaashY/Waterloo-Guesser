@@ -502,7 +502,7 @@ const Map = forwardRef(function Map(props: MapProps, ref) {
   // Main render: map image, markers, result overlay
   return (
     <>
-      <div className="w-full h-full flex-1" style={{ position: "relative" }}>
+      <div className="w-full h-full flex-1 pt-1.5" style={{ position: "relative" }}>
         <div
           className="relative rounded-2xl overflow-hidden bg-gray-200 border-4 border-black"
           style={{}}
@@ -626,7 +626,7 @@ const Map = forwardRef(function Map(props: MapProps, ref) {
           props.xRightCoor != null &&
           props.yRightCoor != null && (
             <div
-              className="absolute top-4 right-4 bg-black bg-opacity-75 text-white p-4 rounded-lg shadow-lg z-20"
+              className="absolute top-15 right-4 bg-black bg-opacity-75 text-white p-4 rounded-lg shadow-lg z-20"
               style={{ backdropFilter: "blur(5px)" }}
             >
               <div className="text-center">
