@@ -1,7 +1,9 @@
-"use client";
-import "leaflet/dist/leaflet.css";
-import WaterlooRoadBorder from "./WaterlooRoadBorder";
+import React from 'react'
 
-export default function Page() {
-  return <WaterlooRoadBorder />;
+const greg = () => {
+  return (
+    <div>greg</div>
+  )
 }
+
+export default greg

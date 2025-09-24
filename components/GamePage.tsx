@@ -16,6 +16,12 @@ import {
 import { useSession } from "./SessionProvider";
 import { Toaster, toast } from "react-hot-toast";
 
+// Utility to detect mobile devices
+function isMobileDevice() {
+  if (typeof window === "undefined") return false;
+  return /Mobi|Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent);
+}
+
 export default function GamePage() {
   // Use modular hooks
   const {
@@ -56,6 +62,7 @@ export default function GamePage() {
     }
   }, [gameState.isStarted, startGame, loadNewImage]);
 
+
   // Load natural size when image changes
   useEffect(() => {
     let mounted = true;
@@ -79,6 +86,51 @@ export default function GamePage() {
       mounted = false;
     };
   }, [imageState.currentImageSrc, recordImageLoaded]);
+
+  // Show mobile warning toast
+  useEffect(() => {
+    if (isMobileDevice() === true) {
+      toast.dismiss("mobile-warning-toast");
+      toast(
+        <div className="flex items-center gap-2">
+          <span className="text-base font-semibold text-red-900">
+            Apologies for the bugs, <b>mobile users'</b> games will not work for the time being.<br />
+            It's being worked on to be fixed ASAP.<br />
+            <b>Laptop users are fine.</b>
+          </span>
+          <button
+            className="ml-2 px-2 py-1 rounded bg-yellow-300 hover:bg-yellow-400 text-yellow-900 font-bold focus:outline-none transition-colors duration-150"
+            aria-label="Close mobile warning toast"
+            onClick={() => toast.dismiss("mobile-warning-toast")}
+          >
+            &#10005;
+          </button>
+        </div>,
+        {
+          id: "mobile-warning-toast",
+          duration: Infinity,
+          position: "top-center",
+          style: {
+            background: "#FEF3C7",
+            color: "#B45309",
+            border: "1px solid #F59E0B",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+            borderRadius: "0.75rem",
+            padding: "1rem 1.5rem",
+            fontFamily: "inherit",
+            fontWeight: 500,
+            fontSize: "1rem",
+            display: "flex",
+            alignItems: "center",
+            gap: "0.75rem",
+          },
+          icon: null,
+        }
+      );
+    } else {
+      toast.dismiss("mobile-warning-toast");
+    }
+  }, []);
 
   const handleCoordinateClick = (x: number | null, y: number | null) => {
     recordFirstMapClick();

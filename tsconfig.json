@@ -19,9 +19,7 @@
         "name": "next"
       }
     ],
-    "types": ["leaflet"]
-  ,
-  "paths": {
+    "paths": {
       "@/*": ["./*"]
     }
   },
