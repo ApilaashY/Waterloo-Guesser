@@ -245,15 +245,20 @@ const GameMap = forwardRef<any, GameMapProps>(
 
           lastPinchDistance.current = getTouchDistance(touch1, touch2);
           pinchCenter.current = getTouchCenter(touch1, touch2);
-        } else if (e.touches.length === 1 && zoom > 1 && !isPinching.current) {
-          // Single finger - start panning (only when zoomed in)
-          e.preventDefault();
-          isDragging.current = true;
-          dragStart.current = {
-            x: e.touches[0].clientX,
-            y: e.touches[0].clientY,
-          };
-          panStart.current = { x: pan.x, y: pan.y };
+        } else if (e.touches.length === 1) {
+          // Single finger
+          if (zoom > 1) {
+            // Only allow panning when zoomed in
+            // e.preventDefault();
+            isDragging.current = true;
+            dragStart.current = {
+              x: e.touches[0].clientX,
+              y: e.touches[0].clientY,
+            };
+            panStart.current = { x: pan.x, y: pan.y };
+          }
+          // Reset pinch state for single finger
+          isPinching.current = false;
         }
       };
 
@@ -268,27 +273,26 @@ const GameMap = forwardRef<any, GameMapProps>(
           const touch2 = e.touches[1];
 
           const currentDistance = getTouchDistance(touch1, touch2);
-          const currentCenter = getTouchCenter(touch1, touch2);
 
           if (lastPinchDistance.current > 0) {
             // Calculate zoom change based on distance change
             const distanceRatio = currentDistance / lastPinchDistance.current;
-            const zoomChange = (distanceRatio - 1) * 2; // Adjust sensitivity
+
+            // More sensitive and smooth zoom calculation
+            const zoomMultiplier = distanceRatio;
+            const newZoom = zoom * zoomMultiplier;
 
             const minZoom = 1;
             const maxZoom = 5;
-            const newZoom = Math.min(
-              maxZoom,
-              Math.max(minZoom, zoom + zoomChange)
-            );
+            const clampedZoom = Math.min(maxZoom, Math.max(minZoom, newZoom));
 
-            if (newZoom !== zoom) {
-              setZoom(newZoom);
+            if (Math.abs(clampedZoom - zoom) > 0.01) {
+              // Only update if change is significant
+              setZoom(clampedZoom);
             }
           }
 
           lastPinchDistance.current = currentDistance;
-          pinchCenter.current = currentCenter;
         } else if (
           e.touches.length === 1 &&
           isDragging.current &&
@@ -314,17 +318,36 @@ const GameMap = forwardRef<any, GameMapProps>(
       const handleTouchEnd = (e: TouchEvent) => {
         if (disabled || enlarged) return;
 
-        if (e.touches.length < 2) {
-          // Less than two fingers - end pinch gesture
-          isPinching.current = false;
-          lastPinchDistance.current = 0;
-        }
-
         if (e.touches.length === 0) {
           // No fingers - end all gestures
+          isPinching.current = false;
           isDragging.current = false;
+          lastPinchDistance.current = 0;
+        } else if (e.touches.length === 1 && isPinching.current) {
+          // Went from 2 fingers to 1 finger - end pinch, potentially start pan
           isPinching.current = false;
           lastPinchDistance.current = 0;
+
+          // If zoomed in, start panning with the remaining finger
+          if (zoom > 1) {
+            isDragging.current = true;
+            dragStart.current = {
+              x: e.touches[0].clientX,
+              y: e.touches[0].clientY,
+            };
+            panStart.current = { x: pan.x, y: pan.y };
+          }
+        } else if (e.touches.length >= 2 && !isPinching.current) {
+          // Went from 1 finger to 2+ fingers - potentially start pinch
+          isDragging.current = false;
+
+          if (e.touches.length === 2) {
+            isPinching.current = true;
+            const touch1 = e.touches[0];
+            const touch2 = e.touches[1];
+            lastPinchDistance.current = getTouchDistance(touch1, touch2);
+            pinchCenter.current = getTouchCenter(touch1, touch2);
+          }
         }
       };
 

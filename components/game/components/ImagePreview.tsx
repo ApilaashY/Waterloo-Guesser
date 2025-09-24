@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { CldImage } from "next-cloudinary";
 
-
 interface ImagePreviewProps {
   imageSrc: string;
   naturalSize: { w: number; h: number } | null;
@@ -144,7 +143,6 @@ export default function ImagePreview({
               break;
           }
         } else if (key === "shift" || key === "escape") {
-
           e.preventDefault();
           setZoom(1);
           setPan({ x: 0, y: 0 });
@@ -333,7 +331,7 @@ export default function ImagePreview({
   return (
     <div
       ref={containerRef}
-      className="relative rounded-2xl overflow-hidden bg-gray-200 border-4 border-black"
+      className="relative rounded-2xl overflow-hidden bg-gray-200 border-4 border-black max-md:w-screen"
       style={containerStyle}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}

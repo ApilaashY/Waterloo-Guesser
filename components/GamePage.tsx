@@ -239,7 +239,7 @@ export default function GamePage() {
             </div>
             {/* Right side: map */}
             <div
-              className={`flex justify-center items-center h-full w-2/3 max-md:fixed max-md:w-screen`}
+              className={`flex justify-center items-center h-full w-2/3 max-md:fixed max-md:w-screen max-md:h-screen`}
             >
               <GameMap
                 ref={mapRef}
