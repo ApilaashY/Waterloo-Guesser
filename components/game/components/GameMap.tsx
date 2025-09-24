@@ -1,6 +1,18 @@
 import { forwardRef, useEffect, useRef as useReactRef, useState } from "react";
 import Map from "../../Map";
 
+// Constants for map interaction
+const PAN_STEP = 4;
+const PAN_INTERVAL = 1; // ms (much more responsive, ~1000fps)
+const ZOOM_STEP = 0.3;
+const MIN_ZOOM = 1;
+const MAX_ZOOM = 5;
+const ZOOM_ANIMATION_STEP = 0.05;
+const ZOOM_ANIMATION_DELAY = 4; // ms
+const PINCH_SENSITIVITY_THRESHOLD = 0.02;
+const DEFAULT_CONTAINER_WIDTH = 765;
+const DEFAULT_CONTAINER_HEIGHT = 350;
+
 interface GameMapProps {
   xCoor: number | null;
   yCoor: number | null;
@@ -48,8 +60,8 @@ const GameMap = forwardRef<any, GameMapProps>(
         ? [overridePan, setOverridePan]
         : useState({ x: 0, y: 0 });
     const [containerDimensions, setContainerDimensions] = useState({
-      width: 765,
-      height: 350,
+      width: DEFAULT_CONTAINER_WIDTH,
+      height: DEFAULT_CONTAINER_HEIGHT,
     });
     const imageRef = useReactRef<HTMLImageElement | null>(null); // Ref to the image element
     const isAnimatingZoom = useReactRef(false);
@@ -59,6 +71,35 @@ const GameMap = forwardRef<any, GameMapProps>(
     const isPinching = useReactRef(false);
     const lastPinchDistance = useReactRef(0);
     const pinchCenter = useReactRef({ x: 0, y: 0 });
+
+    // Performance optimization: Use refs for frequently changing values
+    const zoomRef = useReactRef(zoom);
+    const panRef = useReactRef(pan);
+    const cachedImageRect = useReactRef<DOMRect | null>(null);
+    const wheelThrottleRef = useReactRef<number | null>(null);
+
+    // Update refs when state changes
+    useEffect(() => {
+      zoomRef.current = zoom;
+    }, [zoom]);
+
+    useEffect(() => {
+      panRef.current = pan;
+    }, [pan]);
+
+    // Performance optimization: Cache image rect and update only when needed
+    const updateCachedImageRect = () => {
+      if (imageRef.current) {
+        cachedImageRect.current = imageRef.current.getBoundingClientRect();
+      }
+    };
+
+    const getCachedImageRect = () => {
+      if (!cachedImageRect.current && imageRef.current) {
+        updateCachedImageRect();
+      }
+      return cachedImageRect.current;
+    };
 
     // Clamp pan so the map always stays within its container
     const clampPan = (x: number, y: number, zoomLevel = 1) => {
@@ -90,12 +131,14 @@ const GameMap = forwardRef<any, GameMapProps>(
 
       while (prev !== targetZoom) {
         if (prev < targetZoom) {
-          prev = Math.min(prev + 0.05, targetZoom);
+          prev = Math.min(prev + ZOOM_ANIMATION_STEP, targetZoom);
         } else {
-          prev = Math.max(prev - 0.05, targetZoom);
+          prev = Math.max(prev - ZOOM_ANIMATION_STEP, targetZoom);
         }
         setZoom(prev);
-        await new Promise((resolve) => setTimeout(resolve, 4));
+        await new Promise((resolve) =>
+          setTimeout(resolve, ZOOM_ANIMATION_DELAY)
+        );
       }
       isAnimatingZoom.current = false;
     }
@@ -119,6 +162,8 @@ const GameMap = forwardRef<any, GameMapProps>(
             });
           }
         }
+        // Update cached image rect when dimensions change
+        updateCachedImageRect();
       };
 
       // Update dimensions initially and on resize
@@ -133,8 +178,6 @@ const GameMap = forwardRef<any, GameMapProps>(
     useEffect(() => {
       if (disabled || enlarged) return; // Disable movement if enlarged is true
 
-      const PAN_STEP = 4;
-      const PAN_INTERVAL = 1; // ms (much more responsive, ~1000fps)
       const panKeys = [
         "arrowup",
         "arrowleft",
@@ -148,40 +191,73 @@ const GameMap = forwardRef<any, GameMapProps>(
       const zoomKeys = ["1", "2", "3"]; // Zoom preset keys
       const cornerKeys = ["q", "e", "z", "c"];
 
-      // Handle wheel/scroll events for zooming
+      // Handle wheel/scroll events for zooming (with performance optimization)
       const handleWheel = (e: WheelEvent) => {
         if (disabled || enlarged) return;
 
         e.preventDefault();
 
-        const zoomStep = 0.3; // Increased for more responsive zooming
-        const minZoom = 1;
-        const maxZoom = 5;
-
-        let newZoom = zoom;
-
-        if (e.deltaY < 0) {
-          // Scrolling up - zoom in
-          newZoom = Math.min(zoom + zoomStep, maxZoom);
-        } else {
-          // Scrolling down - zoom out
-          newZoom = Math.max(zoom - zoomStep, minZoom);
+        // Throttle wheel events for better performance
+        if (wheelThrottleRef.current) {
+          cancelAnimationFrame(wheelThrottleRef.current);
         }
 
-        if (newZoom !== zoom) {
-          animateZoom(newZoom);
-        }
+        wheelThrottleRef.current = requestAnimationFrame(() => {
+          const currentZoom = zoomRef.current;
+          const currentPan = panRef.current;
+
+          let newZoom = currentZoom;
+
+          if (e.deltaY < 0) {
+            // Scrolling up - zoom in
+            newZoom = Math.min(currentZoom + ZOOM_STEP, MAX_ZOOM);
+          } else {
+            // Scrolling down - zoom out
+            newZoom = Math.max(currentZoom - ZOOM_STEP, MIN_ZOOM);
+          }
+
+          if (newZoom !== currentZoom) {
+            // Use cached image rect for better performance
+            const imageRect = getCachedImageRect();
+            if (imageRect) {
+              // Mouse position relative to the image
+              const mouseX = e.clientX - imageRect.left;
+              const mouseY = e.clientY - imageRect.top;
+
+              // Mouse position relative to image center
+              const mouseOffsetX = mouseX - imageRect.width / 2;
+              const mouseOffsetY = mouseY - imageRect.height / 2;
+
+              // Calculate new pan using the zoom-to-cursor formula
+              const newPanX =
+                mouseOffsetX * (1 / newZoom - 1 / currentZoom) + currentPan.x;
+              const newPanY =
+                mouseOffsetY * (1 / newZoom - 1 / currentZoom) + currentPan.y;
+
+              // Clamp the new pan to valid bounds
+              const clampedPan = clampPan(newPanX, newPanY, newZoom);
+
+              // Set the new zoom and pan simultaneously
+              setZoom(newZoom);
+              setPan(clampedPan);
+            } else {
+              // Fallback to center zoom if image rect not available
+              animateZoom(newZoom);
+            }
+          }
+        });
       };
 
-      // Handle mouse events for dragging
+      // Handle mouse events for dragging (optimized with refs)
       const handleMouseDown = (e: MouseEvent) => {
         // Only handle left mouse button
-        if (e.button !== 0 || disabled || enlarged || zoom <= 1) return;
+        if (e.button !== 0 || disabled || enlarged || zoomRef.current <= 1)
+          return;
 
         e.preventDefault();
         isDragging.current = true;
         dragStart.current = { x: e.clientX, y: e.clientY };
-        panStart.current = { x: pan.x, y: pan.y };
+        panStart.current = { x: panRef.current.x, y: panRef.current.y };
       };
 
       const handleMouseMove = (e: MouseEvent) => {
@@ -189,13 +265,14 @@ const GameMap = forwardRef<any, GameMapProps>(
 
         e.preventDefault();
 
-        const deltaX = (e.clientX - dragStart.current.x) / zoom;
-        const deltaY = (e.clientY - dragStart.current.y) / zoom;
+        const currentZoom = zoomRef.current;
+        const deltaX = (e.clientX - dragStart.current.x) / currentZoom;
+        const deltaY = (e.clientY - dragStart.current.y) / currentZoom;
 
         const newPan = clampPan(
           panStart.current.x + deltaX,
           panStart.current.y + deltaY,
-          zoom
+          currentZoom
         );
 
         setPan(newPan);
@@ -230,7 +307,7 @@ const GameMap = forwardRef<any, GameMapProps>(
         };
       };
 
-      // Handle touch events for pinch-to-zoom
+      // Handle touch events for pinch-to-zoom (optimized)
       const handleTouchStart = (e: TouchEvent) => {
         if (disabled || enlarged) return;
 
@@ -245,17 +322,20 @@ const GameMap = forwardRef<any, GameMapProps>(
 
           lastPinchDistance.current = getTouchDistance(touch1, touch2);
           pinchCenter.current = getTouchCenter(touch1, touch2);
+
+          // Update cached image rect for pinch operations
+          updateCachedImageRect();
         } else if (e.touches.length === 1) {
           // Single finger
-          if (zoom > 1) {
+          const currentZoom = zoomRef.current;
+          if (currentZoom > 1) {
             // Only allow panning when zoomed in
-            // e.preventDefault();
             isDragging.current = true;
             dragStart.current = {
               x: e.touches[0].clientX,
               y: e.touches[0].clientY,
             };
-            panStart.current = { x: pan.x, y: pan.y };
+            panStart.current = { x: panRef.current.x, y: panRef.current.y };
           }
           // Reset pinch state for single finger
           isPinching.current = false;
@@ -273,26 +353,61 @@ const GameMap = forwardRef<any, GameMapProps>(
           const touch2 = e.touches[1];
 
           const currentDistance = getTouchDistance(touch1, touch2);
+          const currentCenter = getTouchCenter(touch1, touch2);
 
           if (lastPinchDistance.current > 0) {
             // Calculate zoom change based on distance change
             const distanceRatio = currentDistance / lastPinchDistance.current;
 
-            // More sensitive and smooth zoom calculation
-            const zoomMultiplier = distanceRatio;
-            const newZoom = zoom * zoomMultiplier;
+            // Only process if change is significant (performance optimization)
+            if (Math.abs(distanceRatio - 1) > PINCH_SENSITIVITY_THRESHOLD) {
+              const currentZoom = zoomRef.current;
+              const currentPan = panRef.current;
 
-            const minZoom = 1;
-            const maxZoom = 5;
-            const clampedZoom = Math.min(maxZoom, Math.max(minZoom, newZoom));
+              const zoomMultiplier = distanceRatio;
+              const newZoom = currentZoom * zoomMultiplier;
 
-            if (Math.abs(clampedZoom - zoom) > 0.01) {
-              // Only update if change is significant
-              setZoom(clampedZoom);
+              const clampedZoom = Math.min(
+                MAX_ZOOM,
+                Math.max(MIN_ZOOM, newZoom)
+              );
+
+              if (Math.abs(clampedZoom - currentZoom) > 0.01) {
+                // Use cached image rect for better performance
+                const imageRect = getCachedImageRect();
+                if (imageRect) {
+                  // Pinch center relative to the image
+                  const centerX = currentCenter.x - imageRect.left;
+                  const centerY = currentCenter.y - imageRect.top;
+
+                  // Pinch center relative to image center
+                  const centerOffsetX = centerX - imageRect.width / 2;
+                  const centerOffsetY = centerY - imageRect.height / 2;
+
+                  // Calculate new pan using zoom-to-cursor formula
+                  const newPanX =
+                    centerOffsetX * (1 / clampedZoom - 1 / currentZoom) +
+                    currentPan.x;
+                  const newPanY =
+                    centerOffsetY * (1 / clampedZoom - 1 / currentZoom) +
+                    currentPan.y;
+
+                  // Clamp the new pan to valid bounds
+                  const clampedPan = clampPan(newPanX, newPanY, clampedZoom);
+
+                  // Set zoom and pan simultaneously
+                  setZoom(clampedZoom);
+                  setPan(clampedPan);
+                } else {
+                  // Fallback: just set zoom without pan adjustment
+                  setZoom(clampedZoom);
+                }
+              }
             }
           }
 
           lastPinchDistance.current = currentDistance;
+          pinchCenter.current = currentCenter;
         } else if (
           e.touches.length === 1 &&
           isDragging.current &&
@@ -302,13 +417,14 @@ const GameMap = forwardRef<any, GameMapProps>(
           e.preventDefault();
 
           const touch = e.touches[0];
-          const deltaX = (touch.clientX - dragStart.current.x) / zoom;
-          const deltaY = (touch.clientY - dragStart.current.y) / zoom;
+          const currentZoom = zoomRef.current;
+          const deltaX = (touch.clientX - dragStart.current.x) / currentZoom;
+          const deltaY = (touch.clientY - dragStart.current.y) / currentZoom;
 
           const newPan = clampPan(
             panStart.current.x + deltaX,
             panStart.current.y + deltaY,
-            zoom
+            currentZoom
           );
 
           setPan(newPan);
@@ -329,13 +445,14 @@ const GameMap = forwardRef<any, GameMapProps>(
           lastPinchDistance.current = 0;
 
           // If zoomed in, start panning with the remaining finger
-          if (zoom > 1) {
+          const currentZoom = zoomRef.current;
+          if (currentZoom > 1) {
             isDragging.current = true;
             dragStart.current = {
               x: e.touches[0].clientX,
               y: e.touches[0].clientY,
             };
-            panStart.current = { x: pan.x, y: pan.y };
+            panStart.current = { x: panRef.current.x, y: panRef.current.y };
           }
         } else if (e.touches.length >= 2 && !isPinching.current) {
           // Went from 1 finger to 2+ fingers - potentially start pinch
@@ -347,6 +464,9 @@ const GameMap = forwardRef<any, GameMapProps>(
             const touch2 = e.touches[1];
             lastPinchDistance.current = getTouchDistance(touch1, touch2);
             pinchCenter.current = getTouchCenter(touch1, touch2);
+
+            // Update cached rect when starting new pinch
+            updateCachedImageRect();
           }
         }
       };
@@ -376,20 +496,21 @@ const GameMap = forwardRef<any, GameMapProps>(
           } else if (cornerKeys.includes(key)) {
             e.preventDefault();
             const { width, height } = getImageDimensions();
-            const totalWidth = width / 2 - width / 2 / zoom;
-            const totalHeight = height / 2 - height / 2 / zoom;
+            const currentZoom = zoomRef.current;
+            const totalWidth = width / 2 - width / 2 / currentZoom;
+            const totalHeight = height / 2 - height / 2 / currentZoom;
             switch (key) {
               case "q":
-                setPan(clampPan(totalWidth, totalHeight, zoom));
+                setPan(clampPan(totalWidth, totalHeight, currentZoom));
                 break;
               case "e":
-                setPan(clampPan(-totalWidth, totalHeight, zoom));
+                setPan(clampPan(-totalWidth, totalHeight, currentZoom));
                 break;
               case "z":
-                setPan(clampPan(totalWidth, -totalHeight, zoom));
+                setPan(clampPan(totalWidth, -totalHeight, currentZoom));
                 break;
               case "c":
-                setPan(clampPan(-totalWidth, -totalHeight, zoom));
+                setPan(clampPan(-totalWidth, -totalHeight, currentZoom));
                 break;
             }
           } else if (key === "shift" || key === "escape") {
@@ -405,28 +526,32 @@ const GameMap = forwardRef<any, GameMapProps>(
                 setPan((prev: { x: number; y: number }) => {
                   let deltaX = 0;
                   let deltaY = 0;
+                  const currentZoom = zoomRef.current;
                   activeKeysRef.current.forEach((activeKey) => {
-                    console.log(activeKey);
                     switch (activeKey) {
                       case "w":
                       case "arrowup":
-                        deltaY += PAN_STEP / zoom;
+                        deltaY += PAN_STEP / currentZoom;
                         break;
                       case "a":
                       case "arrowleft":
-                        deltaX += PAN_STEP / zoom;
+                        deltaX += PAN_STEP / currentZoom;
                         break;
                       case "s":
                       case "arrowdown":
-                        deltaY -= PAN_STEP / zoom;
+                        deltaY -= PAN_STEP / currentZoom;
                         break;
                       case "d":
                       case "arrowright":
-                        deltaX -= PAN_STEP / zoom;
+                        deltaX -= PAN_STEP / currentZoom;
                         break;
                     }
                   });
-                  return clampPan(prev.x + deltaX, prev.y + deltaY, zoom);
+                  return clampPan(
+                    prev.x + deltaX,
+                    prev.y + deltaY,
+                    currentZoom
+                  );
                 });
               }, PAN_INTERVAL);
             }
@@ -488,8 +613,17 @@ const GameMap = forwardRef<any, GameMapProps>(
           clearInterval(panIntervalRef.current);
           panIntervalRef.current = null;
         }
+
+        // Clean up wheel throttling
+        if (wheelThrottleRef.current) {
+          cancelAnimationFrame(wheelThrottleRef.current);
+          wheelThrottleRef.current = null;
+        }
+
+        // Clear cached rect on cleanup
+        cachedImageRect.current = null;
       };
-    }, [disabled, enlarged, zoom, pan]); // Added pan to dependency array
+    }, [disabled, enlarged, zoom]); // Removed 'pan' from dependency array for better performance
 
     const getImageDimensions = () => {
       if (imageRef.current) {

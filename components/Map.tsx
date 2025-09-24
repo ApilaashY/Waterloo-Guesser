@@ -5,46 +5,25 @@
 // Uses react-zoom-pan-pinch for smooth map interaction.
 "use client";
 
-// Fetch floorplans and buildings from API
 import React, {
   PropsWithChildren,
-  useState,
   useRef,
   useImperativeHandle,
   forwardRef,
 } from "react";
 import { FaMapMarkerAlt } from "react-icons/fa";
-// import ReactDOM from "react-dom";
 import Image from "next/image";
 import {
   TransformWrapper,
   TransformComponent,
   ReactZoomPanPinchRef,
 } from "react-zoom-pan-pinch";
-import { get } from "http";
 
-// interface Floorplan {
-//   _id: string;
-//   filename: string;
-//   image_base64: string;
-// }
-// interface Building {
-//   _id: string;
-//   building: string;
-//   x: number;
-//   y: number;
-// }
-// interface Floorplan {
-//   _id: string;
-//   filename: string;
-//   image_base64: string;
-// }
-// interface Building {
-//   _id: string;
-//   building: string;
-//   x: number;
-//   y: number;
-// }
+// Constants for map layout and behavior
+const CONTAINER_WIDTH = 765;
+const CONTAINER_HEIGHT = 350;
+const ZOOM_ANIMATION_DURATION = 800;
+const ZOOM_ANIMATION_DELAY = 100;
 
 /**
  * Props for the Map component
@@ -85,8 +64,6 @@ interface MapProps extends PropsWithChildren {
  * - Displays round results (distance, score)
  */
 const Map = forwardRef(function Map(props: MapProps, ref) {
-  // Current zoom level
-  const [zoom, setZoom] = useState(1);
   // Ref to react-zoom-pan-pinch instance
   const transformRef = useRef<ReactZoomPanPinchRef>(null);
 
@@ -102,8 +79,8 @@ const Map = forwardRef(function Map(props: MapProps, ref) {
     }
     // Fallback to the container dimensions or hardcoded values
     return {
-      width: containerWidth,
-      height: containerHeight,
+      width: CONTAINER_WIDTH,
+      height: CONTAINER_HEIGHT,
     };
   };
 
@@ -202,40 +179,36 @@ const Map = forwardRef(function Map(props: MapProps, ref) {
           // Convert normalized center to transform coordinates
           // Instead of shifting by containerWidth/2, just use normalized center
           // and scale to map coordinates
-          const mapX = centerX * containerWidth;
-          const mapY = centerY * containerHeight;
+          const mapX = centerX * CONTAINER_WIDTH;
+          const mapY = centerY * CONTAINER_HEIGHT;
           // Center the map so that the center point is in the middle of the viewport
-          const offsetX = (containerWidth / 2 - mapX) * finalZoom;
-          const offsetY = (containerHeight / 2 - mapY) * finalZoom;
+          const offsetX = (CONTAINER_WIDTH / 2 - mapX) * finalZoom;
+          const offsetY = (CONTAINER_HEIGHT / 2 - mapY) * finalZoom;
           transformRef.current.setTransform(
             offsetX,
             offsetY,
             finalZoom,
-            800,
+            ZOOM_ANIMATION_DURATION,
             "easeOut"
           );
         }
-      }, 100);
+      }, ZOOM_ANIMATION_DELAY);
     }
   }, [props.xCoor, props.yCoor, props.xRightCoor, props.yRightCoor]);
-
-  // Map image container dimensions
-  const containerWidth = 765; //896;
-  const containerHeight = 350; //683;
 
   /**
    * Clamps pan so the image always fills the container and doesn't move out of bounds.
    * Used for keyboard/mouse movement and zoom.
    */
-  const clampPan = (x: number, y: number, zoomLevel = zoom) => {
-    const scaledWidth = containerWidth * zoomLevel;
-    const scaledHeight = containerHeight * zoomLevel;
+  const clampPan = (x: number, y: number, zoomLevel = props.zoom) => {
+    const scaledWidth = CONTAINER_WIDTH * zoomLevel;
+    const scaledHeight = CONTAINER_HEIGHT * zoomLevel;
 
     // Calculate the actual transform bounds based on image edge alignment
     // When zoomed in, image can move from "right edge aligned" to "left edge aligned"
-    const minX = Math.min(0, containerWidth - scaledWidth); // right edge aligned (negative when zoomed in)
+    const minX = Math.min(0, CONTAINER_WIDTH - scaledWidth); // right edge aligned (negative when zoomed in)
     const maxX = 0; // left edge aligned (always 0)
-    const minY = Math.min(0, containerHeight - scaledHeight); // bottom edge aligned (negative when zoomed in)
+    const minY = Math.min(0, CONTAINER_HEIGHT - scaledHeight); // bottom edge aligned (negative when zoomed in)
     const maxY = 0; // top edge aligned (always 0)
 
     return {
@@ -322,8 +295,8 @@ const Map = forwardRef(function Map(props: MapProps, ref) {
             const { scale = 1 } = state;
             console.log(state);
             // Top-right corner: show top-right of image (min X, max Y)
-            const scaledWidth = containerWidth * scale;
-            const minX = Math.min(0, containerWidth - scaledWidth);
+            const scaledWidth = CONTAINER_WIDTH * scale;
+            const minX = Math.min(0, CONTAINER_WIDTH - scaledWidth);
 
             transformRef.current.setTransform(minX, 0, scale);
           } catch (error) {
@@ -337,8 +310,8 @@ const Map = forwardRef(function Map(props: MapProps, ref) {
             const state = transformRef.current.instance?.transformState || {};
             const { scale = 1 } = state;
             // Bottom-left corner: show bottom-left of image (max X, min Y)
-            const scaledHeight = containerHeight * scale;
-            const minY = Math.min(0, containerHeight - scaledHeight);
+            const scaledHeight = CONTAINER_HEIGHT * scale;
+            const minY = Math.min(0, CONTAINER_HEIGHT - scaledHeight);
 
             transformRef.current.setTransform(0, minY, scale);
           } catch (error) {
@@ -352,10 +325,10 @@ const Map = forwardRef(function Map(props: MapProps, ref) {
             const state = transformRef.current.instance?.transformState || {};
             const { scale = 1 } = state;
             // Bottom-right corner: show bottom-right of image (use min bounds)
-            const scaledWidth = containerWidth * scale;
-            const scaledHeight = containerHeight * scale;
-            const minX = Math.min(0, containerWidth - scaledWidth);
-            const minY = Math.min(0, containerHeight - scaledHeight);
+            const scaledWidth = CONTAINER_WIDTH * scale;
+            const scaledHeight = CONTAINER_HEIGHT * scale;
+            const minX = Math.min(0, CONTAINER_WIDTH - scaledWidth);
+            const minY = Math.min(0, CONTAINER_HEIGHT - scaledHeight);
 
             transformRef.current.setTransform(minX, minY, scale);
           } catch (error) {
@@ -394,7 +367,7 @@ const Map = forwardRef(function Map(props: MapProps, ref) {
         },
       };
     },
-    [zoom]
+    [props.zoom]
   );
 
   /**
@@ -504,7 +477,10 @@ const Map = forwardRef(function Map(props: MapProps, ref) {
   // Main render: map image, markers, result overlay
   return (
     <>
-      <div className="w-full h-full flex-1 pt-1.5" style={{ position: "relative" }}>
+      <div
+        className="w-full h-full flex-1 pt-1.5"
+        style={{ position: "relative" }}
+      >
         <div
           className="relative md:rounded-2xl overflow-hidden bg-gray-200 md:border-4 md:border-black max-md:h-full"
           style={{}}
@@ -516,7 +492,9 @@ const Map = forwardRef(function Map(props: MapProps, ref) {
               height: "100%",
               width: "100%",
               border:
-                zoom > 1.01 ? "2px solid #4ade80" : "2px solid transparent",
+                props.zoom > 1.01
+                  ? "2px solid #4ade80"
+                  : "2px solid transparent",
             }}
           >
             <div
