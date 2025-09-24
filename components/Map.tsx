@@ -405,6 +405,8 @@ const Map = forwardRef(function Map(props: MapProps, ref) {
   function handleClick(event: React.MouseEvent<HTMLImageElement>) {
     if (props.disabled) return;
 
+    console.log("Map click event:");
+
     const img = event.currentTarget as HTMLImageElement;
     const rect = img.getBoundingClientRect();
 
@@ -504,7 +506,7 @@ const Map = forwardRef(function Map(props: MapProps, ref) {
     <>
       <div className="w-full h-full flex-1 pt-1.5" style={{ position: "relative" }}>
         <div
-          className="relative rounded-2xl overflow-hidden bg-gray-200 border-4 border-black"
+          className="relative md:rounded-2xl overflow-hidden bg-gray-200 md:border-4 md:border-black max-md:h-full"
           style={{}}
           tabIndex={0}
         >
@@ -542,6 +544,7 @@ const Map = forwardRef(function Map(props: MapProps, ref) {
                   height: "100%",
                   display: "block",
                   pointerEvents: "auto",
+                  objectFit: "contain",
                   transform: `scale(${props.zoom}) translate(${props.pan.x}px, ${props.pan.y}px)`,
                   // transition: "transform 0.3s ease", April 1st update
                 }}
