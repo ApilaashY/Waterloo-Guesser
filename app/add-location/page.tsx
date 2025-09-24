@@ -526,7 +526,6 @@ export default function LocationUploader() {
                   setYCoor={setYCoor}
                   xRightCoor={null}
                   yRightCoor={null}
-                  aspectRatio={0.25}
                   currentScore={0}
                   zoom={zoom}
                   pan={pan}

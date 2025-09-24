@@ -97,7 +97,6 @@ export default function ImagePreview({
 
     const handleWindowKeyDown = (e: KeyboardEvent) => {
       const key = e.key.toLowerCase();
-      console.log("Key down:", key);
       if (key === "control" && !e.repeat) {
         if (enlargedRef.current) {
           setEnlarged(false);

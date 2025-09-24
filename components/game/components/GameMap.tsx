@@ -1,17 +1,18 @@
 import { forwardRef, useEffect, useRef as useReactRef, useState } from "react";
 import Map from "../../Map";
-
-// Constants for map interaction
-const PAN_STEP = 4;
-const PAN_INTERVAL = 1; // ms (much more responsive, ~1000fps)
-const ZOOM_STEP = 0.3;
-const MIN_ZOOM = 1;
-const MAX_ZOOM = 5;
-const ZOOM_ANIMATION_STEP = 0.05;
-const ZOOM_ANIMATION_DELAY = 4; // ms
-const PINCH_SENSITIVITY_THRESHOLD = 0.02;
-const DEFAULT_CONTAINER_WIDTH = 765;
-const DEFAULT_CONTAINER_HEIGHT = 350;
+import {
+  CONTAINER_WIDTH as DEFAULT_CONTAINER_WIDTH,
+  CONTAINER_HEIGHT as DEFAULT_CONTAINER_HEIGHT,
+  PAN_STEP,
+  PAN_INTERVAL,
+  ZOOM_STEP,
+  MIN_ZOOM,
+  MAX_ZOOM,
+  ZOOM_ANIMATION_STEP,
+  ZOOM_ANIMATION_DELAY,
+  PINCH_SENSITIVITY_THRESHOLD,
+  MAX_SCORE,
+} from "../../constants/mapConstants";
 
 interface GameMapProps {
   xCoor: number | null;
@@ -666,7 +667,7 @@ const GameMap = forwardRef<any, GameMapProps>(
         disabled={disabled}
         showScoreDisplay={true}
         currentScore={currentScore}
-        maxScore={1000}
+        maxScore={MAX_SCORE}
         zoom={zoom}
         pan={pan}
         imageRef={imageRef}

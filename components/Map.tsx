@@ -13,17 +13,18 @@ import React, {
 } from "react";
 import { FaMapMarkerAlt } from "react-icons/fa";
 import Image from "next/image";
+import { ReactZoomPanPinchRef } from "react-zoom-pan-pinch";
 import {
-  TransformWrapper,
-  TransformComponent,
-  ReactZoomPanPinchRef,
-} from "react-zoom-pan-pinch";
-
-// Constants for map layout and behavior
-const CONTAINER_WIDTH = 765;
-const CONTAINER_HEIGHT = 350;
-const ZOOM_ANIMATION_DURATION = 800;
-const ZOOM_ANIMATION_DELAY = 100;
+  CONTAINER_WIDTH,
+  CONTAINER_HEIGHT,
+  ZOOM_ANIMATION_DURATION,
+  ZOOM_ANIMATION_DELAY,
+  MAP_PIXEL_WIDTH,
+  MAP_PIXEL_HEIGHT,
+  CALIBRATION_DISTANCE_METERS,
+  CALIBRATION_REF1,
+  CALIBRATION_REF2,
+} from "./constants/mapConstants";
 
 /**
  * Props for the Map component
@@ -34,7 +35,6 @@ const ZOOM_ANIMATION_DELAY = 100;
  * @property xRightCoor - Correct answer X (normalized 0-1)
  * @property yRightCoor - Correct answer Y (normalized 0-1)
  * @property disabled - If true, disables interaction
- * @property aspectRatio - Optional aspect ratio for layout
  * @property showScoreDisplay - Show score/distance overlay
  * @property currentScore - Optional current round score
  * @property maxScore - Maximum possible score
@@ -47,7 +47,6 @@ interface MapProps extends PropsWithChildren {
   xRightCoor: number | null;
   yRightCoor: number | null;
   disabled?: boolean;
-  aspectRatio?: number; // width / height
   showScoreDisplay?: boolean; // New prop to control score display
   currentScore?: number; // Current round score
   maxScore?: number; // Maximum possible score
@@ -94,29 +93,23 @@ const Map = forwardRef(function Map(props: MapProps, ref) {
     x2: number,
     y2: number
   ) => {
-    // Map image pixel dimensions
-    const mapPixelWidth = 896;
-    const mapPixelHeight = 683;
-    // Reference points (calibrated: 79.5 meters apart)
-    const ref1 = { x: 0.7042735042735043, y: 0.5448430493273543 };
-    const ref2 = { x: 0.7384615384615385, y: 0.5448430493273543 };
     // Calculate pixel distance between reference points
-    const refPx1 = ref1.x * mapPixelWidth;
-    const refPy1 = ref1.y * mapPixelHeight;
-    const refPx2 = ref2.x * mapPixelWidth;
-    const refPy2 = ref2.y * mapPixelHeight;
+    const refPx1 = CALIBRATION_REF1.x * MAP_PIXEL_WIDTH;
+    const refPy1 = CALIBRATION_REF1.y * MAP_PIXEL_HEIGHT;
+    const refPx2 = CALIBRATION_REF2.x * MAP_PIXEL_WIDTH;
+    const refPy2 = CALIBRATION_REF2.y * MAP_PIXEL_HEIGHT;
     const refDeltaPx = refPx2 - refPx1;
     const refDeltaPy = refPy2 - refPy1;
     const refPixelDistance = Math.sqrt(
       refDeltaPx * refDeltaPx + refDeltaPy * refDeltaPy
     );
-    // Calibrate meters-per-pixel so that refPixelDistance = 79.5 meters
-    const metersPerPixel = 79.5 / refPixelDistance;
+    // Calibrate meters-per-pixel so that refPixelDistance = CALIBRATION_DISTANCE_METERS
+    const metersPerPixel = CALIBRATION_DISTANCE_METERS / refPixelDistance;
     // Calculate pixel distance for input points
-    const px1 = x1 * mapPixelWidth;
-    const py1 = y1 * mapPixelHeight;
-    const px2 = x2 * mapPixelWidth;
-    const py2 = y2 * mapPixelHeight;
+    const px1 = x1 * MAP_PIXEL_WIDTH;
+    const py1 = y1 * MAP_PIXEL_HEIGHT;
+    const px2 = x2 * MAP_PIXEL_WIDTH;
+    const py2 = y2 * MAP_PIXEL_HEIGHT;
     const deltaPx = px2 - px1;
     const deltaPy = py2 - py1;
     const pixelDistance = Math.sqrt(deltaPx * deltaPx + deltaPy * deltaPy);
@@ -293,7 +286,6 @@ const Map = forwardRef(function Map(props: MapProps, ref) {
           try {
             const state = transformRef.current.instance?.transformState || {};
             const { scale = 1 } = state;
-            console.log(state);
             // Top-right corner: show top-right of image (min X, max Y)
             const scaledWidth = CONTAINER_WIDTH * scale;
             const minX = Math.min(0, CONTAINER_WIDTH - scaledWidth);
@@ -378,8 +370,6 @@ const Map = forwardRef(function Map(props: MapProps, ref) {
   function handleClick(event: React.MouseEvent<HTMLImageElement>) {
     if (props.disabled) return;
 
-    console.log("Map click event:");
-
     const img = event.currentTarget as HTMLImageElement;
     const rect = img.getBoundingClientRect();
 
@@ -415,17 +405,6 @@ const Map = forwardRef(function Map(props: MapProps, ref) {
     const normalizedX = finalX / img.clientWidth;
     const normalizedY = finalY / img.clientHeight;
 
-    console.log("Map click:", {
-      original: { x: clickX, y: clickY },
-      centered: { x: centeredX, y: centeredY },
-      unscaled: { x: unscaledX, y: unscaledY },
-      unpanned: { x: unpannedX, y: unpannedY },
-      final: { x: finalX, y: finalY },
-      normalized: { x: normalizedX, y: normalizedY },
-      zoom: props.zoom,
-      pan: props.pan,
-    });
-
     // Only set coordinates if they're within valid bounds (0-1)
     if (
       normalizedX >= 0 &&
@@ -436,7 +415,6 @@ const Map = forwardRef(function Map(props: MapProps, ref) {
       props.setXCoor(normalizedX);
       props.setYCoor(normalizedY);
     } else {
-      console.log("Click outside map bounds, ignoring");
     }
   }
 
