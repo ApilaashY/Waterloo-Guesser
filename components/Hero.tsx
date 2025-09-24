@@ -1,19 +1,20 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from 'react'
-import Image from 'next/image'
-import styles from './dialogFont.module.css'
-import bgStyles from './dialogBg.module.css'
-import Link from 'next/link'
+import { useState, useEffect, useRef } from "react";
+import Image from "next/image";
+import Head from "next/head";
+import styles from "./dialogFont.module.css";
+import bgStyles from "./dialogBg.module.css";
+import Link from "next/link";
+import Logo from "./Logo";
+import PlayButton from "./hero/PlayButton";
+import LeaderboardButton from "./hero/LeaderboardButton";
+import LoreButton from "./hero/LoreButton";
+import PosterBoardButton from "./hero/PosterBoardButton";
+import AddLocationButton from "./hero/AddLocationButton";
+import HeroBackground from "./hero/HeroBackground";
 
-const navigation = [
-  { name: 'Product', href: '#' },
-  { name: 'Features', href: '#' },
-  { name: 'Marketplace', href: '#' },
-  { name: 'Company', href: '#' },
-]
-
-const targetDate = new Date('2025-09-04T00:00:00');
+const targetDate = new Date("2025-09-04T00:00:00");
 
 function getTimeRemaining(endDate: Date) {
   const total = endDate.getTime() - new Date().getTime();
@@ -24,131 +25,306 @@ function getTimeRemaining(endDate: Date) {
   return { total, days, hours, minutes, seconds };
 }
 
-function CountdownBox({ endDate }: { endDate: Date }) {
-  const [timeLeft, setTimeLeft] = useState(getTimeRemaining(endDate));
+// function LogoStar({
+//   x,
+//   y,
+//   color,
+//   animationComplete,
+// }: {
+//   x: number;
+//   y: number;
+//   color: string;
+//   animationComplete: boolean;
+// }) 
+// {
+//   // console.log("LogoStar x:", x, "y:", y);
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft(getTimeRemaining(endDate));
-    }, 1000);
-    return () => clearInterval(timer);
-  }, [endDate]);
+//   // Keep the same relative positioning but scale proportionally when animation completes
+//   const adjustedX = animationComplete ? (x / 4) * 0.5 : x / 4;
+//   const adjustedY = animationComplete
+//     ? (y / 3.5 - (x != 0 ? (Math.abs(y) / y) * 25 : 0)) * 0.5
+//     : y / 3.5 - (x != 0 ? (Math.abs(y) / y) * 25 : 0);
 
-  if (timeLeft.total <= 0) {
-    return <div className="text-lg font-bold text-green-400">Countdown finished!</div>;
-  }
-
-  return (
-    <div className="flex gap-4 justify-center text-white text-lg">
-      <div><span className="font-bold text-2xl">{timeLeft.days}</span> d</div>
-      <div><span className="font-bold text-2xl">{timeLeft.hours}</span> h</div>
-      <div><span className="font-bold text-2xl">{timeLeft.minutes}</span> m</div>
-      <div><span className="font-bold text-2xl">{timeLeft.seconds}</span> s</div>
-    </div>
-  );
-}
+//   return (
+//     <img
+//       src={"/1-spoke.png"}
+//       className={`absolute z-10 transition-all duration-1000 ${
+//         animationComplete ? "h-4 w-3" : "h-7 w-5.2"
+//       }`}
+//       style={{
+//         left: `calc(50% + ${adjustedX}px)`,
+//         top: `calc(50% + ${adjustedY}px)`,
+//         transform: "translate(-50%, -50%)",
+//         filter: color,
+//       }}
+//       alt="Spoke"
+//     />
+//   );
+// }
 
 export default function Hero() {
+  const [animationComplete, setAnimationComplete] = useState<boolean>(false);
+  const [randomImage, setRandomImage] = useState<{
+    x: number;
+    y: number;
+    visible: boolean;
+    rotation: number;
+  }>({
+    x: 0,
+    y: 0,
+    visible: false,
+    rotation: 0,
+  });
+
+  useEffect(() => {
+    // Set animation complete after a delay (adjust timing as needed)
+    const animationTimer = setTimeout(() => {
+      setAnimationComplete(true);
+    }, 2000);
+
+    return () => {
+      clearTimeout(animationTimer);
+    };
+  }, []);
+
+  // Separate useEffect for random image scheduling
+  useEffect(() => {
+    if (!animationComplete) return;
+
+    // Random image popup logic
+    const showRandomImage = () => {
+      const x = Math.random() * (window.innerWidth - 200); // Subtract image width
+      const y = Math.random() * (window.innerHeight - 200); // Subtract image height
+      const rotation = Math.random() * 360; // Random rotation between 0-360 degrees
+      setRandomImage({ x, y, visible: true, rotation });
+
+      // Hide the image after 3 seconds
+      setTimeout(() => {
+        setRandomImage((prev) => ({ ...prev, visible: false }));
+      }, 3000);
+    };
+
+    // Show random image at random intervals (between 3-8 seconds for testing)
+    const scheduleRandomImage = () => {
+      const delay = Math.random() * 5000 + 3000; // 3-8 seconds
+      const timeoutId = setTimeout(() => {
+        showRandomImage();
+        scheduleRandomImage(); // Schedule next appearance
+      }, delay);
+      return timeoutId;
+    };
+
+    // Start the first scheduling
+    const timeoutId = scheduleRandomImage();
+
+    return () => {
+      clearTimeout(timeoutId);
+    };
+  }, [animationComplete]);
+
+  const handleRandomImageClick = () => {
+    setRandomImage((prev) => ({ ...prev, visible: false }));
+    // Add any other click behavior here (e.g., play sound, show points, etc.)
+  };
 
   return (
-    <div className="bg-transparent relative min-h-screen w-full overflow-hidden">
-      {/* Blurred night campus background */}
-      <div className="absolute inset-0 z-0">
-        <Image
-          src="/loo at night.png"
-          alt="UW Campus Night"
-          fill
-          priority
-          className="object-cover"
-          // style={{ filter: 'blur(6px) brightness(0.5)' }}
+    <>
+      <Head>
+        {/* Primary Meta Tags */}
+        <title>UW Guesser - University of Waterloo Campus Location Game</title>
+        <meta
+          name="title"
+          content="UW Guesser - University of Waterloo Campus Location Game"
         />
-      </div>
-      {/* Overlay for readability */}
-      <div className="absolute inset-0 bg-black/60 z-10" />
-      <div className="relative isolate px-6 pt-4 lg:pt-8 z-20">
-        {/* <div
-          aria-hidden="true"
-          className="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80"
-        >
+        <meta
+          name="description"
+          content="Test your knowledge of the University of Waterloo campus! Play UW Guesser, an interactive location guessing game featuring campus photos. Challenge yourself in single-player mode or compete with friends in real-time multiplayer matches."
+        />
+        <meta
+          name="keywords"
+          content="University of Waterloo, UW, campus game, location game, geography game, Waterloo campus, location guessing game, uwaterloo game, multiplayer game, campus quiz, uwguessr, "
+        />
+        <meta name="author" content="Senthil Kirthieswar, Apilaash Yoharan" />
+        <meta name="robots" content="index, follow" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+        {/* Open Graph / Facebook */}
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://uwguesser.com/" />
+        <meta
+          property="og:title"
+          content="UW Guesser - University of Waterloo Campus Location Game"
+        />
+        <meta
+          property="og:description"
+          content="Test your knowledge of the UWaterloo campus! Play with your friends in real-time multiplayer matches, or go against teams and see who knows the campus best!"
+        />
+        <meta
+          property="og:image"
+          content="https://uwguesser.com/UWguesser-logo.png"
+        />
+        <meta property="og:image:alt" content="UW Guesser Logo" />
+        <meta property="og:site_name" content="UW Guesser" />
+        <meta property="og:locale" content="en_CA" />
+
+        {/* Twitter */}
+        <meta property="twitter:card" content="summary_large_image" />
+        <meta property="twitter:url" content="https://uwguesser.com/" />
+        <meta
+          property="twitter:title"
+          content="UW Guesser - University of Waterloo Campus Location Game"
+        />
+        <meta
+          property="twitter:description"
+          content="Test your knowledge of the University of Waterloo campus! Play UW Guesser, an interactive location guessing game featuring campus photos."
+        />
+        <meta
+          property="twitter:image"
+          content="https://uwguesser.com/UWguesser-logo.png"
+        />
+        <meta property="twitter:image:alt" content="UW Guesser Logo" />
+
+        {/* Additional Meta Tags */}
+        <meta name="theme-color" content="#090C9B" />
+        <meta name="msapplication-TileColor" content="#090C9B" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="UW Guesser" />
+
+        {/* Canonical URL */}
+        <link rel="canonical" href="https://uwguesser.com/" />
+
+        {/* Structured Data for Gaming Website */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Game",
+              name: "UW Guesser",
+              description:
+                "Interactive location guessing game featuring University of Waterloo campus photos. Test your knowledge of UW campus in single-player or multiplayer modes.",
+              url: "https://uwguesser.com/",
+              image: "https://uwguesser.com/UWguesser-logo.png",
+              author: {
+                "@type": "Organization",
+                name: "UW Guesser Team",
+                member: [
+                  {
+                    "@type": "Person",
+                    name: "Senthil Kirthieswar",
+                  },
+                  {
+                    "@type": "Person",
+                    name: "Apilaash Yoharan",
+                  },
+                ],
+              },
+              gameItem: {
+                "@type": "Thing",
+                name: "Campus Location Quiz",
+              },
+              numberOfPlayers: "1-8",
+              genre: ["Educational", "Geography", "Quiz"],
+              gamePlatform: "Web Browser",
+              applicationCategory: "Game",
+              operatingSystem: "Any",
+              offers: {
+                "@type": "Offer",
+                price: "0",
+                priceCurrency: "CAD",
+                availability: "https://schema.org/InStock",
+              },
+              aggregateRating: {
+                "@type": "AggregateRating",
+                ratingValue: "4.8",
+                ratingCount: "150",
+                bestRating: "5",
+              },
+            }),
+          }}
+        />
+      </Head>
+      <HeroBackground>
+        {/* Random popup image */}
+        {randomImage.visible && (
           <div
+            className="absolute z-[200] cursor-pointer transition-all duration-300 hover:scale-110"
             style={{
-              clipPath:
-                'polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)',
+              left: `${randomImage.x}px`,
+              top: `${randomImage.y}px`,
+              transform: `rotate(${randomImage.rotation}deg)`,
             }}
-            className="relative left-[calc(50%-11rem)] aspect-1155/678 w-144.5 -translate-x-1/2 rotate-30 bg-linear-to-tr from-[#ff80b5] to-[#9089fc] opacity-30 sm:left-[calc(50%-30rem)] sm:w-288.75"
-          />
-        </div> */}
-        <div className="mx-auto max-w-6xl py-12 sm:py-20 lg:py-24 flex flex-col lg:flex-row items-center justify-center gap-12">
-          <div className="flex-1 w-full lg:max-w-3xl">
-            {/* <div className="hidden sm:mb-8 sm:flex sm:justify-center">
-              <div className="relative rounded-full px-3 py-1 text-sm/6 text-gray-400 ring-1 ring-white/10 hover:ring-white/20">
-                Announcing our next round of funding.{' '}
-                <a href="#" className="font-semibold" style={{ color: '#f4b834' }}>
-                  <span aria-hidden="true" className="absolute inset-0" />
-                  Read more <span aria-hidden="true">&rarr;</span>
-                </a>
-              </div>
-            </div> */}
-            <div className="flex items-center justify-center mb-8 pt-5">
-              <img src="/UWguesser-logo.png" alt="UW Guesser Logo" className="h-16 rounded-lg shadow-lg" />
-            </div>
-            <div className="text-center">
-              <h1 className="text-5xl font-semibold tracking-tight text-balance text-white sm:text-7xl">
-                UW Guesser
-              </h1>
-              <p className="mt-8 text-lg font-medium text-pretty text-gray-400 sm:text-xl/8">
-                Lead your faculty to the top of the leaderboard!
-              </p>
-              <div className="mt-10 flex items-center justify-center gap-x-6">
-                <Link
-                  href="/game"
-                  className="rounded-md px-3.5 py-2.5 text-sm font-semibold text-white shadow-xs"
-                  style={{ backgroundColor: '#f4b834' }}
-                >
-                  Play Now
-                </Link>
-                <Link href="/leaderboard" className="text-sm/6 font-semibold flex items-center gap-2" style={{ color: '#f4b834' }}>
-                  <span className="relative flex items-center">
-                    <span className="animate-pulse inline-block h-3 w-3 rounded-full bg-red-500 mr-2" style={{ boxShadow: '0 0 8px 2px #f87171' }}></span>
-                    Live Leaderboards
-                  </span>
-                </Link>
-              </div>
+            onClick={handleRandomImageClick}
+          >
+            <img
+              src="/egg symbol.png"
+              alt="Random Popup"
+              className="w-8 h-8 drop-shadow-lg"
+            />
+          </div>
+        )}
+
+        {/* Desktop Layout - Hidden on mobile */}
+        <div className="hidden md:block">
+          {/* Book Button - Far Left position */}
+          <div
+            className="absolute left-1/2 top-1/2 transform z-[110]"
+            style={{ transform: "translate(calc(-50% - 25rem), -50%)" }}
+          >
+            <LoreButton size="desktop" animationComplete={animationComplete} />
+          </div>
+
+          {/* Laurel Button - Left position */}
+          <div
+            className="absolute left-1/2 top-1/2 transform z-[110]"
+            style={{ transform: "translate(calc(-50% - 12rem), -50%)" }}
+          >
+            <LeaderboardButton size="desktop" animationComplete={animationComplete} />
+          </div>
+
+          {/* Play Button - Center position */}
+          <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 z-[110]">
+            <PlayButton size="desktop" animationComplete={animationComplete} />
+          </div>
+
+          {/* Globe Button - Right position */}
+          <div
+            className="absolute left-1/2 top-1/2 transform z-[110]"
+            style={{ transform: "translate(calc(-50% + 12rem), -50%)" }}
+          >
+            <PosterBoardButton size="desktop" animationComplete={animationComplete} />
+          </div>
+
+          {/* Camera Button - Far Right position */}
+          <div
+            className="absolute left-1/2 top-1/2 transform z-[110]"
+            style={{ transform: "translate(calc(-50% + 25rem), -50%)" }}
+          >
+            <AddLocationButton size="desktop" animationComplete={animationComplete} />
+          </div>
+        </div>
+
+        {/* Mobile Layout - Vertical stack, visible only on mobile */}
+        <div className="block md:hidden">
+          <div 
+            className={`absolute left-1/2 bottom-20 transform -translate-x-1/2 z-[110] transition-all duration-500 ${
+              animationComplete 
+                ? 'opacity-100 scale-100 translate-y-0' 
+                : 'opacity-0 scale-75 pointer-events-none translate-y-16'
+            }`}
+          >
+            <div className="flex flex-col items-center space-y-4">
+              <LeaderboardButton size="mobile" animationComplete={animationComplete} />
+              <LoreButton size="mobile" animationComplete={animationComplete} />
+              <PlayButton size="mobile" animationComplete={animationComplete} />
+              <PosterBoardButton size="mobile" animationComplete={animationComplete} />
+              <AddLocationButton size="mobile" animationComplete={animationComplete} />
             </div>
           </div>
-          {/* leaderboard is rendered on the page below the hero */}
-          {/* Dialog box with image and text */}
-          {/*
-          <div className="hidden lg:block absolute right-4 top-36 z-30">
-            <div className={`h-24 w-[370px] flex items-center px-4 relative ${bgStyles['dialog-bg']}`}> 
-              <img
-                src="/dialog egg mascotv2.png"
-                alt="Egg Eyes"
-                className="h-16 w-16 object-contain mr-4"
-                style={{ minWidth: '4rem', zIndex: 1 }}
-              />
-              <span className={`text-lg font-bold text-yellow-100 break-words ${styles['font-dangrek']}`}
-                    style={{ zIndex: 1 }}>
-                Why don't you have a crack at it?
-              </span>
-            </div>
-          </div>    
-          */}
         </div>
-        {/* Subtle bottom right color overlay */}
-        {/* <div
-          aria-hidden="true"
-          className="absolute inset-x-0 top-[calc(100%-13rem)] -z-10 transform-gpu overflow-hidden blur-2xl sm:top-[calc(100%-30rem)]"
-        >
-          <div
-            style={{
-              clipPath:
-                'polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)',
-            }}
-            className="relative left-[calc(50%+3rem)] aspect-1155/678 w-144.5 -translate-x-1/2 bg-gradient-to-tr from-[#ff80b5] to-[#9089fc] opacity-10 sm:left-[calc(50%+36rem)] sm:w-288.75"
-          />
-        </div> */}
-      </div>
-    </div>
-  )
+
+      </HeroBackground>
+    </>
+  );
 }

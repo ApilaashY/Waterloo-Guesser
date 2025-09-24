@@ -45,7 +45,8 @@ export default function GamePage() {
     h: number;
   } | null>(null);
   const [isEnlarged, setIsEnlarged] = useState(false); // Track enlarged state
-
+  const [zoom, setZoom] = useState(1); // Track zoom level
+  const [pan, setPan] = useState({ x: 0, y: 0 }); // Track pan position
 
   // Initialize game
   useEffect(() => {
@@ -136,9 +137,9 @@ export default function GamePage() {
         );
 
         const result = await matchService.submitMatch(matchData);
-        console.log('Match submitted successfully:', result);
+        console.log("Match submitted successfully:", result);
       } catch (error) {
-        console.error('Error submitting match:', error);
+        console.error("Error submitting match:", error);
         // Don't prevent game from ending if submission fails
       }
 
@@ -167,43 +168,46 @@ export default function GamePage() {
     gameState.isSubmitted && gameState.correctCoordinates !== null;
   useEffect(() => {
     if (!user) {
-      toast.dismiss('login-toast');
+      toast.dismiss("login-toast");
       toast(
         <div className="flex items-center gap-2">
           <span className="text-base font-semibold text-yellow-900">
-            Not logged in: <span className="font-normal">Log in to save your scores to your profile!</span>
+            Not logged in:{" "}
+            <span className="font-normal">
+              Log in to save your scores to your profile!
+            </span>
           </span>
           <button
             className="ml-2 px-2 py-1 rounded bg-yellow-300 hover:bg-yellow-400 text-yellow-900 font-bold focus:outline-none transition-colors duration-150"
             aria-label="Close login toast"
-            onClick={() => toast.dismiss('login-toast')}
+            onClick={() => toast.dismiss("login-toast")}
           >
             &#10005;
           </button>
         </div>,
         {
-          id: 'login-toast',
+          id: "login-toast",
           duration: Infinity,
-          position: 'top-center',
+          position: "top-center",
           style: {
-            background: '#FEF3C7', // Tailwind yellow-100
-            color: '#B45309', // Tailwind yellow-800
-            border: '1px solid #F59E0B', // Tailwind yellow-400
-            boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-            borderRadius: '0.75rem',
-            padding: '1rem 1.5rem',
-            fontFamily: 'inherit',
+            background: "#FEF3C7", // Tailwind yellow-100
+            color: "#B45309", // Tailwind yellow-800
+            border: "1px solid #F59E0B", // Tailwind yellow-400
+            boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+            borderRadius: "0.75rem",
+            padding: "1rem 1.5rem",
+            fontFamily: "inherit",
             fontWeight: 500,
-            fontSize: '1rem',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.75rem',
+            fontSize: "1rem",
+            display: "flex",
+            alignItems: "center",
+            gap: "0.75rem",
           },
           icon: null,
         }
       );
     } else {
-      toast.dismiss('login-toast');
+      toast.dismiss("login-toast");
     }
   }, [user]);
 
@@ -211,8 +215,8 @@ export default function GamePage() {
     <div className="fixed inset-0 flex items-center justify-center bg-gray-50 flex-wrap gap-1">
       <Toaster
         toastOptions={{
-          success: { iconTheme: { primary: '#22c55e', secondary: '#f0fdf4' } },
-          error: { iconTheme: { primary: '#ef4444', secondary: '#fef2f2' } },
+          success: { iconTheme: { primary: "#22c55e", secondary: "#f0fdf4" } },
+          error: { iconTheme: { primary: "#ef4444", secondary: "#fef2f2" } },
         }}
         position="top-center"
         containerStyle={{ top: 24 }}
@@ -235,7 +239,7 @@ export default function GamePage() {
             </div>
             {/* Right side: map */}
             <div
-              className={`flex justify-center items-center h-full w-2/3 max-md:fixed max-md:w-screen`}
+              className={`flex justify-center items-center h-full w-2/3 max-md:fixed max-md:w-screen max-md:h-screen`}
             >
               <GameMap
                 ref={mapRef}
@@ -252,6 +256,10 @@ export default function GamePage() {
                         .points
                     : 0
                 } // Pass current round score
+                overrideZoom={zoom}
+                setOverrideZoom={setZoom}
+                overridePan={pan}
+                setOverridePan={setPan}
               />
             </div>
           </div>

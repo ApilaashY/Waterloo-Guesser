@@ -332,7 +332,7 @@ export default function ImagePreview({
   return (
     <div
       ref={containerRef}
-      className="relative rounded-2xl overflow-hidden bg-gray-200 border-4 border-black"
+      className="relative rounded-2xl overflow-hidden bg-gray-200 border-4 border-black max-md:w-screen"
       style={containerStyle}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}

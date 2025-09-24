@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSession } from "./SessionProvider";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
-import { useSession } from "./SessionProvider";
+import Logo from "./Logo";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -30,64 +31,40 @@ export default function Navbar() {
     setMobileMenuOpen(false);
   };
 
-  // const items = [
-  //   // { id: "home", label: "Home", href: "#" },
-  //   // { id: 'profile', label: 'Profile', href: '#' },
-  //   // { id: 'ranked', label: 'Ranked', href: '#' },
-  //   // { id: 'play', label: 'Play', href: '/game' },
-  //   // { id: 'collection', label: 'Collection', href: '#' },
-  //   // { id: "leaderboard", label: "Leaderboard", href: "/leaderboard" },
-  //   // { id: 'store', label: 'Store', href: '#' }
-  // ];
+  const isHomePage = pathname === "/";
+  const [animationComplete, setAnimationComplete] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (isHomePage) {
+      const animationTimer = setTimeout(() => {
+        setAnimationComplete(true);
+      }, 2000);
+
+      return () => {
+        clearTimeout(animationTimer);
+      };
+    }
+  }, [isHomePage]);
 
   return (
-    <header
-      className={`w-full sticky top-0 left-0 z-50 transition-all duration-300 ${
-        pathname === "/" ? "bg-black" : "bg-transparent"
-      } ${
-        pathname && pathname.toLowerCase().endsWith("/game")
-          ? visible
-            ? "opacity-100 pointer-events-auto"
-            : "opacity-0 pointer-events-none"
-          : "opacity-100 pointer-events-auto"
-      }`}
-    >
-      <nav className="flex items-center px-6 py-4 max-w-7xl mx-auto relative md:justify-center justify-between">
-        {/* Logo - left on mobile */}
-        <Link href="/" className="flex items-center gap-2 flex-shrink-0">
-          <img
-            src="/UWguesser-logo.png"
-            alt="UW Guesser Logo"
-            className="h-10 rounded-lg shadow-lg"
-          />
+    <nav className="w-full absolute top-4 left-0 z-50 bg-transparent flex items-center px-4 py-2 max-w-7xl mx-auto md:justify-center justify-between">
+      {/* Logo - left on mobile */}
+      <div className="flex items-center gap-2 flex-shrink-0">
+        <Link href="/" className="flex items-center gap-2">
+          {isHomePage ? (
+            <Logo animationComplete={animationComplete} isHeroPage={isHomePage} />
+          ) : (
+            <img src="/6-UWGuesser logo-colored.png" alt="UW Guesser Logo" className="h-25 w-auto" />
+          )}
           <span className="sr-only">UW Guesser</span>
         </Link>
-        {/* Desktop Nav items centered */}
-        <div
-          className="hidden md:flex flex-1 justify-center gap-8 relative"
-          id="nav-items"
-        >
-          {/* {items.map((it, idx) => (
-            <div
-              key={it.id}
-              className="relative flex items-center justify-center"
-            >
-              <Link
-                href={"/game"}
-                className={`relative ${
-                  it.id === "play" ? "text-lg md:text-xl" : "text-sm"
-                } font-semibold px-6 py-1 transition-all duration-200 ${
-                  active === it.id
-                    ? "text-[#f4b834]"
-                    : "text-white/70 hover:text-white"
-                }`}
-                onClick={() => setActive(it.id)}
-              >
-                {it.label}
-              </Link>
-            </div>
-          ))} */}
-        </div>
+      </div>
+
+      {/* Desktop Nav items centered */}
+      <div
+        className="hidden md:flex flex-1 justify-center gap-8 relative"
+        id="nav-items"
+      ></div>
         {/* Auth section - desktop */}
         <div className="hidden md:flex flex-shrink-0 items-center gap-4">
           {isAuthenticated ? (
@@ -103,7 +80,7 @@ export default function Navbar() {
                 >
                   {loggingOut ? (
                     <span className="flex items-center justify-center">
-                      <span className="w-5 h-5 border-2 border-yellow-400 border-t-transparent rounded-full animate-spin mr-2"></span>
+                      <span className="w-5 h-5 border-2 border-blue-400 border-t-transparent rounded-full animate-spin mr-2"></span>
                       Logging out...
                     </span>
                   ) : (
@@ -116,7 +93,7 @@ export default function Navbar() {
             <Link
               href="/login"
               className="text-sm font-semibold text-white px-4 py-2 rounded transition shadow-xs"
-              style={{ backgroundColor: "#f4b834" }}
+              style={{ backgroundColor: "#3D52D5" }}
             >
               Log in &rarr;
             </Link>
@@ -133,10 +110,9 @@ export default function Navbar() {
             <Bars3Icon aria-hidden="true" className="h-6 w-6" />
           </button>
         </div>
-      </nav>
-      {/* Mobile menu */}
-      <div className="md:hidden">
-        <div
+        {/* Mobile menu */}
+        <div className="md:hidden">
+          <div
           className={`fixed inset-y-0 left-0 z-50 w-3/4 overflow-y-auto bg-gray-900 p-6 sm:max-w-sm sm:ring-1 sm:ring-gray-100/10 transform transition-transform duration-500 ease-in-out ${
             mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
           }`}
@@ -148,9 +124,9 @@ export default function Navbar() {
               onClick={() => setMobileMenuOpen(false)}
             >
               <img
-                src="/UWguesser-logo.png"
+                src="/UWguesser-logo-beige.png"
                 alt="UW Guesser Logo"
-                className="h-14 rounded-lg shadow-lg"
+                className="h-10 opacity-50"
               />
               <span className="text-white text-lg font-bold tracking-tight">
                 UW Guesser
@@ -167,21 +143,6 @@ export default function Navbar() {
           </div>
           <div className="mt-6 flow-root">
             <div className="-my-6 divide-y divide-white/10">
-              {/* <div className="space-y-2 py-6">
-                {items.map((it) => (
-                  <Link
-                    key={it.id}
-                    href={it.href}
-                    className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold text-white hover:bg-[#f4b834]/20"
-                    onClick={() => {
-                      setActive(it.id);
-                      setMobileMenuOpen(false);
-                    }}
-                  >
-                    {it.label}
-                  </Link>
-                ))}
-              </div> */}
               <div className="py-6">
                 {isAuthenticated ? (
                   <>
@@ -228,7 +189,7 @@ export default function Navbar() {
         >
           {" "}
         </div>
-      </div>
-    </header>
+        </div>
+      </nav>
   );
 }

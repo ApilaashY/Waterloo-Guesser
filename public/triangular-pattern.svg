@@ -1,0 +1,32 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Main triangular pattern with polylines -->
+  <g fill="none" stroke="#ede7d1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Outer triangle boundary -->
+    <polyline points="100,20 180,160 20,160 100,20" />
+    
+    <!-- Vertical center line -->
+    <polyline points="100,20 100,160" />
+    
+    <!-- Left side internal triangles -->
+    <polyline points="100,20 60,90 20,160" />
+    <polyline points="100,20 40,125 20,160" />
+    
+    <!-- Right side internal triangles -->
+    <polyline points="100,20 140,90 180,160" />
+    <polyline points="100,20 160,125 180,160" />
+    
+    <!-- Horizontal dividers -->
+    <polyline points="60,90 140,90" />
+    <polyline points="40,125 160,125" />
+    
+    <!-- Internal connecting lines -->
+    <polyline points="60,90 100,160" />
+    <polyline points="140,90 100,160" />
+    <polyline points="40,125 100,160" />
+    <polyline points="160,125 100,160" />
+    
+    <!-- Cross connections -->
+    <polyline points="60,90 160,125" />
+    <polyline points="140,90 40,125" />
+  </g>
+</svg>

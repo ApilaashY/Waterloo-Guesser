@@ -141,6 +141,56 @@ export default function LocationUploader() {
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const imageRef = useRef<HTMLImageElement | null>(null); // Ref to the image element
 
+  // Handle mouse wheel zoom
+  const handleWheel = (e: React.WheelEvent) => {
+    e.preventDefault();
+    const zoomFactor = 0.1;
+    const newZoom =
+      e.deltaY > 0
+        ? Math.max(0.5, zoom - zoomFactor)
+        : Math.min(7, zoom + zoomFactor);
+    setZoom(newZoom);
+  };
+
+  // Handle zoom controls
+  const handleZoomIn = () => {
+    setZoom((prevZoom) => Math.min(7, prevZoom + 0.2));
+  };
+
+  const handleZoomOut = () => {
+    setZoom((prevZoom) => Math.max(0.5, prevZoom - 0.2));
+  };
+
+  const handleResetZoom = () => {
+    setZoom(1);
+    setPan({ x: 0, y: 0 });
+  };
+
+  // Handle panning with mouse drag
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (zoom > 1) {
+      setIsDragging(true);
+      setDragStart({ x: e.clientX - pan.x, y: e.clientY - pan.y });
+    }
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (isDragging && zoom > 1) {
+      const newPan = {
+        x: e.clientX - dragStart.x,
+        y: e.clientY - dragStart.y,
+      };
+      setPan(newPan);
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
   // Filter buildings based on query
   const filteredBuildings =
     buildingQuery === ""
@@ -230,7 +280,7 @@ export default function LocationUploader() {
             Back to Game
           </Link>
         </div> */}
-        <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4">
+        <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4 w-full">
           {/* Passcode Popup */}
           {showPasscode && (
             <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
@@ -271,109 +321,149 @@ export default function LocationUploader() {
             </div>
           )}
           <form
-            className="w-full max-w-lg bg-white rounded-lg shadow-md p-6 flex flex-col gap-4"
+            className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-7xl w-full"
             onSubmit={handleSubmit}
           >
-            {toast && (
-              <div
-                className={`fixed top-6 right-6 z-50 px-6 py-3 rounded-lg shadow font-bold text-white ${
-                  toast === success ? "bg-green-600" : "bg-red-600"
-                }`}
+            <div className="flex flex-col items-start bg-white p-6 rounded-lg shadow w-full">
+              {toast && (
+                <div
+                  className={`fixed top-6 right-6 z-50 px-6 py-3 rounded-lg shadow font-bold text-white ${
+                    toast === success ? "bg-green-600" : "bg-red-600"
+                  }`}
+                >
+                  {toast}
+                </div>
+              )}
+              {/* ...existing code... */}
+              <h2 className="text-2xl font-bold mb-2 text-gray-800">
+                Upload Campus Location
+              </h2>
+              <label className="block font-medium text-gray-700">
+                Image File
+              </label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="mb-2"
+              />
+              <label className="block font-medium text-gray-700">
+                Building
+              </label>
+              <Combobox
+                value={building}
+                onChange={(value: string | null) => setBuilding(value || "")}
               >
-                {toast}
-              </div>
-            )}
-            {/* ...existing code... */}
-            <h2 className="text-2xl font-bold mb-2 text-gray-800">
-              Upload Campus Location
-            </h2>
-            <label className="block font-medium text-gray-700">
-              Image File
-            </label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleFileChange}
-              className="mb-2"
-            />
-            <label className="block font-medium text-gray-700">Building</label>
-            <Combobox
-              value={building}
-              onChange={(value: string | null) => setBuilding(value || "")}
-            >
-              <div className="relative">
-                <Combobox.Input
-                  className="w-full border rounded px-3 py-2 pr-10"
-                  displayValue={(building: string) => building}
-                  onChange={(event) => setBuildingQuery(event.target.value)}
-                  placeholder="Select or type building"
-                />
-                <Combobox.Button className="absolute inset-y-0 right-0 flex items-center pr-3">
-                  <ChevronUpDownIcon
-                    className="h-5 w-5 text-gray-400"
-                    aria-hidden="true"
+                <div className="relative">
+                  <Combobox.Input
+                    className="w-full border rounded px-3 py-2 pr-10"
+                    displayValue={(building: string) => building}
+                    onChange={(event) => setBuildingQuery(event.target.value)}
+                    placeholder="Select or type building"
                   />
-                </Combobox.Button>
-                <Combobox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                  {filteredBuildings.length === 0 && buildingQuery !== "" ? (
-                    <div className="relative cursor-default select-none py-2 px-4 text-gray-700">
-                      Nothing found.
-                    </div>
-                  ) : (
-                    filteredBuildings.map((building) => (
-                      <Combobox.Option
-                        key={building}
-                        className={({ active }) =>
-                          `relative cursor-default select-none py-2 pl-10 pr-4 ${
-                            active
-                              ? "bg-yellow-600 text-white"
-                              : "text-gray-900"
-                          }`
-                        }
-                        value={building}
-                      >
-                        {({ selected, active }) => (
-                          <>
-                            <span
-                              className={`block truncate ${
-                                selected ? "font-medium" : "font-normal"
-                              }`}
-                            >
-                              {building}
-                            </span>
-                            {selected ? (
+                  <Combobox.Button className="absolute inset-y-0 right-0 flex items-center pr-3">
+                    <ChevronUpDownIcon
+                      className="h-5 w-5 text-gray-400"
+                      aria-hidden="true"
+                    />
+                  </Combobox.Button>
+                  <Combobox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+                    {filteredBuildings.length === 0 && buildingQuery !== "" ? (
+                      <div className="relative cursor-default select-none py-2 px-4 text-gray-700">
+                        Nothing found.
+                      </div>
+                    ) : (
+                      filteredBuildings.map((building) => (
+                        <Combobox.Option
+                          key={building}
+                          className={({ active }) =>
+                            `relative cursor-default select-none py-2 pl-10 pr-4 ${
+                              active
+                                ? "bg-yellow-600 text-white"
+                                : "text-gray-900"
+                            }`
+                          }
+                          value={building}
+                        >
+                          {({ selected, active }) => (
+                            <>
                               <span
-                                className={`absolute inset-y-0 left-0 flex items-center pl-3 ${
-                                  active ? "text-white" : "text-yellow-600"
+                                className={`block truncate ${
+                                  selected ? "font-medium" : "font-normal"
                                 }`}
                               >
-                                <CheckIcon
-                                  className="h-5 w-5"
-                                  aria-hidden="true"
-                                />
+                                {building}
                               </span>
-                            ) : null}
-                          </>
-                        )}
-                      </Combobox.Option>
-                    ))
-                  )}
-                </Combobox.Options>
-              </div>
-            </Combobox>
-            {previewUrl && (
-              <Image
-                src={previewUrl}
-                alt="Preview"
-                className="max-w-xs rounded shadow mb-2"
-                width={896}
-                height={683}
-                style={{
-                  width: "100%",
-                  height: "auto",
-                }}
-              />
-            )}
+                              {selected ? (
+                                <span
+                                  className={`absolute inset-y-0 left-0 flex items-center pl-3 ${
+                                    active ? "text-white" : "text-yellow-600"
+                                  }`}
+                                >
+                                  <CheckIcon
+                                    className="h-5 w-5"
+                                    aria-hidden="true"
+                                  />
+                                </span>
+                              ) : null}
+                            </>
+                          )}
+                        </Combobox.Option>
+                      ))
+                    )}
+                  </Combobox.Options>
+                </div>
+              </Combobox>
+              {previewUrl && (
+                <Image
+                  src={previewUrl}
+                  alt="Preview"
+                  className="max-w-xs rounded shadow mb-2 flex-1"
+                  width={896}
+                  height={683}
+                  style={{
+                    width: "100%",
+                    height: "auto",
+                  }}
+                />
+              )}
+
+              <button
+                type="submit"
+                disabled={uploading}
+                className="px-4 py-2 bg-yellow-600 text-white rounded shadow hover:bg-yellow-700 disabled:opacity-50"
+              >
+                {uploading ? "Uploading..." : "Submit Location"}
+              </button>
+              {success && (
+                <>
+                  <div className="text-green-600 font-semibold">{success}</div>
+                  <button
+                    type="button"
+                    className="mt-2 px-4 py-2 bg-yellow-600 text-white rounded shadow hover:bg-yellow-700"
+                    onClick={() => {
+                      setImageFile(null);
+                      setPreviewUrl(null);
+                      setXCoor(null);
+                      setYCoor(null);
+                      setName("");
+                      setBuilding("");
+                      setLatitude("");
+                      setLongitude("");
+                      setPasscode("");
+                      setShowPasscode(false);
+                      setSuccess(null);
+                      setError(null);
+                    }}
+                  >
+                    Add Another Location
+                  </button>
+                </>
+              )}
+              {error && (
+                <div className="text-red-600 font-semibold">{error}</div>
+              )}
+            </div>
             <div
               className="flex items-center justify-center w-full"
               style={{ width: "100%", margin: 0, padding: 0 }}
@@ -390,7 +480,45 @@ export default function LocationUploader() {
                   margin: 0,
                   padding: 0,
                 }}
+                onWheel={handleWheel}
+                onMouseDown={handleMouseDown}
+                onMouseMove={handleMouseMove}
+                onMouseUp={handleMouseUp}
+                onMouseLeave={handleMouseUp}
               >
+                {/* Zoom Controls */}
+                <div className="absolute top-4 left-4 z-50 flex flex-col gap-2">
+                  <button
+                    type="button"
+                    onClick={handleZoomIn}
+                    className="w-10 h-10 bg-white hover:bg-gray-100 border border-gray-300 rounded-lg shadow-md flex items-center justify-center text-gray-700 font-bold text-lg transition-colors"
+                    title="Zoom In"
+                  >
+                    +
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleZoomOut}
+                    className="w-10 h-10 bg-white hover:bg-gray-100 border border-gray-300 rounded-lg shadow-md flex items-center justify-center text-gray-700 font-bold text-lg transition-colors"
+                    title="Zoom Out"
+                  >
+                    −
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleResetZoom}
+                    className="w-10 h-10 bg-white hover:bg-gray-100 border border-gray-300 rounded-lg shadow-md flex items-center justify-center text-gray-700 font-bold text-xs transition-colors"
+                    title="Reset Zoom"
+                  >
+                    ⌂
+                  </button>
+                </div>
+
+                {/* Zoom Level Indicator */}
+                <div className="absolute top-4 right-4 z-50 bg-black bg-opacity-60 text-white px-3 py-1 rounded-lg text-sm font-medium">
+                  {Math.round(zoom * 100)}%
+                </div>
+
                 <Map
                   xCoor={xCoor}
                   yCoor={yCoor}
@@ -552,39 +680,6 @@ export default function LocationUploader() {
             <div className="mt-2 text-sm text-gray-700">Selected Coordinates: ({xCoor.toFixed(4)}, {yCoor.toFixed(4)})</div>
           )} */}
             </div>
-            <button
-              type="submit"
-              disabled={uploading}
-              className="px-4 py-2 bg-yellow-600 text-white rounded shadow hover:bg-yellow-700 disabled:opacity-50"
-            >
-              {uploading ? "Uploading..." : "Submit Location"}
-            </button>
-            {success && (
-              <>
-                <div className="text-green-600 font-semibold">{success}</div>
-                <button
-                  type="button"
-                  className="mt-2 px-4 py-2 bg-yellow-600 text-white rounded shadow hover:bg-yellow-700"
-                  onClick={() => {
-                    setImageFile(null);
-                    setPreviewUrl(null);
-                    setXCoor(null);
-                    setYCoor(null);
-                    setName("");
-                    setBuilding("");
-                    setLatitude("");
-                    setLongitude("");
-                    setPasscode("");
-                    setShowPasscode(false);
-                    setSuccess(null);
-                    setError(null);
-                  }}
-                >
-                  Add Another Location
-                </button>
-              </>
-            )}
-            {error && <div className="text-red-600 font-semibold">{error}</div>}
           </form>
           {/* ManualDotPlacer is now only accessible via redirect, not rendered here */}
         </div>

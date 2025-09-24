@@ -405,6 +405,8 @@ const Map = forwardRef(function Map(props: MapProps, ref) {
   function handleClick(event: React.MouseEvent<HTMLImageElement>) {
     if (props.disabled) return;
 
+    console.log("Map click event:");
+
     const img = event.currentTarget as HTMLImageElement;
     const rect = img.getBoundingClientRect();
 
@@ -502,9 +504,9 @@ const Map = forwardRef(function Map(props: MapProps, ref) {
   // Main render: map image, markers, result overlay
   return (
     <>
-      <div className="w-full h-full flex-1" style={{ position: "relative" }}>
+      <div className="w-full h-full flex-1 pt-1.5" style={{ position: "relative" }}>
         <div
-          className="relative rounded-2xl overflow-hidden bg-gray-200 border-4 border-black"
+          className="relative md:rounded-2xl overflow-hidden bg-gray-200 md:border-4 md:border-black max-md:h-full"
           style={{}}
           tabIndex={0}
         >
@@ -542,6 +544,7 @@ const Map = forwardRef(function Map(props: MapProps, ref) {
                   height: "100%",
                   display: "block",
                   pointerEvents: "auto",
+                  objectFit: "contain",
                   transform: `scale(${props.zoom}) translate(${props.pan.x}px, ${props.pan.y}px)`,
                   // transition: "transform 0.3s ease", April 1st update
                 }}
@@ -626,7 +629,7 @@ const Map = forwardRef(function Map(props: MapProps, ref) {
           props.xRightCoor != null &&
           props.yRightCoor != null && (
             <div
-              className="absolute top-4 right-4 bg-black bg-opacity-75 text-white p-4 rounded-lg shadow-lg z-20"
+              className="absolute top-15 right-4 bg-black bg-opacity-75 text-white p-4 rounded-lg shadow-lg z-20"
               style={{ backdropFilter: "blur(5px)" }}
             >
               <div className="text-center">
