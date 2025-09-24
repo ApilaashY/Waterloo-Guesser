@@ -13,7 +13,7 @@ export default function LoreButton({ animationComplete, size = "desktop" }: Lore
   const imageFilter = "hue-rotate(220deg) brightness(1.2) contrast(1.1)";
 
   return (
-    <Link href="/poster-board">
+    <Link href="/lore">
       <button
         className={`group relative transition-all duration-500 ${
           size === "desktop" 

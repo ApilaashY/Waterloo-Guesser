@@ -11,7 +11,7 @@ export default function AddLocationButton({ animationComplete, size = "desktop" 
   const textSize = isDesktop ? "text-xs sm:text-sm" : "text-sm";
   const textOpacity = isDesktop ? "opacity-0 group-hover:opacity-100" : "";
   const imageFilter = "hue-rotate(220deg) brightness(1.2) contrast(1.1)";
-  const href = size === "desktop" ? "/leaderboard" : "/add-location";
+  const href = size === "desktop" ? "/add-location" : "/add-location";
 
   return (
     <Link href={href}>
