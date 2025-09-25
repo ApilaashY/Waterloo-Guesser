@@ -19,7 +19,9 @@ import { Toaster, toast } from "react-hot-toast";
 // Utility to detect mobile devices
 function isMobileDevice() {
   if (typeof window === "undefined") return false;
-  return /Mobi|Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent);
+  return /Mobi|Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(
+    navigator.userAgent
+  );
 }
 
 export default function GamePage() {
@@ -62,7 +64,6 @@ export default function GamePage() {
     }
   }, [gameState.isStarted, startGame, loadNewImage]);
 
-
   // Load natural size when image changes
   useEffect(() => {
     let mounted = true;
@@ -94,8 +95,11 @@ export default function GamePage() {
       toast(
         <div className="flex items-center gap-2">
           <span className="text-base font-semibold text-red-900">
-            Apologies for the bugs, <b>mobile users'</b> games will not work for the time being.<br />
-            It's being worked on to be fixed ASAP.<br />
+            Apologies for the bugs, <b>mobile users'</b> games will not work for
+            the time being.
+            <br />
+            It's being worked on to be fixed ASAP.
+            <br />
             <b>Laptop users are fine.</b>
           </span>
           <button
@@ -198,6 +202,10 @@ export default function GamePage() {
       alert(`Game over! You scored a total of ${gameState.score} points.`);
       resetGame();
       resetImageState();
+      setXCoor(null);
+      setYCoor(null);
+      setXRightCoor(null);
+      setYRightCoor(null);
     } else {
       // Load next image and reset coordinates
       await loadNewImage();
@@ -300,7 +308,7 @@ export default function GamePage() {
                 xRightCoor={xRightCoor}
                 yRightCoor={yRightCoor}
                 onCoordinateClick={handleCoordinateClick}
-                disabled={isDisabled}
+                disableClickOnly={isDisabled} // Allow zoom/pan after submission, but disable coordinate clicking
                 enlarged={isEnlarged} // Pass enlarged state to GameMap
                 currentScore={
                   gameState.roundResults.length > 0
