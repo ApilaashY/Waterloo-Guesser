@@ -20,24 +20,26 @@ interface GameMapProps {
   yCoor: number | null;
   xRightCoor: number | null;
   yRightCoor: number | null;
-  
+
   // Coordinate handling - flexible interface
   onCoordinateClick?: (x: number | null, y: number | null) => void;
   setXCoor?: (value: number) => void;
   setYCoor?: (value: number) => void;
-  
+
   // Display and interaction
   disabled?: boolean;
   disableClickOnly?: boolean; // Allow zoom/pan but disable coordinate clicking
   enlarged?: boolean;
   currentScore?: number;
-  
+
   // Optional zoom/pan control
   overrideZoom?: number;
   setOverrideZoom?: React.Dispatch<React.SetStateAction<number>>;
   overridePan?: { x: number; y: number };
-  setOverridePan?: React.Dispatch<React.SetStateAction<{ x: number; y: number }>>;
-  
+  setOverridePan?: React.Dispatch<
+    React.SetStateAction<{ x: number; y: number }>
+  >;
+
   // Versus-specific props
   image?: string | undefined;
   showResult?: boolean;
@@ -666,7 +668,7 @@ const GameMap = forwardRef<any, GameMapProps>(
     const handleCoordinateClick = (x: number | null, y: number | null) => {
       // Prevent coordinate clicking when disabled or disableClickOnly is true
       if (disabled || disableClickOnly) return;
-      
+
       if (onCoordinateClick) {
         onCoordinateClick(x, y);
       } else {
@@ -723,7 +725,9 @@ const GameMap = forwardRef<any, GameMapProps>(
           {showResult && (
             <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
               <div className="p-4 text-center bg-white rounded-lg shadow-md">
-                <p className="text-lg font-semibold text-gray-800 mb-2">Result</p>
+                <p className="text-lg font-semibold text-gray-800 mb-2">
+                  Result
+                </p>
                 <p className="text-gray-700 mb-4">
                   {`Your guess was ${xCoor}, ${yCoor}.`}
                 </p>
