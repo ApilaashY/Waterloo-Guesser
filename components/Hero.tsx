@@ -35,7 +35,7 @@ function getTimeRemaining(endDate: Date) {
 //   y: number;
 //   color: string;
 //   animationComplete: boolean;
-// }) 
+// })
 // {
 //   // console.log("LogoStar x:", x, "y:", y);
 
@@ -280,7 +280,10 @@ export default function Hero() {
             className="absolute left-1/2 top-1/2 transform z-[110]"
             style={{ transform: "translate(calc(-50% - 12rem), -50%)" }}
           >
-            <LeaderboardButton size="desktop" animationComplete={animationComplete} />
+            <LeaderboardButton
+              size="desktop"
+              animationComplete={animationComplete}
+            />
           </div>
 
           {/* Play Button - Center position */}
@@ -293,7 +296,10 @@ export default function Hero() {
             className="absolute left-1/2 top-1/2 transform z-[110]"
             style={{ transform: "translate(calc(-50% + 12rem), -50%)" }}
           >
-            <PosterBoardButton size="desktop" animationComplete={animationComplete} />
+            <PosterBoardButton
+              size="desktop"
+              animationComplete={animationComplete}
+            />
           </div>
 
           {/* Camera Button - Far Right position */}
@@ -301,29 +307,40 @@ export default function Hero() {
             className="absolute left-1/2 top-1/2 transform z-[110]"
             style={{ transform: "translate(calc(-50% + 25rem), -50%)" }}
           >
-            <AddLocationButton size="desktop" animationComplete={animationComplete} />
+            <AddLocationButton
+              size="desktop"
+              animationComplete={animationComplete}
+            />
           </div>
         </div>
 
         {/* Mobile Layout - Vertical stack, visible only on mobile */}
         <div className="block md:hidden">
-          <div 
+          <div
             className={`absolute left-1/2 bottom-20 transform -translate-x-1/2 z-[110] transition-all duration-500 ${
-              animationComplete 
-                ? 'opacity-100 scale-100 translate-y-0' 
-                : 'opacity-0 scale-75 pointer-events-none translate-y-16'
+              animationComplete
+                ? "opacity-100 scale-100 translate-y-0"
+                : "opacity-0 scale-75 pointer-events-none translate-y-16"
             }`}
           >
             <div className="flex flex-col items-center space-y-4">
-              <LeaderboardButton size="mobile" animationComplete={animationComplete} />
+              <LeaderboardButton
+                size="mobile"
+                animationComplete={animationComplete}
+              />
               <LoreButton size="mobile" animationComplete={animationComplete} />
               <PlayButton size="mobile" animationComplete={animationComplete} />
-              <PosterBoardButton size="mobile" animationComplete={animationComplete} />
-              <AddLocationButton size="mobile" animationComplete={animationComplete} />
+              <PosterBoardButton
+                size="mobile"
+                animationComplete={animationComplete}
+              />
+              <AddLocationButton
+                size="mobile"
+                animationComplete={animationComplete}
+              />
             </div>
           </div>
         </div>
-
       </HeroBackground>
     </>
   );
