@@ -40,7 +40,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" href="/favicon-backup.ico" sizes="any" />
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="/apple-icon.png" />
         <meta name="apple-mobile-web-app-title" content="UW Guesser" />
@@ -87,9 +87,9 @@ export default function RootLayout({
           {`
             {
               "@context": "https://schema.org",
-              "@type": "WebSite",
+              "@type": "Website",
               "name": "UW Guesser",
-              "url": "https://uw-guesser.vercel.app/",
+              "url": "https://uwguesser.com",
               "description": "A fun, interactive game for guessing locations at the University of Waterloo. Challenge your friends, test your campus knowledge, and explore the UW campus virtually!",
               "author": [
                 { "@type": "Person", "name": "Senthil Kirthieswar" },
