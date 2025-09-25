@@ -53,6 +53,9 @@ export default function ImagePreview({
           window.innerHeight || 0
         )
       : 800;
+  // Detect mobile devices
+  const isMobile = typeof window !== "undefined" && vw < 768; // Mobile breakpoint
+
   // Use enlarged OR hovered for sizing
   const isLarge = enlarged || hovered;
   const maxW = isLarge ? Math.floor(vw * 0.5) : Math.floor(vw * 0.3); // 50vw when enlarged/hovered, 30vw when not
@@ -314,12 +317,27 @@ export default function ImagePreview({
 
   // Dynamic container style
   const containerStyle = {
-    width: `${containerWidth}px`,
-    height: `${containerHeight}px`,
+    ...(isMobile
+      ? {
+          width: `${containerWidth * 1.5}px`,
+          height: `${containerHeight * 1.5}px`,
+        }
+      : {
+          width: `${containerWidth}px`,
+          height: `${containerHeight}px`,
+        }),
     zIndex: 99999,
     position: "absolute" as const,
-    left: "50px",
-    bottom: "50px",
+    // Center on mobile, bottom-left corner on desktop
+    ...(isMobile
+      ? {
+          left: "5px",
+          bottom: "5px",
+        }
+      : {
+          left: "50px",
+          bottom: "50px",
+        }),
     transition: "width 0.2s, height 0.2s",
   };
 
@@ -331,8 +349,8 @@ export default function ImagePreview({
   return (
     <div
       ref={containerRef}
-      className="relative rounded-2xl overflow-hidden bg-gray-200 border-4 border-black max-md:w-screen"
       style={containerStyle}
+      className="relative rounded-2xl overflow-hidden bg-gray-200 border-4 border-black"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       tabIndex={0}

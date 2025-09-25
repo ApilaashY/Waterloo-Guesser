@@ -430,22 +430,41 @@ const Map = forwardRef(function Map(props: MapProps, ref) {
       props.yRightCoor != null
     ) {
       const { width: imageWidth, height: imageHeight } = getImageDimensions();
-      const x1 = props.xCoor * imageWidth;
-      const y1 = props.yCoor * imageHeight;
-      const x2 = props.xRightCoor * imageWidth;
-      const y2 = props.yRightCoor * imageHeight;
+      const x1 =
+        ((props.xCoor as number) * imageWidth - imageWidth / 2) * props.zoom +
+        imageWidth / 2 +
+        props.pan.x * props.zoom;
+      const y1 =
+        ((props.yCoor as number) * imageHeight - imageHeight / 2) * props.zoom +
+        imageHeight / 2 +
+        props.pan.y * props.zoom;
+      const x2 =
+        ((props.xRightCoor as number) * imageWidth - imageWidth / 2) *
+          props.zoom +
+        imageWidth / 2 +
+        props.pan.x * props.zoom;
+      const y2 =
+        ((props.yRightCoor as number) * imageHeight - imageHeight / 2) *
+          props.zoom +
+        imageHeight / 2 +
+        props.pan.y * props.zoom;
       const length = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
       const angle = Math.atan2(y2 - y1, x2 - x1) * (180 / Math.PI);
       return {
         position: "absolute" as const,
-        top: `${y1}px`,
-        left: `${x1}px`,
+        top: `${Math.min(y1, y2)}px`,
+        left: `${Math.min(x1, x2)}px`,
         width: `${length}px`,
-        transform: `rotate(${angle}deg) translate(0, -50%) scale(${props.zoom}) translate(${props.pan.x}px, ${props.pan.y}px)`,
+        transform: `rotate(${angle}deg) translate(0, -50%)`,
         transformOrigin: "0 50%",
-        height: "1.5px",
-        background:
-          "repeating-linear-gradient(to right, black 0 6px, transparent 6px 12px, #febe30 12px 18px, transparent 18px 24px)", // or just black
+        height: `${3 * props.zoom}px`,
+        background: `repeating-linear-gradient(to right, black 0 ${
+          6 * props.zoom
+        }px, transparent ${6 * props.zoom}px ${12 * props.zoom}px, #febe30 ${
+          12 * props.zoom
+        }px ${18 * props.zoom}px, transparent ${18 * props.zoom}px ${
+          24 * props.zoom
+        }px)`, // or just black
         borderTop: "none",
       };
     }
