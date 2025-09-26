@@ -1,8 +1,9 @@
 "use client"
 
-import React, { useState } from 'react'
+import { useState } from 'react'
 import Image from 'next/image'
 import mockData from '@/mock-data/mock-site-data.json'
+import DailyLeaderboard from '@/components/DailyLeaderboard'
 
 type Player = {
   id: string
@@ -173,8 +174,10 @@ export default function Page() {
               </ol>
             </div>
 
-            {/* Middle: Spacer */}
-            <div></div>
+            {/* Middle: Daily Leaderboard */}
+            <div>
+              <DailyLeaderboard />
+            </div>
 
             {/* Right: Selected Faculty Players */}
             <div className="rounded-xl bg-white/10 border border-[#090C9B]/20 p-6 shadow-md">

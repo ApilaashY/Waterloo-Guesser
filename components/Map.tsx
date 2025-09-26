@@ -527,8 +527,8 @@ const Map = forwardRef(function Map(props: MapProps, ref) {
 
       return {
         position: "absolute" as const,
-        top: `${Math.min(pos1.y, pos2.y)}px`,
-        left: `${Math.min(pos1.x, pos2.x)}px`,
+        top: `${pos1.y}px`,
+        left: `${pos1.x}px`,
         width: `${length}px`,
         transform: `rotate(${angle}deg) translate(0, -50%)`,
         transformOrigin: "0 50%",

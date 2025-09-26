@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
     const matchData = body as MatchSubmission;
 
     // Validate required fields
-    if (!matchData.mode || !matchData.totalScore || !matchData.rounds || !matchData.completedAt) {
+    if (!matchData.mode || matchData.totalScore === undefined || matchData.totalScore === null || !matchData.rounds || !matchData.completedAt) {
       return NextResponse.json(
         { error: "Missing required fields: mode, totalScore, rounds, completedAt" },
         { status: 400 }

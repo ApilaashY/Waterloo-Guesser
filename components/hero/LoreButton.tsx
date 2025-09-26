@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 interface LoreButtonProps {
   animationComplete: boolean;
@@ -25,9 +26,11 @@ export default function LoreButton({ animationComplete, size = "desktop" }: Lore
       >
         <div className="relative flex flex-col items-center justify-center">
           <div className={`${containerSize} flex items-center justify-center`}>
-            <img
+            <Image
               src="/book icon.png"
               alt="Book Icon"
+              width={96}
+              height={96}
               className="max-w-full max-h-full group-hover:scale-110 transition-transform duration-300 relative z-10"
               style={imageFilter ? { filter: imageFilter } : {}}
             />

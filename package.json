@@ -9,7 +9,8 @@
     "build": "next build",
     "build:socket": "cross-env NODE_OPTIONS=\"--loader ts-node/esm\" ts-node server.mts",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "migrate:building-identifiers": "node scripts/populate-building-identifiers.js"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",

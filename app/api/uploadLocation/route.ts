@@ -90,12 +90,44 @@ export async function POST(req: NextRequest) {
       return new Response(JSON.stringify({ error: 'MongoDB db/collection error', details: String(dbInitErr) }), { status: 500 });
     }
 
+    // Generate incremented building identifier
+    let buildingIdentifier = '';
+    try {
+      // Find the highest number for this building
+      const existingLocations = await collection
+        .find({ 
+          building: building,
+          buildingIdentifier: { $regex: `^${building} \\d+$` }
+        })
+        .sort({ buildingIdentifier: -1 })
+        .limit(1)
+        .toArray();
+      
+      let nextNumber = 1;
+      if (existingLocations.length > 0) {
+        const lastIdentifier = existingLocations[0].buildingIdentifier;
+        // Extract the number from the identifier (e.g., "SLC 5" -> 5)
+        const match = lastIdentifier.match(/(\d+)$/);
+        if (match) {
+          nextNumber = parseInt(match[1]) + 1;
+        }
+      }
+      
+      buildingIdentifier = `${building} ${nextNumber}`;
+      console.log(`Generated building identifier: ${buildingIdentifier}`);
+    } catch (identifierErr) {
+      console.error('Error generating building identifier:', identifierErr);
+      // Fallback to building name + timestamp if identifier generation fails
+      buildingIdentifier = `${building} ${Date.now()}`;
+    }
+
     const locationDoc = {
       image: imageUrl,
       xCoordinate: parseFloat(xCoordinate as string),
       yCoordinate: parseFloat(yCoordinate as string),
       name,
       building,
+      buildingIdentifier,
       latitude,
       longitude,
       status,
