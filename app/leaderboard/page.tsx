@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from 'react'
+import { useState } from 'react'
 import Image from 'next/image'
 import mockData from '@/mock-data/mock-site-data.json'
 

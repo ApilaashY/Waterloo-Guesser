@@ -48,7 +48,7 @@ export default function Navbar() {
 
   return (
     <nav className="w-full absolute top-4 left-0 z-50 bg-transparent px-4 py-2 max-w-7xl mx-auto">
-      <div className="flex items-center justify-between w-full">
+      <div className="flex items-center w-full">
         {/* Logo - left side */}
         <div className="flex items-center gap-2 flex-shrink-0">
           <Link href="/" className="flex items-center gap-1">
@@ -61,8 +61,8 @@ export default function Navbar() {
           </Link>
         </div>
 
-        {/* Desktop Nav items centered (empty for now) */}
-        <div className="hidden md:flex flex-1 justify-center gap-8 relative" id="nav-items"></div>
+        {/* Spacer to push auth section to the right */}
+        <div className="flex-1"></div>
 
         {/* Auth section - desktop, always right-aligned */}
         <div className="hidden md:flex flex-shrink-0 items-center gap-4">
