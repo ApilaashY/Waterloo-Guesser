@@ -265,80 +265,132 @@ export default function Hero() {
           </div>
         )}
 
-        {/* Desktop Layout - Hidden on mobile */}
-        <div className="hidden md:block">
-          {/* Book Button - Far Left position */}
-          <div
-            className="absolute left-1/2 top-1/2 transform z-[110]"
-            style={{ transform: "translate(calc(-50% - 25rem), -50%)" }}
-          >
-            <LoreButton size="desktop" animationComplete={animationComplete} />
-          </div>
-
-          {/* Laurel Button - Left position */}
-          <div
-            className="absolute left-1/2 top-1/2 transform z-[110]"
-            style={{ transform: "translate(calc(-50% - 12rem), -50%)" }}
-          >
-            <LeaderboardButton
-              size="desktop"
-              animationComplete={animationComplete}
-            />
-          </div>
-
-          {/* Play Button - Center position */}
-          <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 z-[110]">
-            <PlayButton size="desktop" animationComplete={animationComplete} />
-          </div>
-
-          {/* Globe Button - Right position */}
-          <div
-            className="absolute left-1/2 top-1/2 transform z-[110]"
-            style={{ transform: "translate(calc(-50% + 12rem), -50%)" }}
-          >
-            <PosterBoardButton
-              size="desktop"
-              animationComplete={animationComplete}
-            />
-          </div>
-
-          {/* Camera Button - Far Right position */}
-          <div
-            className="absolute left-1/2 top-1/2 transform z-[110]"
-            style={{ transform: "translate(calc(-50% + 25rem), -50%)" }}
-          >
-            <AddLocationButton
-              size="desktop"
-              animationComplete={animationComplete}
-            />
-          </div>
-        </div>
-
         {/* Mobile Layout - Vertical stack, visible only on mobile */}
-        <div className="block md:hidden">
+        <div className="block">
           <div
-            className={`absolute left-1/2 bottom-20 transform -translate-x-1/2 z-[110] transition-all duration-500 ${
+            className={`absolute z-[110] transition-all duration-500 w-screen h-screen flex justify-evenly items-center-safe flex-row flex-wrap p-5 gap-5 ${
               animationComplete
                 ? "opacity-100 scale-100 translate-y-0"
                 : "opacity-0 scale-75 pointer-events-none translate-y-16"
             }`}
           >
-            <div className="flex flex-col items-center space-y-4">
-              <LeaderboardButton
-                size="mobile"
-                animationComplete={animationComplete}
-              />
-              <LoreButton size="mobile" animationComplete={animationComplete} />
-              <PlayButton size="mobile" animationComplete={animationComplete} />
-              <PosterBoardButton
-                size="mobile"
-                animationComplete={animationComplete}
-              />
-              <AddLocationButton
-                size="mobile"
-                animationComplete={animationComplete}
-              />
-            </div>
+            <Link href="/leaderboard">
+              <button
+                className={`group relative transition-all duration-500 ml-10 mr-10`}
+              >
+                <div className="relative flex flex-col items-center justify-center">
+                  <div className={`flex items-center justify-center`}>
+                    <Image
+                      src="/laurel icon.png"
+                      alt="Leaderboard Icon"
+                      width={84}
+                      height={84}
+                      className="max-w-full max-h-full hue-rotate-[220deg] brightness-[1.2] contrast-[1.1] group-hover:scale-110 transition-transform duration-300 relative z-10"
+                    />
+                  </div>
+                  <div
+                    className={`md:hidden mt-2 text-[#090C9B]  font-semibold transition-opacity duration-300 relative z-10`}
+                  >
+                    Leaderboard
+                  </div>
+                </div>
+              </button>
+            </Link>
+            <Link href="/lore">
+              <button
+                className={`group relative transition-all duration-500 ml-10 mr-10`}
+              >
+                <div className="relative flex flex-col items-center justify-center">
+                  <div className={`flex items-center justify-center`}>
+                    <Image
+                      src="/book icon.png"
+                      alt="Book Icon"
+                      width={84}
+                      height={84}
+                      className="max-w-full max-h-full hue-rotate-[220deg] brightness-[1.2] contrast-[1.1] group-hover:scale-110 transition-transform duration-300 relative z-10"
+                    />
+                  </div>
+                  <div
+                    className={`md:hidden mt-2 text-[#090C9B] font-semibold transition-opacity duration-300 relative z-10`}
+                  >
+                    Lore
+                  </div>
+                </div>
+              </button>
+            </Link>
+            <Link href="/modes">
+              <button
+                className={`group relative transition-all duration-500 ml-10 mr-10 max-md:ml-20 max-md:mr-20`}
+              >
+                <div className="relative flex flex-col items-center justify-center">
+                  <div className={` flex items-center justify-center`}>
+                    <svg
+                      width={84}
+                      height={84}
+                      viewBox="0 0 80 80"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                      className={`group-hover:scale-110 transition-transform duration-300 relative z-10 play-button`}
+                    >
+                      <polygon
+                        points="25,15 65,40 25,65"
+                        fill="#090C9B"
+                        className="group-hover:fill-[#d97f40] transition-colors duration-300"
+                      />
+                    </svg>
+                  </div>
+                  <div
+                    className={`md:hidden mt-2 text-[#090C9B] font-semibold transition-opacity duration-300 relative z-10`}
+                  >
+                    Play
+                  </div>
+                </div>
+              </button>
+            </Link>
+            <Link href="/poster-board">
+              <button
+                className={`group relative transition-all duration-500 ml-8 mr-8`}
+              >
+                <div className="relative flex flex-col items-center justify-center">
+                  <div className={`flex items-center justify-center`}>
+                    <Image
+                      src="/Globe.png"
+                      alt="Globe Icon"
+                      width={84}
+                      height={84}
+                      className="max-w-full max-h-full hue-rotate-[220deg] brightness-[1.2] contrast-[1.1] group-hover:scale-110 transition-transform duration-300 relative z-10"
+                    />
+                  </div>
+                  <div
+                    className={`md:hidden mt-2 text-[#090C9B] font-semibold transition-opacity duration-300 relative z-10`}
+                  >
+                    Poster Board
+                  </div>
+                </div>
+              </button>
+            </Link>
+            <Link href="/add-location">
+              <button
+                className={`group relative transition-all duration-500 ml-8 mr-8`}
+              >
+                <div className="relative flex flex-col items-center justify-center">
+                  <div className={`flex items-center justify-center`}>
+                    <Image
+                      src="/camera icon clean.png"
+                      alt="Camera Icon"
+                      width={84}
+                      height={84}
+                      className="max-w-full max-h-full hue-rotate-[220deg] brightness-[1.2] contrast-[1.1] group-hover:scale-110 transition-transform duration-300 relative z-10"
+                    />
+                  </div>
+                  <div
+                    className={`md:hidden mt-2 text-[#090C9B] font-semibold transition-opacity duration-300 relative z-10`}
+                  >
+                    Add Location
+                  </div>
+                </div>
+              </button>
+            </Link>
           </div>
         </div>
       </HeroBackground>
