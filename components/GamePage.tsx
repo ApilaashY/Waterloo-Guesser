@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   GameHeader,
   GameControls,
@@ -13,6 +14,8 @@ import {
   GameMode,
   MatchService,
 } from "./game";
+import SaveScoreModal from "./game/components/SaveScoreModal";
+import { GameService } from "./game/services/gameService";
 import { useSession } from "./SessionProvider";
 import { Toaster, toast } from "react-hot-toast";
 
@@ -43,6 +46,45 @@ export default function GamePage() {
   const { recordImageLoaded, recordFirstMapClick, recordFirstSubmit } =
     usePerformanceTracking();
 
+  const router = useRouter();
+
+  // Function to generate and get daily session ID
+  const getDailySessionId = (): string => {
+    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+    const storageKey = `dailySessionId_${today}`;
+    
+    // Check if localStorage is available (client-side only)
+    if (typeof window === 'undefined' || !window.localStorage) {
+      // Fallback for server-side or when localStorage is not available
+      const randomPart = Math.random().toString(36).substring(2, 15) + 
+                        Math.random().toString(36).substring(2, 15);
+      return `${today}_${randomPart}`;
+    }
+    
+    // Check if we already have a session ID for today
+    let sessionId = localStorage.getItem(storageKey);
+    
+    if (!sessionId) {
+      // Generate new session ID: date + random string
+      const randomPart = Math.random().toString(36).substring(2, 15) + 
+                        Math.random().toString(36).substring(2, 15);
+      sessionId = `${today}_${randomPart}`;
+      
+      // Store it for today
+      localStorage.setItem(storageKey, sessionId);
+      
+      // Clean up old session IDs (keep only today's)
+      const keys = Object.keys(localStorage);
+      keys.forEach(key => {
+        if (key.startsWith('dailySessionId_') && key !== storageKey) {
+          localStorage.removeItem(key);
+        }
+      });
+    }
+    
+    return sessionId;
+  };
+
   // Legacy state for backward compatibility during transition
   const [xCoor, setXCoor] = useState<number | null>(null);
   const [yCoor, setYCoor] = useState<number | null>(null);
@@ -56,6 +98,15 @@ export default function GamePage() {
   const [zoom, setZoom] = useState(1); // Track zoom level
   const [pan, setPan] = useState({ x: 0, y: 0 }); // Track pan position
 
+  // Save score modal state
+  const [showSaveScoreModal, setShowSaveScoreModal] = useState(false);
+  const [isSavingScore, setIsSavingScore] = useState(false);
+
+  // Timing state for server-side scoring
+  const [imageLoadedAt, setImageLoadedAt] = useState<number | null>(null);
+  const [guessSubmittedAt, setGuessSubmittedAt] = useState<number | null>(null);
+  const [currentImageId, setCurrentImageId] = useState<string | null>(null);
+
   // Initialize game
   useEffect(() => {
     if (!gameState.isStarted) {
@@ -68,73 +119,31 @@ export default function GamePage() {
   useEffect(() => {
     let mounted = true;
     setNaturalSize(null);
+    setImageLoadedAt(null); // Reset timing when new image loads
 
     if (!imageState.currentImageSrc) return;
+
+    // Set current image ID from imageState
+    setCurrentImageId(imageState.currentImageName);
 
     const img = new Image();
     img.onload = () => {
       if (!mounted) return;
       setNaturalSize({ w: img.naturalWidth, h: img.naturalHeight });
+      setImageLoadedAt(Date.now()); // Capture when image finished loading
       recordImageLoaded();
     };
     img.onerror = () => {
       if (!mounted) return;
       setNaturalSize(null);
+      setImageLoadedAt(null);
     };
     img.src = imageState.currentImageSrc;
 
     return () => {
       mounted = false;
     };
-  }, [imageState.currentImageSrc, recordImageLoaded]);
-
-  // Show mobile warning toast
-  useEffect(() => {
-    if (isMobileDevice() === true) {
-      toast.dismiss("mobile-warning-toast");
-      toast(
-        <div className="flex items-center gap-2">
-          <span className="text-base font-semibold text-red-900">
-            Apologies for the bugs, <b>mobile users'</b> games will not work for
-            the time being.
-            <br />
-            It's being worked on to be fixed ASAP.
-            <br />
-            <b>Laptop users are fine.</b>
-          </span>
-          <button
-            className="ml-2 px-2 py-1 rounded bg-yellow-300 hover:bg-yellow-400 text-yellow-900 font-bold focus:outline-none transition-colors duration-150"
-            aria-label="Close mobile warning toast"
-            onClick={() => toast.dismiss("mobile-warning-toast")}
-          >
-            &#10005;
-          </button>
-        </div>,
-        {
-          id: "mobile-warning-toast",
-          duration: Infinity,
-          position: "top-center",
-          style: {
-            background: "#FEF3C7",
-            color: "#B45309",
-            border: "1px solid #F59E0B",
-            boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-            borderRadius: "0.75rem",
-            padding: "1rem 1.5rem",
-            fontFamily: "inherit",
-            fontWeight: 500,
-            fontSize: "1rem",
-            display: "flex",
-            alignItems: "center",
-            gap: "0.75rem",
-          },
-          icon: null,
-        }
-      );
-    } else {
-      toast.dismiss("mobile-warning-toast");
-    }
-  }, []);
+  }, [imageState.currentImageSrc, imageState.currentImageName, recordImageLoaded]);
 
   const handleCoordinateClick = (x: number | null, y: number | null) => {
     recordFirstMapClick();
@@ -150,6 +159,9 @@ export default function GamePage() {
 
   const handleSubmit = async () => {
     if (xCoor === null || yCoor === null) return;
+
+    // Capture when user submitted their guess
+    setGuessSubmittedAt(Date.now());
 
     recordFirstSubmit();
     // Pass image/location ID for backend validation
@@ -199,6 +211,127 @@ export default function GamePage() {
         // Don't prevent game from ending if submission fails
       }
 
+      // For game end, show save score modal if user is not signed in
+      if (!user) {
+        setShowSaveScoreModal(true);
+      } else {
+        // alert(`Game over! You scored a total of ${gameState.score} points.`);
+        resetGame();
+        resetImageState();
+        setXCoor(null);
+        setYCoor(null);
+        setXRightCoor(null);
+        setYRightCoor(null);
+      }
+    } else {
+      // Continue to next round without showing save score modal between rounds
+      proceedToNextRound();
+    }
+  };
+
+  const proceedToNextRound = () => {
+    // Load next image and reset coordinates
+    loadNewImage();
+    setXCoor(null);
+    setYCoor(null);
+    setXRightCoor(null);
+    setYRightCoor(null);
+
+    // Reset timing data for the next round
+    setImageLoadedAt(null);
+    setGuessSubmittedAt(null);
+    setCurrentImageId(null);
+
+    // Reset map zoom
+    if (mapRef.current) {
+      mapControls.resetZoom();
+    }
+
+    nextRound();
+  };
+
+  const handleSaveScore = async () => {
+    setIsSavingScore(true);
+    try {
+      // Get unique daily session ID
+      const dailySessionId = getDailySessionId();
+      
+      // Prepare data for server-side scoring
+      const scoringData = {
+        username: undefined, // No username - will be auto-generated
+        score: gameState.score,
+        rounds: gameState.currentRound,
+        sessionId: dailySessionId,
+        // Include timing and accuracy data for server-side processing
+        imageId: currentImageId || undefined,
+        userCoordinates: xCoor !== null && yCoor !== null ? { x: xCoor, y: yCoor } : undefined,
+        correctCoordinates: gameState.correctCoordinates || undefined,
+        imageLoadedAt: imageLoadedAt || undefined,
+        guessSubmittedAt: guessSubmittedAt || undefined,
+      };
+      
+      const result = await GameService.saveToDailyLeaderboard(
+        scoringData.username,
+        scoringData.score,
+        scoringData.rounds,
+        scoringData.sessionId,
+        scoringData.imageId,
+        scoringData.userCoordinates,
+        scoringData.correctCoordinates,
+        scoringData.imageLoadedAt,
+        scoringData.guessSubmittedAt
+      );
+      
+      setShowSaveScoreModal(false);
+      
+      // Show a separate toast for each achievement, with unique code and achievement type/scope
+      if (result.achievements && result.achievements.length > 0) {
+        result.achievements.forEach((ach: any) => {
+          // Use buildingIdentifier or uniqueCode if available
+          const code = result.buildingIdentifier || result.uniqueCode || '';
+          let achievementLabel = '';
+          if (ach.type && ach.scope) {
+            achievementLabel = `${ach.type.replace('_', ' ')} (${ach.scope.replace('_', ' ')})`;
+          } else if (ach.type) {
+            achievementLabel = ach.type.replace('_', ' ');
+          } else {
+            achievementLabel = 'Achievement';
+          }
+          toast.success(
+            `🏆 ${code ? code + ' — ' : ''}${achievementLabel}\nScore saved as ${result.username}!`
+          );
+        });
+      } else {
+        toast.success(`Score saved as ${result.username}!`);
+      }
+      
+      // If this was after the first round, proceed to next round
+      // If this was after the final round, end the game
+      if (gameState.currentRound >= gameState.maxRounds) {
+        alert(`Game over! You scored a total of ${gameState.score} points.`);
+        resetGame();
+        resetImageState();
+        setXCoor(null);
+        setYCoor(null);
+        setXRightCoor(null);
+        setYRightCoor(null);
+      } else {
+        proceedToNextRound();
+      }
+    } catch (error) {
+      console.error('Failed to save score:', error);
+      toast.error('Failed to save score. Please try again.');
+    } finally {
+      setIsSavingScore(false);
+    }
+  };
+
+  const handleSkipSaveScore = () => {
+    setShowSaveScoreModal(false);
+    
+    // If this was after the first round, proceed to next round
+    // If this was after the final round, end the game
+    if (gameState.currentRound >= gameState.maxRounds) {
       alert(`Game over! You scored a total of ${gameState.score} points.`);
       resetGame();
       resetImageState();
@@ -207,20 +340,20 @@ export default function GamePage() {
       setXRightCoor(null);
       setYRightCoor(null);
     } else {
-      // Load next image and reset coordinates
-      await loadNewImage();
-      setXCoor(null);
-      setYCoor(null);
-      setXRightCoor(null);
-      setYRightCoor(null);
-
-      // Reset map zoom
-      if (mapRef.current) {
-        mapControls.resetZoom();
-      }
-
-      nextRound();
+      proceedToNextRound();
     }
+  };
+
+  const handleSignUp = () => {
+    // Store the current game state in session storage so it can be restored after sign up
+    sessionStorage.setItem('pendingScore', JSON.stringify({
+      score: gameState.score,
+      rounds: gameState.currentRound,
+      timestamp: new Date().toISOString()
+    }));
+    
+    // Navigate to registration page
+    router.push('/register');
   };
 
   const isDisabled = xRightCoor !== null && yRightCoor !== null;
@@ -294,6 +427,7 @@ export default function GamePage() {
                 score={gameState.score}
                 round={gameState.currentRound}
                 maxRounds={gameState.maxRounds}
+                isModalOpen={showSaveScoreModal}
               />
               {/* You can add more info or UI here if desired */}
             </div>
@@ -333,6 +467,18 @@ export default function GamePage() {
             setEnlarged={setIsEnlarged} // Allow ImagePreview to update enlarged state
           />
         )}
+
+        {/* Save Score Modal */}
+        <SaveScoreModal
+          isOpen={showSaveScoreModal}
+          score={gameState.score}
+          rounds={gameState.currentRound}
+          onSave={handleSaveScore}
+          onSkip={handleSkipSaveScore}
+          onClose={handleSkipSaveScore}
+          onSignUp={handleSignUp}
+          isLoading={isSavingScore}
+        />
       </div>
     </div>
   );

@@ -8,6 +8,7 @@ interface GameControlsProps {
   score: number;
   round: number;
   maxRounds: number;
+  isModalOpen?: boolean; // Add this prop to indicate if any modal is open
 }
 
 export default function GameControls({ 
@@ -17,63 +18,37 @@ export default function GameControls({
   isLoading, 
   score, 
   round, 
-  maxRounds 
+  maxRounds,
+  isModalOpen = false
 }: GameControlsProps) {
   const [showShortcuts, setShowShortcuts] = useState(false);
 
   // Submit on Enter or Space for keyboard accessibility
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
+      // If a modal is open, don't handle any keyboard shortcuts
+      if (isModalOpen) return;
+
+      // Check if focus is on a form element - if so, don't interfere with typing
+      const activeElement = document.activeElement;
+      const isFormElement = activeElement && (
+        activeElement.tagName === 'INPUT' ||
+        activeElement.tagName === 'TEXTAREA' ||
+        activeElement.tagName === 'SELECT' ||
+        activeElement.getAttribute('contenteditable') === 'true'
+      );
+      if (isFormElement) return;
+
       // space or enter
       if (e.code === 'Space' || e.code === 'Enter') {
         if (isLoading) return;
         e.preventDefault();
         if (hasSubmitted) onNext(); else onSubmit();
       }
-      // WASD and Arrow keys for map movement
-      if (["KeyW", "ArrowUp"].includes(e.code)) {
-        e.preventDefault();
-        // TODO: Call map pan up function
-        // Example: mapControls.pan(0, -1)
-      }
-      if (["KeyA", "ArrowLeft"].includes(e.code)) {
-        e.preventDefault();
-        // TODO: Call map pan left function
-      }
-      if (["KeyS", "ArrowDown"].includes(e.code)) {
-        e.preventDefault();
-        // TODO: Call map pan down function
-      }
-      if (["KeyD", "ArrowRight"].includes(e.code)) {
-        e.preventDefault();
-        // TODO: Call map pan right function
-      }
-      // Quick shot movements: E/Q/C/Z snap to corners
-      if (e.code === "KeyE") {
-        e.preventDefault();
-        // TODO: Snap to top-right corner
-      }
-      if (e.code === "KeyQ") {
-        e.preventDefault();
-        // TODO: Snap to top-left corner
-      }
-      if (e.code === "KeyC") {
-        e.preventDefault();
-        // TODO: Snap to bottom-right corner
-      }
-      if (e.code === "KeyZ") {
-        e.preventDefault();
-        // TODO: Snap to bottom-left corner
-      }
-      // Escape key to go home
-      if (e.code === 'Escape') {
-        e.preventDefault();
-        window.location.href = '/';
-      }
     };
     document.addEventListener('keydown', handleKey);
     return () => document.removeEventListener('keydown', handleKey);
-  }, [hasSubmitted, isLoading, onNext, onSubmit]);
+  }, [hasSubmitted, isLoading, onNext, onSubmit, isModalOpen]);
 
   const handleHomeClick = () => {
     window.location.href = '/';
@@ -136,16 +111,16 @@ export default function GameControls({
                   <span className="font-mono bg-gray-700 px-1 rounded">↓</span>
                   <span className="font-mono bg-gray-700 px-1 rounded">←</span>
                   <span className="font-mono bg-gray-700 px-1 rounded">→</span>
-                  <span className="ml-1">- Move map</span>
+                  <span className="ml-1">- Pan map</span>
                 </div>
-                <div><span className="font-mono bg-gray-700 px-1 rounded">E</span>, <span className="font-mono bg-gray-700 px-1 rounded">Q</span>, <span className="font-mono bg-gray-700 px-1 rounded">C</span>, <span className="font-mono bg-gray-700 px-1 rounded">Z</span> - Quick Shot Movements (snap to corners)</div>
+                <div><span className="font-mono bg-gray-700 px-1 rounded">Q</span>, <span className="font-mono bg-gray-700 px-1 rounded">E</span>, <span className="font-mono bg-gray-700 px-1 rounded">Z</span>, <span className="font-mono bg-gray-700 px-1 rounded">C</span> - Snap to corners</div>
                 <div>
                   <span className="font-mono bg-gray-700 px-1 rounded">1</span> = 100% zoom,
                   <span className="font-mono bg-gray-700 px-1 rounded">2</span> = 300% zoom,
                   <span className="font-mono bg-gray-700 px-1 rounded">3</span> = 500% zoom
                 </div>
                 <div>
-                  <span className="font-mono bg-gray-700 px-1 rounded">Shift</span> - Reset image/map view
+                  <span className="font-mono bg-gray-700 px-1 rounded">Shift</span> or <span className="font-mono bg-gray-700 px-1 rounded">Esc</span> - Reset map view
                 </div>
               </div>
               {/* Arrow pointing to the button */}

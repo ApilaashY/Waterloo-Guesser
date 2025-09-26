@@ -64,6 +64,51 @@ export class GameService {
     }
   }
 
+  public static async saveToDailyLeaderboard(
+    username: string | undefined, // Make username optional
+    score: number,
+    rounds: number,
+    sessionId?: string,
+    // New parameters for server-side scoring
+    imageId?: string,
+    userCoordinates?: { x: number; y: number },
+    correctCoordinates?: { x: number; y: number },
+    imageLoadedAt?: number,
+    guessSubmittedAt?: number
+  ) {
+    try {
+      const response = await fetch("/api/dailyLeaderboard", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username, // Can be undefined - API will auto-generate
+          score,
+          rounds,
+          sessionId,
+          // Include timing and accuracy data for server-side processing
+          imageId,
+          userCoordinates,
+          correctCoordinates,
+          imageLoadedAt,
+          guessSubmittedAt,
+        }),
+      });
+
+      if (!response.ok) {
+        const text = await response.text().catch(() => "");
+        throw new Error(`HTTP error! status: ${response.status} ${text}`);
+      }
+
+      const result = await response.json();
+      return result;
+    } catch (error) {
+      console.error("Failed to save to daily leaderboard:", error);
+      throw error;
+    }
+  }
+
   public checkGameEnd(round: number): boolean {
     return round >= 5;
   }
