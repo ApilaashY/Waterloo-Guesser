@@ -67,19 +67,63 @@ const Map = forwardRef(function Map(props: MapProps, ref) {
   const transformRef = useRef<ReactZoomPanPinchRef>(null);
 
   /**
-   * Gets the actual rendered dimensions of the image element
+   * Gets the actual displayed image dimensions and offset when using objectFit: contain
+   * Accounts for letterboxing when container aspect ratio differs from image aspect ratio
    */
-  const getImageDimensions = () => {
+  const getActualImageDimensionsAndOffset = () => {
     if (props.imageRef.current) {
+      const containerWidth = props.imageRef.current.clientWidth;
+      const containerHeight = props.imageRef.current.clientHeight;
+
+      // Image's intrinsic aspect ratio (896x683 from the constants)
+      const imageAspectRatio = MAP_PIXEL_WIDTH / MAP_PIXEL_HEIGHT;
+      const containerAspectRatio = containerWidth / containerHeight;
+
+      let actualWidth, actualHeight, offsetX, offsetY;
+
+      if (containerAspectRatio > imageAspectRatio) {
+        // Container is wider than image - image will be letterboxed horizontally
+        actualHeight = containerHeight;
+        actualWidth = containerHeight * imageAspectRatio;
+        offsetX = (containerWidth - actualWidth) / 2;
+        offsetY = 0;
+      } else {
+        // Container is taller than image - image will be letterboxed vertically
+        actualWidth = containerWidth;
+        actualHeight = containerWidth / imageAspectRatio;
+        offsetX = 0;
+        offsetY = (containerHeight - actualHeight) / 2;
+      }
+
       return {
-        width: props.imageRef.current.clientWidth,
-        height: props.imageRef.current.clientHeight,
+        width: actualWidth,
+        height: actualHeight,
+        offsetX,
+        offsetY,
+        containerWidth,
+        containerHeight,
       };
     }
-    // Fallback to the container dimensions or hardcoded values
+
+    // Fallback
     return {
       width: CONTAINER_WIDTH,
       height: CONTAINER_HEIGHT,
+      offsetX: 0,
+      offsetY: 0,
+      containerWidth: CONTAINER_WIDTH,
+      containerHeight: CONTAINER_HEIGHT,
+    };
+  };
+
+  /**
+   * Gets the actual rendered dimensions of the image element
+   */
+  const getImageDimensions = () => {
+    const dimensions = getActualImageDimensionsAndOffset();
+    return {
+      width: dimensions.width,
+      height: dimensions.height,
     };
   };
 
@@ -156,6 +200,8 @@ const Map = forwardRef(function Map(props: MapProps, ref) {
     ) {
       setTimeout(() => {
         if (transformRef.current) {
+          const imageInfo = getActualImageDimensionsAndOffset();
+
           // Center between the two points (normalized coordinates)
           const centerX = (props.xCoor! + props.xRightCoor!) / 2;
           const centerY = (props.yCoor! + props.yRightCoor!) / 2;
@@ -169,14 +215,12 @@ const Map = forwardRef(function Map(props: MapProps, ref) {
           // Calculate zoom level to fit both points with padding
           const zoomLevel = Math.min(1 / viewWidth, 1 / viewHeight);
           const finalZoom = Math.min(Math.max(zoomLevel, 1.2), 2.5);
-          // Convert normalized center to transform coordinates
-          // Instead of shifting by containerWidth/2, just use normalized center
-          // and scale to map coordinates
-          const mapX = centerX * CONTAINER_WIDTH;
-          const mapY = centerY * CONTAINER_HEIGHT;
+          // Convert normalized center to transform coordinates using actual container dimensions
+          const mapX = centerX * imageInfo.containerWidth;
+          const mapY = centerY * imageInfo.containerHeight;
           // Center the map so that the center point is in the middle of the viewport
-          const offsetX = (CONTAINER_WIDTH / 2 - mapX) * finalZoom;
-          const offsetY = (CONTAINER_HEIGHT / 2 - mapY) * finalZoom;
+          const offsetX = (imageInfo.containerWidth / 2 - mapX) * finalZoom;
+          const offsetY = (imageInfo.containerHeight / 2 - mapY) * finalZoom;
           transformRef.current.setTransform(
             offsetX,
             offsetY,
@@ -194,14 +238,15 @@ const Map = forwardRef(function Map(props: MapProps, ref) {
    * Used for keyboard/mouse movement and zoom.
    */
   const clampPan = (x: number, y: number, zoomLevel = props.zoom) => {
-    const scaledWidth = CONTAINER_WIDTH * zoomLevel;
-    const scaledHeight = CONTAINER_HEIGHT * zoomLevel;
+    const imageInfo = getActualImageDimensionsAndOffset();
+    const scaledWidth = imageInfo.containerWidth * zoomLevel;
+    const scaledHeight = imageInfo.containerHeight * zoomLevel;
 
     // Calculate the actual transform bounds based on image edge alignment
     // When zoomed in, image can move from "right edge aligned" to "left edge aligned"
-    const minX = Math.min(0, CONTAINER_WIDTH - scaledWidth); // right edge aligned (negative when zoomed in)
+    const minX = Math.min(0, imageInfo.containerWidth - scaledWidth); // right edge aligned (negative when zoomed in)
     const maxX = 0; // left edge aligned (always 0)
-    const minY = Math.min(0, CONTAINER_HEIGHT - scaledHeight); // bottom edge aligned (negative when zoomed in)
+    const minY = Math.min(0, imageInfo.containerHeight - scaledHeight); // bottom edge aligned (negative when zoomed in)
     const maxY = 0; // top edge aligned (always 0)
 
     return {
@@ -365,7 +410,7 @@ const Map = forwardRef(function Map(props: MapProps, ref) {
   /**
    * Handles user click on the map image.
    * Converts click position to normalized coordinates and sets guess.
-   * Accounts for both zoom and pan transformations.
+   * Accounts for both zoom and pan transformations, and image letterboxing.
    */
   function handleClick(event: React.MouseEvent<HTMLImageElement>) {
     if (props.disabled) return;
@@ -377,13 +422,16 @@ const Map = forwardRef(function Map(props: MapProps, ref) {
     const clickX = event.clientX - rect.left;
     const clickY = event.clientY - rect.top;
 
+    // Get the actual image dimensions and offset due to letterboxing
+    const imageInfo = getActualImageDimensionsAndOffset();
+
     // Account for the image transform (zoom and pan)
     // The image is transformed with: scale(zoom) translate(pan.x, pan.y)
     // To get the original coordinates, we need to reverse this transform
 
     // First, adjust for the center-based scaling
-    const centerX = img.clientWidth / 2;
-    const centerY = img.clientHeight / 2;
+    const centerX = imageInfo.containerWidth / 2;
+    const centerY = imageInfo.containerHeight / 2;
 
     // Convert click position to be relative to the image center
     const centeredX = clickX - centerX;
@@ -397,13 +445,17 @@ const Map = forwardRef(function Map(props: MapProps, ref) {
     const unpannedX = unscaledX - props.pan.x;
     const unpannedY = unscaledY - props.pan.y;
 
-    // Convert back to absolute coordinates (relative to image center)
+    // Convert back to absolute coordinates (relative to container)
     const finalX = unpannedX + centerX;
     const finalY = unpannedY + centerY;
 
-    // Convert to normalized coordinates (0-1)
-    const normalizedX = finalX / img.clientWidth;
-    const normalizedY = finalY / img.clientHeight;
+    // Adjust for image offset due to letterboxing
+    const imageRelativeX = finalX - imageInfo.offsetX;
+    const imageRelativeY = finalY - imageInfo.offsetY;
+
+    // Convert to normalized coordinates (0-1) relative to the actual image
+    const normalizedX = imageRelativeX / imageInfo.width;
+    const normalizedY = imageRelativeY / imageInfo.height;
 
     // Only set coordinates if they're within valid bounds (0-1)
     if (
@@ -415,8 +467,43 @@ const Map = forwardRef(function Map(props: MapProps, ref) {
       props.setXCoor(normalizedX);
       props.setYCoor(normalizedY);
     } else {
+      // Click was outside the actual image area
     }
   }
+
+  /**
+   * Calculates the position for a marker given normalized coordinates (0-1)
+   * Accounts for image letterboxing, zoom, and pan transformations
+   */
+  const getMarkerPosition = (normalizedX: number, normalizedY: number) => {
+    const imageInfo = getActualImageDimensionsAndOffset();
+
+    // Convert normalized coordinates to pixel position within the actual image
+    const imagePixelX = normalizedX * imageInfo.width;
+    const imagePixelY = normalizedY * imageInfo.height;
+
+    // Add the offset to account for letterboxing
+    const containerPixelX = imagePixelX + imageInfo.offsetX;
+    const containerPixelY = imagePixelY + imageInfo.offsetY;
+
+    // Apply zoom and pan transformations
+    // The transformation is: scale from center, then translate by pan
+    const centerX = imageInfo.containerWidth / 2;
+    const centerY = imageInfo.containerHeight / 2;
+
+    // Transform the position: first translate to center-based coordinates,
+    // then scale, then translate back, then apply pan
+    const centeredX = containerPixelX - centerX;
+    const centeredY = containerPixelY - centerY;
+
+    const scaledX = centeredX * props.zoom;
+    const scaledY = centeredY * props.zoom;
+
+    const finalX = scaledX + centerX + props.pan.x * props.zoom;
+    const finalY = scaledY + centerY + props.pan.y * props.zoom;
+
+    return { x: finalX, y: finalY };
+  };
 
   /**
    * Returns CSS style for the line connecting guess and answer markers.
@@ -429,23 +516,30 @@ const Map = forwardRef(function Map(props: MapProps, ref) {
       props.xRightCoor != null &&
       props.yRightCoor != null
     ) {
-      const { width: imageWidth, height: imageHeight } = getImageDimensions();
-      const x1 = props.xCoor * imageWidth;
-      const y1 = props.yCoor * imageHeight;
-      const x2 = props.xRightCoor * imageWidth;
-      const y2 = props.yRightCoor * imageHeight;
-      const length = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
-      const angle = Math.atan2(y2 - y1, x2 - x1) * (180 / Math.PI);
+      const pos1 = getMarkerPosition(props.xCoor, props.yCoor);
+      const pos2 = getMarkerPosition(props.xRightCoor, props.yRightCoor);
+
+      const length = Math.sqrt(
+        Math.pow(pos2.x - pos1.x, 2) + Math.pow(pos2.y - pos1.y, 2)
+      );
+      const angle =
+        Math.atan2(pos2.y - pos1.y, pos2.x - pos1.x) * (180 / Math.PI);
+
       return {
         position: "absolute" as const,
-        top: `${y1}px`,
-        left: `${x1}px`,
+        top: `${Math.min(pos1.y, pos2.y)}px`,
+        left: `${Math.min(pos1.x, pos2.x)}px`,
         width: `${length}px`,
-        transform: `rotate(${angle}deg) translate(0, -50%) scale(${props.zoom}) translate(${props.pan.x}px, ${props.pan.y}px)`,
+        transform: `rotate(${angle}deg) translate(0, -50%)`,
         transformOrigin: "0 50%",
-        height: "1.5px",
-        background:
-          "repeating-linear-gradient(to right, black 0 6px, transparent 6px 12px, #febe30 12px 18px, transparent 18px 24px)", // or just black
+        height: `${3 * props.zoom}px`,
+        background: `repeating-linear-gradient(to right, black 0 ${
+          6 * props.zoom
+        }px, transparent ${6 * props.zoom}px ${12 * props.zoom}px, #febe30 ${
+          12 * props.zoom
+        }px ${18 * props.zoom}px, transparent ${18 * props.zoom}px ${
+          24 * props.zoom
+        }px)`, // or just black
         borderTop: "none",
       };
     }
@@ -515,25 +609,21 @@ const Map = forwardRef(function Map(props: MapProps, ref) {
                 props.yRightCoor != null && <div style={lineStyle()}></div>}
               {props.xCoor != null && props.yCoor != null && (
                 <div
-                  style={{
-                    top: `${
-                      ((props.yCoor as number) * getImageDimensions().height -
-                        getImageDimensions().height / 2) *
-                        props.zoom +
-                      getImageDimensions().height / 2
-                    }px`,
-                    left: `${
-                      ((props.xCoor as number) * getImageDimensions().width -
-                        getImageDimensions().width / 2) *
-                        props.zoom +
-                      getImageDimensions().width / 2
-                    }px`,
-                    position: "absolute",
-                    pointerEvents: "none",
-                    transform: `translate(-50%, -100%) scale(${props.zoom}) translate(${props.pan.x}px, ${props.pan.y}px)`,
-                    transformOrigin: "50% 100%",
-                    zIndex: 10,
-                  }}
+                  style={(() => {
+                    const position = getMarkerPosition(
+                      props.xCoor as number,
+                      props.yCoor as number
+                    );
+                    return {
+                      top: `${position.y}px`,
+                      left: `${position.x}px`,
+                      position: "absolute" as const,
+                      pointerEvents: "none",
+                      transform: `translate(-50%, -100%)`,
+                      transformOrigin: "50% 100%",
+                      zIndex: 10,
+                    };
+                  })()}
                 >
                   <FaMapMarkerAlt
                     size={28}
@@ -544,27 +634,21 @@ const Map = forwardRef(function Map(props: MapProps, ref) {
               )}
               {props.xRightCoor != null && props.yRightCoor != null && (
                 <div
-                  style={{
-                    top: `${
-                      ((props.yRightCoor as number) *
-                        getImageDimensions().height -
-                        getImageDimensions().height / 2) *
-                        props.zoom +
-                      getImageDimensions().height / 2
-                    }px`,
-                    left: `${
-                      ((props.xRightCoor as number) *
-                        getImageDimensions().width -
-                        getImageDimensions().width / 2) *
-                        props.zoom +
-                      getImageDimensions().width / 2
-                    }px`,
-                    position: "absolute",
-                    pointerEvents: "none",
-                    transform: `translate(-50%, -100%) scale(${props.zoom}) translate(${props.pan.x}px, ${props.pan.y}px)`,
-                    transformOrigin: "50% 100%",
-                    zIndex: 10,
-                  }}
+                  style={(() => {
+                    const position = getMarkerPosition(
+                      props.xRightCoor as number,
+                      props.yRightCoor as number
+                    );
+                    return {
+                      top: `${position.y}px`,
+                      left: `${position.x}px`,
+                      position: "absolute" as const,
+                      pointerEvents: "none",
+                      transform: `translate(-50%, -100%)`,
+                      transformOrigin: "50% 100%",
+                      zIndex: 10,
+                    };
+                  })()}
                 >
                   <FaMapMarkerAlt
                     size={28}

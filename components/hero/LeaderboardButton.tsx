@@ -6,7 +6,10 @@ interface LeaderboardButtonProps {
   size?: "desktop" | "mobile";
 }
 
-export default function LeaderboardButton({ animationComplete, size = "desktop" }: LeaderboardButtonProps) {
+export default function LeaderboardButton({
+  animationComplete,
+  size = "desktop",
+}: LeaderboardButtonProps) {
   const isDesktop = size === "desktop";
   const containerSize = isDesktop ? "max-w-[6rem] max-h-[6rem]" : "w-12 h-12";
   const textSize = isDesktop ? "text-xs sm:text-sm" : "text-sm";
@@ -17,10 +20,10 @@ export default function LeaderboardButton({ animationComplete, size = "desktop" 
     <Link href="/leaderboard">
       <button
         className={`group relative transition-all duration-500 ${
-          size === "desktop" 
-            ? (animationComplete
-                ? "opacity-100 scale-100"
-                : "opacity-0 scale-75 pointer-events-none")
+          size === "desktop"
+            ? animationComplete
+              ? "opacity-100 scale-100"
+              : "opacity-0 scale-75 pointer-events-none"
             : "p-2"
         }`}
       >
@@ -35,7 +38,11 @@ export default function LeaderboardButton({ animationComplete, size = "desktop" 
               style={imageFilter ? { filter: imageFilter } : {}}
             />
           </div>
-          <div className={`mt-${isDesktop ? '1 sm:mt-2' : '2'} text-[#090C9B] ${textSize} font-semibold ${textOpacity} transition-opacity duration-300 relative z-10`}>
+          <div
+            className={`mt-${
+              isDesktop ? "1 sm:mt-2" : "2"
+            } text-[#090C9B] ${textSize} font-semibold ${textOpacity} transition-opacity duration-300 relative z-10`}
+          >
             Leaderboard
           </div>
         </div>
