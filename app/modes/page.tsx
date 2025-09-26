@@ -16,9 +16,10 @@ const GAME_MODES = [
 const Modifiers = [
     { label: "No Modifiers", value: "none" },
     { label: "90s Style", value: "grayscale" },
-    { label: "Flash", value: "1-second" },
+    // { label: "Flash", value: "1-second" },
     { label: "Spectra Inversion", value: "inverted-colors" },
     { label: "Random Modifiers", value: "random" },
+	{ label: "thanks for playing more coming soon! (sleep-deprived dev)", value: "" }
 ];
 
 const TOOLTIP_TEXT = {
@@ -31,9 +32,11 @@ const TOOLTIP_TEXT = {
 	private: "Invite friends, create your own team or play 1 on 1."
 };
 
+
 export default function ModesPage() {
 	const router = useRouter();
 	const [hoveredMode, setHoveredMode] = useState<string | null>(null);
+	const [selectedModifier, setSelectedModifier] = useState<string>("none");
 	const [isMobile, setIsMobile] = useState(false);
 
 	useEffect(() => {
@@ -50,11 +53,19 @@ export default function ModesPage() {
 	const handleSelect = (mode: string, enabled: boolean) => {
 		if (!enabled) return;
 
+		// Build query params with modifier
+		const queryParams = new URLSearchParams();
+		if (selectedModifier !== "none") {
+			queryParams.set("modifier", selectedModifier);
+		}
+		const queryString = queryParams.toString();
+		const queryPart = queryString ? `?${queryString}` : "";
+
 		// You can pass mode info via query string if needed
 		if (mode === "versus") {
-			router.push("/queue-game");
+			router.push(`/queue-game${queryPart}`);
 		} else {
-			router.push("/game");
+			router.push(`/game${queryPart}`);
 		}
 	};
 
@@ -70,9 +81,26 @@ export default function ModesPage() {
 
 	return (
 		<div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-yellow-100 to-blue-100">
-			<div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md relative">
-				<h1 className="text-2xl font-bold mb-6 text-center">Select Game Mode</h1>
-				<div className="space-y-4">
+ 				<div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md relative">
+ 					<h1 className="text-2xl font-bold mb-6 text-center">Select Game Mode</h1>
+ 
+ 					{/* Modifiers Section */}
+ 					<div className="mb-6">
+ 						<h2 className="text-lg font-semibold mb-3 text-center">Game Modifiers</h2>
+ 						<select
+ 							value={selectedModifier}
+ 							onChange={(e) => setSelectedModifier(e.target.value)}
+ 							className="w-full py-2 px-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+ 						>
+ 							{Modifiers.map((modifier) => (
+ 								<option key={modifier.value} value={modifier.value}>
+ 									{modifier.label}
+ 								</option>
+ 							))}
+ 						</select>
+ 					</div>
+ 
+ 					<div className="space-y-4">
 					{GAME_MODES.map((mode) => (
 						<div key={mode.value} className="relative group">
 							<button
@@ -113,9 +141,12 @@ export default function ModesPage() {
 									</div>
 								</div>
 							)}
+
+
 						</div>
 					))}
 				</div>
+				
 			</div>
 		</div>
 	);

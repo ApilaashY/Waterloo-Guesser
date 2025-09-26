@@ -27,7 +27,11 @@ function isMobileDevice() {
   );
 }
 
-export default function GamePage() {
+interface GamePageProps {
+  modifier?: string;
+}
+
+export default function GamePage({ modifier }: GamePageProps) {
   // Use modular hooks
   const {
     gameState,
@@ -465,6 +469,7 @@ export default function GamePage() {
             naturalSize={naturalSize}
             enlarged={isEnlarged} // Pass enlarged state to ImagePreview
             setEnlarged={setIsEnlarged} // Allow ImagePreview to update enlarged state
+            modifier={modifier} // Pass modifier prop for effects like grayscale
           />
         )}
 

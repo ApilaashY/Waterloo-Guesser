@@ -6,12 +6,14 @@ interface ImagePreviewProps {
   naturalSize: { w: number; h: number } | null;
   enlarged: boolean; // Accept enlarged state as a prop
   setEnlarged: (value: boolean) => void; // Accept setEnlarged as a prop
+  modifier?: string; // Optional modifier prop for effects like grayscale
 }
 export default function ImagePreview({
   imageSrc,
   naturalSize,
   enlarged,
   setEnlarged,
+  modifier,
 }: ImagePreviewProps) {
   // Pan key hold logic
   const panIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -46,6 +48,32 @@ export default function ImagePreview({
           window.innerWidth || 0
         )
       : 1200;
+  // Only one vh declaration should exist, so remove this duplicate.
+
+  // Modifier logic
+  // Grayscale: filter
+  // Inverted colors: filter
+  // Flash: show image for 1 second, then hide for 1 second, repeat
+  let modifierStyle: React.CSSProperties = {};
+  if (modifier === 'grayscale') {
+    modifierStyle.filter = 'grayscale(100%)';
+  } else if (modifier === 'inverted-colors') {
+    modifierStyle.filter = 'invert(1)';
+  }
+
+    // Flash logic
+    const [flashVisible, setFlashVisible] = useState(true);
+    useEffect(() => {
+      if (modifier === '1-second') {
+        const interval = setInterval(() => {
+          setFlashVisible((v) => !v);
+        }, 1000);
+        return () => clearInterval(interval);
+      } else {
+        setFlashVisible(true);
+      }
+    }, [modifier]);
+
   const vh =
     typeof window !== "undefined"
       ? Math.max(
@@ -345,6 +373,8 @@ export default function ImagePreview({
   const tx = pan.x / zoom;
   const ty = pan.y / zoom;
   const imageTransform = `scale(${zoom}) translate(${tx}px, ${ty}px)`;
+  
+  // (Removed duplicate modifierStyle declaration)
 
   return (
     <div
@@ -374,6 +404,7 @@ export default function ImagePreview({
             transformOrigin: "center center",
             transition: "transform 0.1s",
             cursor: "grab",
+            ...modifierStyle, // Apply modifier styles like grayscale
           }}
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
