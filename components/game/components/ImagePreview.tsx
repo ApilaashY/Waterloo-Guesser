@@ -55,24 +55,24 @@ export default function ImagePreview({
   // Inverted colors: filter
   // Flash: show image for 1 second, then hide for 1 second, repeat
   let modifierStyle: React.CSSProperties = {};
-  if (modifier === 'grayscale') {
-    modifierStyle.filter = 'grayscale(100%)';
-  } else if (modifier === 'inverted-colors') {
-    modifierStyle.filter = 'invert(1)';
+  if (modifier === "grayscale") {
+    modifierStyle.filter = "grayscale(100%)";
+  } else if (modifier === "inverted-colors") {
+    modifierStyle.filter = "invert(1)";
   }
 
-    // Flash logic
-    const [flashVisible, setFlashVisible] = useState(true);
-    useEffect(() => {
-      if (modifier === '1-second') {
-        const interval = setInterval(() => {
-          setFlashVisible((v) => !v);
-        }, 1000);
-        return () => clearInterval(interval);
-      } else {
-        setFlashVisible(true);
-      }
-    }, [modifier]);
+  // Flash logic
+  const [flashVisible, setFlashVisible] = useState(true);
+  useEffect(() => {
+    if (modifier === "1-second") {
+      const interval = setInterval(() => {
+        setFlashVisible((v) => !v);
+      }, 1000);
+      return () => clearInterval(interval);
+    } else {
+      setFlashVisible(true);
+    }
+  }, [modifier]);
 
   const vh =
     typeof window !== "undefined"
@@ -86,8 +86,16 @@ export default function ImagePreview({
 
   // Use enlarged OR hovered for sizing
   const isLarge = enlarged || hovered;
-  const maxW = isLarge ? Math.floor(vw * 0.5) : Math.floor(vw * 0.3); // 50vw when enlarged/hovered, 30vw when not
-  const maxH = isLarge ? Math.floor(vh - 82) : Math.floor(vh * 0.4); // full height when enlarged/hovered, 40vh when not
+  const maxW = isLarge
+    ? isMobile
+      ? Math.floor(vw * 0.85)
+      : Math.floor(vw * 0.5) // 85vw on mobile when enlarged, 50vw on desktop
+    : Math.floor(vw * 0.3); // 30vw when not enlarged
+  const maxH = isLarge
+    ? isMobile
+      ? Math.floor(vh * 0.75)
+      : Math.floor(vh - 82) // 75vh on mobile when enlarged, full height on desktop
+    : Math.floor(vh * 0.4); // 40vh when not enlarged
   const imgW = naturalSize?.w ?? 800;
   const imgH = naturalSize?.h ?? 600;
   const scaleW = maxW / imgW;
@@ -109,6 +117,34 @@ export default function ImagePreview({
       y: Math.max(-maxY, Math.min(maxY, y)),
     };
   };
+
+  // Global click handler to close enlarged image when clicking outside
+  useEffect(() => {
+    const handleGlobalClick = (e: MouseEvent) => {
+      if (isMobile && enlarged && containerRef.current) {
+        // Check if the click was outside the container
+        const rect = containerRef.current.getBoundingClientRect();
+        const clickX = e.clientX;
+        const clickY = e.clientY;
+
+        if (
+          clickX < rect.left ||
+          clickX > rect.right ||
+          clickY < rect.top ||
+          clickY > rect.bottom
+        ) {
+          setEnlarged(false);
+        }
+      }
+    };
+
+    if (isMobile && enlarged) {
+      document.addEventListener("click", handleGlobalClick);
+      return () => {
+        document.removeEventListener("click", handleGlobalClick);
+      };
+    }
+  }, [isMobile, enlarged, setEnlarged]);
 
   // Global key handling for zoom, pan, and reset
   useEffect(() => {
@@ -239,7 +275,15 @@ export default function ImagePreview({
   const handlePointerDown = (e: React.PointerEvent) => {
     (e.target as Element).setPointerCapture?.(e.pointerId);
     pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
-    setHovered(true);
+
+    // On mobile, toggle enlarged state with tap
+    if (isMobile && pointersRef.current.size === 1) {
+      e.stopPropagation(); // Prevent global click handler from interfering
+      setEnlarged(!enlarged);
+    } else {
+      setHovered(true);
+    }
+
     if (pointersRef.current.size === 2) {
       const pts = Array.from(pointersRef.current.values());
       const dx = pts[0].x - pts[1].x;
@@ -346,34 +390,37 @@ export default function ImagePreview({
   // Dynamic container style
   const containerStyle = {
     ...(isMobile
-      ? {
-          width: `${containerWidth * 1.5}px`,
-          height: `${containerHeight * 1.5}px`,
-        }
+      ? enlarged
+        ? {
+            width: `${containerWidth}px`,
+            height: `${containerHeight}px`,
+            left: "50%",
+            top: "50%",
+            transform: "translate(-50%, -50%)",
+          }
+        : {
+            width: `${containerWidth * 1.75}px`,
+            height: `${containerHeight * 1.75}px`,
+            left: "5px",
+            bottom: "5px",
+          }
       : {
           width: `${containerWidth}px`,
           height: `${containerHeight}px`,
-        }),
-    zIndex: 99999,
-    position: "absolute" as const,
-    // Center on mobile, bottom-left corner on desktop
-    ...(isMobile
-      ? {
-          left: "5px",
-          bottom: "5px",
-        }
-      : {
           left: "50px",
           bottom: "50px",
         }),
-    transition: "width 0.2s, height 0.2s",
+    zIndex: 99999,
+    position: "absolute" as const,
+    transition:
+      "width 0.3s ease, height 0.3s ease, left 0.3s ease, top 0.3s ease, bottom 0.3s ease, transform 0.3s ease",
   };
 
   // Image transform
   const tx = pan.x / zoom;
   const ty = pan.y / zoom;
   const imageTransform = `scale(${zoom}) translate(${tx}px, ${ty}px)`;
-  
+
   // (Removed duplicate modifierStyle declaration)
 
   return (

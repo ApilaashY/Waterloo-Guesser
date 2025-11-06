@@ -8,8 +8,8 @@ photos
 .vscode
 .superdesign
 .vercel
-poster-approver/env
-poster-approver/venv
+photo-approver/env
+photo-approver/venv
 
 # WebSocket Server Security
 websocket-server/.env
