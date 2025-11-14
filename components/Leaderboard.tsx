@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import mockData from "../mock-data/mock-site-data.json";
 
@@ -12,12 +12,12 @@ type Player = {
 };
 
 type Faculty = {
-  name: string
-  imagePath: string
-  color: string
-  totalScore: number
-  players: Array<{ player: Player; score: number; rank: number | null }>
-}
+  name: string;
+  imagePath: string;
+  color: string;
+  totalScore: number;
+  players: Array<{ player: Player; score: number; rank: number | null }>;
+};
 
 export default function Leaderboard() {
   const [selectedFaculty, setSelectedFaculty] = useState<string>("Engineering");
@@ -30,17 +30,33 @@ export default function Leaderboard() {
     {}
   );
 
-  const leaderboardData = (mockData as any).leaderboard;
+  const [facultyData, setFacultyData] = useState<
+    Array<{ department: string; totalPoints: number }>
+  >([]);
+  const [userLeaderboard, setUserLeaderboard] = useState<
+    Array<{ username: string; totalPoints: number }>
+  >([]);
 
-  // Faculty mapping (mock data doesn't have faculties, so we'll assign them)
-  const facultyMapping: Record<string, string> = {
-    p_chris: "Engineering",
-    p_ellen: "Health",
-    p_ben: "Math",
-    p_anna: "Environment",
-    p_diego: "Arts",
-    p_fatima: "Science",
-  };
+  useEffect(() => {
+    try {
+      fetch("/api/leaderboard/faculty", { method: "GET" })
+        .then((res) => res.json())
+        .then((data) => {
+          setFacultyData(data);
+        });
+    } catch (error) {
+      console.error("Error fetching leaderboard data:", error);
+    }
+    try {
+      fetch("/api/leaderboard/users", { method: "GET" })
+        .then((res) => res.json())
+        .then((data) => {
+          setUserLeaderboard(data);
+        });
+    } catch (error) {
+      console.error("Error fetching user leaderboard data:", error);
+    }
+  }, []);
 
   const facultySymbols: Record<string, { imagePath: string; color: string }> = {
     Engineering: {
@@ -56,40 +72,6 @@ export default function Leaderboard() {
     Arts: { imagePath: "/Art-Symbol.png", color: "text-purple-400" },
     Science: { imagePath: "/Science-Symbol.png", color: "text-cyan-400" },
   };
-
-  // Group players by faculty and calculate totals
-  const faculties: Faculty[] = Object.entries(facultySymbols)
-    .map(([name, { imagePath, color }]) => {
-      const facultyPlayers = leaderboardData
-        .filter((entry: any) => facultyMapping[entry.playerId] === name)
-        .map((entry: any) => ({
-          player: players[entry.playerId] || {
-            name: "Unknown",
-            avatar: null,
-            rank: null,
-          },
-          score: entry.score,
-        rank: entry.rank,
-        }))
-        .sort((a: any, b: any) => b.score - a.score);
-
-      const totalScore = facultyPlayers.reduce(
-        (sum: number, p: any) => sum + p.score,
-        0
-      );
-
-      return {
-        name,
-        imagePath,
-        color,
-        totalScore,
-        players: facultyPlayers,
-      };
-    })
-    .sort((a, b) => b.totalScore - a.totalScore);
-
-  const selectedFacultyData =
-    faculties.find((f) => f.name === selectedFaculty) || faculties[0];
 
   return (
     <div className="w-full max-w-6xl mx-auto p-6">
@@ -107,47 +89,54 @@ export default function Leaderboard() {
               <span className="text-sm text-gray-300">Top faculties</span>
             </div>
             <ol className="space-y-4">
-              {faculties.map((faculty, idx) => (
-                <li
-                  key={faculty.name}
-                  className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-all ${
-                    selectedFaculty === faculty.name
-                      ? "bg-white/10"
-                      : "hover:bg-white/5"
-                  }`}
-                  onClick={() => setSelectedFaculty(faculty.name)}
-                >
-                  <div className="flex h-12 w-12 items-center justify-center rounded-md bg-gradient-to-tr from-yellow-400 to-orange-400 text-black font-bold">
-                    {idx + 1}
-                  </div>
-                  <div className="flex-1">
-                    <div className="font-medium text-white">{faculty.name}</div>
-                  </div>
-                  <div className="text-right">
-                    <div className="font-mono font-semibold text-white">
-                      {faculty.totalScore.toLocaleString()}
+              {facultyData.map(
+                (
+                  faculty: { department: string; totalPoints: number },
+                  id: number
+                ) => (
+                  <li
+                    key={faculty.department}
+                    className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-all ${
+                      selectedFaculty === faculty.department
+                        ? "bg-white/10"
+                        : "hover:bg-white/5"
+                    }`}
+                    onClick={() => setSelectedFaculty(faculty.department)}
+                  >
+                    <div className="flex h-12 w-12 items-center justify-center rounded-md bg-gradient-to-tr from-yellow-400 to-orange-400 text-black font-bold">
+                      {id + 1}
                     </div>
-                  </div>
-                </li>
-              ))}
+                    <div className="flex-1">
+                      <div className="font-medium text-white">
+                        {faculty.department}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-mono font-semibold text-white">
+                        {faculty.totalPoints}
+                      </div>
+                    </div>
+                  </li>
+                )
+              )}
             </ol>
           </div>
 
           {/* Middle: Faculty Symbols */}
           <div className="flex flex-col items-center justify-center space-y-8">
-            {faculties.map((faculty) => (
+            {Object.keys(facultySymbols).map((faculty) => (
               <button
-                key={faculty.name}
-                onClick={() => setSelectedFaculty(faculty.name)}
+                key={faculty}
+                onClick={() => setSelectedFaculty(faculty)}
                 className={`relative w-16 h-16 transition-all duration-300 hover:scale-110 ${
-                  selectedFaculty === faculty.name
+                  selectedFaculty === faculty
                     ? "scale-125 drop-shadow-lg"
                     : "opacity-60 hover:opacity-80"
                 }`}
               >
                 <Image
-                  src={faculty.imagePath}
-                  alt={`${faculty.name} Symbol`}
+                  src={facultySymbols[faculty].imagePath}
+                  alt={`${faculty} Symbol`}
                   fill
                   className="object-contain filter invert brightness-200 contrast-200"
                 />
@@ -155,32 +144,41 @@ export default function Leaderboard() {
             ))}
           </div>
 
-        {/* Right: Selected Faculty Players */}
-  <div className="rounded-xl bg-white/5 p-6 shadow-md">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-white">Leaderboard</h3>
-            <span className="text-sm text-gray-300">Top players</span>
-          </div>
-          <ol className="space-y-3">
-              {selectedFacultyData.players.slice(0, 6).map((playerData, idx) => (
-                <li key={playerData.player.id ?? `player-${idx}`} className="flex items-center gap-3">
+          {/* Right: Selected Faculty Players */}
+          <div className="rounded-xl bg-white/5 p-6 shadow-md">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-white">Leaderboard</h3>
+              <span className="text-sm text-gray-300">Top players</span>
+            </div>
+            <ol className="space-y-3">
+              {userLeaderboard.map((playerData, idx) => (
+                <li
+                  key={playerData.username ?? `player-${idx}`}
+                  className="flex items-center gap-3"
+                >
                   <div className="flex items-center gap-3 w-full">
                     <div className="flex h-12 w-12 items-center justify-center rounded-md bg-gradient-to-tr from-yellow-400 to-orange-400 text-black font-bold">
                       {idx + 1}
                     </div>
                     <div className="flex-1">
-                      <div className="font-medium text-white">{playerData.player.name}</div>
-                      <div className="text-sm text-gray-300">Rank: {playerData.rank ?? '—'}</div>
+                      <div className="font-medium text-white">
+                        {playerData.username}
+                      </div>
+                      {/* <div className="text-sm text-gray-300">
+                        Rank: {playerData.rank ?? "—"}
+                      </div> */}
                     </div>
                     <div className="text-right">
-                      <div className="font-mono font-semibold text-white">{playerData.score.toLocaleString()}</div>
+                      <div className="font-mono font-semibold text-white">
+                        {playerData.totalPoints}
+                      </div>
                     </div>
                   </div>
                 </li>
               ))}
-          </ol>
-          <div className="mt-4 text-sm text-gray-300">Updated: mock data</div>
-        </div>
+            </ol>
+            <div className="mt-4 text-sm text-gray-300">Updated: mock data</div>
+          </div>
         </div>
       </div>
     </div>
