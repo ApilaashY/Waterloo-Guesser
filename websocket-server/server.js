@@ -16,14 +16,30 @@ const app = express();
 const port = process.env.PORT || 3001;
 
 // Enable CORS for health checks and any HTTP endpoints
-app.use(cors({
-  origin: [
-    'http://localhost:3000',
-    'https://your-vercel-domain.vercel.app', // Replace with your Vercel domain
-    'https://*.vercel.app' // Allow all Vercel preview deployments
-  ],
+// Use a function to handle dynamic origin validation
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl)
+    if (!origin) return callback(null, true);
+
+    const allowedOrigins = [
+      'http://localhost:3000',
+      'https://uwguesser.com',
+      'https://www.uwguesser.com'
+    ];
+
+    // Check if origin matches allowed list or is a Vercel deployment
+    if (allowedOrigins.indexOf(origin) !== -1 || origin.endsWith('.vercel.app')) {
+      callback(null, true);
+    } else {
+      console.log('[CORS] Rejected origin:', origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true
-}));
+};
+
+app.use(cors(corsOptions));
 
 app.use(express.json());
 
@@ -46,11 +62,24 @@ const httpServer = createServer(app);
 // Configure Socket.IO with CORS
 const io = new Server(httpServer, {
   cors: {
-    origin: [
-      'http://localhost:3000',
-      'https://your-vercel-domain.vercel.app', // Replace with your Vercel domain
-      'https://*.vercel.app'
-    ],
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps or curl)
+      if (!origin) return callback(null, true);
+
+      const allowedOrigins = [
+        'http://localhost:3000',
+        'https://uwguesser.com',
+        'https://www.uwguesser.com'
+      ];
+
+      // Check if origin matches allowed list or is a Vercel deployment
+      if (allowedOrigins.indexOf(origin) !== -1 || origin.endsWith('.vercel.app')) {
+        callback(null, true);
+      } else {
+        console.log('[Socket.IO CORS] Rejected origin:', origin);
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     methods: ['GET', 'POST'],
     credentials: true,
   },

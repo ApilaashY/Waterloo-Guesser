@@ -255,11 +255,21 @@ const GameMap = forwardRef<any, GameMapProps>(
               const mouseOffsetX = mouseX - imageRect.width / 2;
               const mouseOffsetY = mouseY - imageRect.height / 2;
 
-              // Calculate new pan using the zoom-to-cursor formula
-              const newPanX =
-                mouseOffsetX * (1 / newZoom - 1 / currentZoom) + currentPan.x;
-              const newPanY =
-                mouseOffsetY * (1 / newZoom - 1 / currentZoom) + currentPan.y;
+              // Calculate new pan to keep the point under the cursor fixed
+              // With transform: scale(zoom) translate(pan), a point P on the image appears at:
+              // screenPos = imageCenter + P * zoom + pan
+              //
+              // The point under the cursor in image coordinates is at mouseOffset (from center)
+              // Before zoom: screenPos = center + mouseOffset * currentZoom + currentPan
+              // After zoom:  screenPos = center + mouseOffset * newZoom + newPan
+              //
+              // For the cursor point to stay fixed:
+              // mouseOffset * currentZoom + currentPan = mouseOffset * newZoom + newPan
+              // newPan = mouseOffset * currentZoom - mouseOffset * newZoom + currentPan
+              // newPan = mouseOffset * (currentZoom - newZoom) + currentPan
+
+              const newPanX = mouseOffsetX * (currentZoom - newZoom) + currentPan.x;
+              const newPanY = mouseOffsetY * (currentZoom - newZoom) + currentPan.y;
 
               // Clamp the new pan to valid bounds
               const clampedPan = clampPan(newPanX, newPanY, newZoom);
@@ -411,13 +421,10 @@ const GameMap = forwardRef<any, GameMapProps>(
                   const centerOffsetX = centerX - imageRect.width / 2;
                   const centerOffsetY = centerY - imageRect.height / 2;
 
-                  // Calculate new pan using zoom-to-cursor formula
-                  const newPanX =
-                    centerOffsetX * (1 / clampedZoom - 1 / currentZoom) +
-                    currentPan.x;
-                  const newPanY =
-                    centerOffsetY * (1 / clampedZoom - 1 / currentZoom) +
-                    currentPan.y;
+                  // Calculate new pan to keep the point under the pinch center fixed
+                  // Same formula as wheel zoom
+                  const newPanX = centerOffsetX * (currentZoom - clampedZoom) + currentPan.x;
+                  const newPanY = centerOffsetY * (currentZoom - clampedZoom) + currentPan.y;
 
                   // Clamp the new pan to valid bounds
                   const clampedPan = clampPan(newPanX, newPanY, clampedZoom);
