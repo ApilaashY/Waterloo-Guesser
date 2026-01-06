@@ -129,11 +129,11 @@ export default function GameControls({
           )}
         </button>
       </div>
-      <div className="absolute top-4 right-4 z-50">
+      <div className="absolute top-20 left-[33.333%] z-50">
         <button
           className={`px-4 py-2 text-white rounded shadow ${
-            hasSubmitted 
-              ? "bg-yellow-600 hover:bg-yellow-700" 
+            hasSubmitted
+              ? "bg-yellow-600 hover:bg-yellow-700"
               : "bg-yellow-400 hover:bg-yellow-500    "
           } ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
           onClick={hasSubmitted ? onNext : onSubmit}

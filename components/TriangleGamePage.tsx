@@ -7,16 +7,16 @@ import {
   GameControls,
   GameMap,
   ImagePreview,
+  TriangleImagePreview,
   useGameState,
   useImageState,
   useMapControls,
   usePerformanceTracking,
   GameMode,
   MatchService,
+  GameService,
 } from "./game";
 import SaveScoreModal from "./game/components/SaveScoreModal";
-import StartOverlay from "./game/components/StartOverlay";
-import { GameService } from "./game/services/gameService";
 import { useSession } from "./SessionProvider";
 import { Toaster, toast } from "react-hot-toast";
 
@@ -28,12 +28,12 @@ function isMobileDevice() {
   );
 }
 
-interface GamePageProps {
+interface TriangleGamePageProps {
   modifier?: string;
 }
 
-export default function GamePage({ modifier }: GamePageProps) {
-  // Use modular hooks
+export default function TriangleGamePage({ modifier }: TriangleGamePageProps) {
+  // Use modular hooks - same as GamePage
   const {
     gameState,
     startGame,
@@ -53,7 +53,12 @@ export default function GamePage({ modifier }: GamePageProps) {
 
   const router = useRouter();
 
-  // Function to generate and get daily session ID
+  // Triangle-specific state
+  const [triangleImages, setTriangleImages] = useState<any[]>([]);
+  const [triangleData, setTriangleData] = useState<any>(null);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  // Function to generate and get daily session ID - same as GamePage
   const getDailySessionId = (): string => {
     const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
     const storageKey = `dailySessionId_${today}`;
@@ -90,7 +95,7 @@ export default function GamePage({ modifier }: GamePageProps) {
     return sessionId;
   };
 
-  // Legacy state for backward compatibility during transition
+  // Legacy state for backward compatibility during transition - same as GamePage
   const [xCoor, setXCoor] = useState<number | null>(null);
   const [yCoor, setYCoor] = useState<number | null>(null);
   const [xRightCoor, setXRightCoor] = useState<number | null>(null);
@@ -103,63 +108,74 @@ export default function GamePage({ modifier }: GamePageProps) {
   const [zoom, setZoom] = useState(1); // Track zoom level
   const [pan, setPan] = useState({ x: 0, y: 0 }); // Track pan position
 
-  // Save score modal state
+  // Save score modal state - same as GamePage
   const [showSaveScoreModal, setShowSaveScoreModal] = useState(false);
   const [isSavingScore, setIsSavingScore] = useState(false);
 
-  // Start overlay state (for first-time game start)
-  const [showStartOverlay, setShowStartOverlay] = useState(true);
-  const [gameReady, setGameReady] = useState(false);
-
-  // Timing state for server-side scoring
+  // Timing state for server-side scoring - same as GamePage
   const [imageLoadedAt, setImageLoadedAt] = useState<number | null>(null);
   const [guessSubmittedAt, setGuessSubmittedAt] = useState<number | null>(null);
   const [currentImageId, setCurrentImageId] = useState<string | null>(null);
 
-  // Initialize game (but wait for start overlay)
-  useEffect(() => {
-    if (!gameState.isStarted && gameReady) {
-      startGame(GameMode.SinglePlayer);
-      loadNewImage();
-    }
-  }, [gameState.isStarted, gameReady, startGame, loadNewImage]);
+  // Triangle-specific image loading
+  const loadTriangleImages = async () => {
+    try {
+      const response = await fetch("/api/getPhoto", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          mode: "triangle",
+          previousCodes: [] // TODO: Track used images
+        })
+      });
 
-  // Handle start overlay completion
-  const handleStartOverlayComplete = () => {
-    setShowStartOverlay(false);
-    setGameReady(true);
+      if (!response.ok) {
+        throw new Error("Failed to load triangle images");
+      }
+
+      const data = await response.json();
+      setTriangleImages(data.images);
+      setTriangleData(data.triangleData);
+      setCurrentImageIndex(0);
+      
+      // Set the first image as current for the existing game logic
+      if (data.images.length > 0) {
+        // Update imageState to use first image
+        const firstImage = data.images[0];
+        // Manually set image state to work with existing components
+        imageState.currentImageSrc = firstImage.image;
+        imageState.currentImageName = firstImage.id;
+      }
+    } catch (error) {
+      console.error("Error loading triangle images:", error);
+      toast.error("Failed to load triangle images");
+    }
   };
 
-  // Handle keyboard shortcut for start overlay
+  // Initialize game - modified for triangle mode
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (showStartOverlay && e.key === " ") {
-        e.preventDefault();
-        // Trigger the start button click
-        handleStartOverlayComplete();
-      }
-    };
+    if (!gameState.isStarted) {
+      startGame(GameMode.SinglePlayer);
+      loadTriangleImages();
+    }
+  }, [gameState.isStarted, startGame]);
 
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [showStartOverlay]);
-
-  // Load natural size when image changes
+  // Load natural size when current triangle image changes - same as GamePage but for triangle
   useEffect(() => {
     let mounted = true;
     setNaturalSize(null);
-    setImageLoadedAt(null); // Reset timing when new image loads
+    setImageLoadedAt(null);
 
-    if (!imageState.currentImageSrc) return;
+    if (triangleImages.length === 0 || !triangleImages[currentImageIndex]) return;
 
-    // Set current image ID from imageState
-    setCurrentImageId(imageState.currentImageName);
+    const currentImage = triangleImages[currentImageIndex];
+    setCurrentImageId(currentImage.id);
 
     const img = new Image();
     img.onload = () => {
       if (!mounted) return;
       setNaturalSize({ w: img.naturalWidth, h: img.naturalHeight });
-      setImageLoadedAt(Date.now()); // Capture when image finished loading
+      setImageLoadedAt(Date.now());
       recordImageLoaded();
     };
     img.onerror = () => {
@@ -167,12 +183,12 @@ export default function GamePage({ modifier }: GamePageProps) {
       setNaturalSize(null);
       setImageLoadedAt(null);
     };
-    img.src = imageState.currentImageSrc;
+    img.src = currentImage.image;
 
     return () => {
       mounted = false;
     };
-  }, [imageState.currentImageSrc, imageState.currentImageName, recordImageLoaded]);
+  }, [triangleImages, currentImageIndex, recordImageLoaded]);
 
   const handleCoordinateClick = (x: number | null, y: number | null) => {
     recordFirstMapClick();
@@ -187,23 +203,46 @@ export default function GamePage({ modifier }: GamePageProps) {
   };
 
   const handleSubmit = async () => {
-    if (xCoor === null || yCoor === null) return;
+    if (xCoor === null || yCoor === null || !triangleData) return;
 
     // Capture when user submitted their guess
     setGuessSubmittedAt(Date.now());
 
     recordFirstSubmit();
-    // Pass image/location ID for backend validation
-    await submitCoordinates(
-      xCoor,
-      yCoor,
-      imageState.currentImageName,
-      user ? user.id : null
+    
+    // Calculate distance to centroid for triangle scoring
+    const centroid = triangleData.centroid;
+    const distance = Math.sqrt(
+      Math.pow(xCoor - centroid.x, 2) +
+      Math.pow(yCoor - centroid.y, 2)
     );
-    // The correct coordinates will be set via useEffect below
+
+    // Score based on proximity to centroid (closer = higher score)
+    const maxDistance = 0.3;
+    const baseScore = Math.max(0, Math.round(1000 * (1 - distance / maxDistance)));
+
+    // Update game state with triangle-specific scoring
+    const roundResult = {
+      round: gameState.currentRound,
+      userCoordinates: { x: xCoor, y: yCoor },
+      correctCoordinates: { x: centroid.x, y: centroid.y },
+      distance,
+      points: baseScore,
+    };
+
+    updateGameState({
+      correctCoordinates: { x: centroid.x, y: centroid.y },
+      isSubmitted: true,
+      score: gameState.score + baseScore,
+      distance,
+      points: baseScore,
+      roundResults: [...gameState.roundResults, roundResult]
+    });
+
+    toast.success(`You scored ${baseScore} points! Distance to centroid: ${(distance * 100).toFixed(1)}%`);
   };
 
-  // Set xRightCoor/yRightCoor after correctCoordinates is updated
+  // Set xRightCoor/yRightCoor after correctCoordinates is updated - same as GamePage
   useEffect(() => {
     if (gameState.isSubmitted && gameState.correctCoordinates) {
       setXRightCoor(gameState.correctCoordinates.x);
@@ -222,7 +261,7 @@ export default function GamePage({ modifier }: GamePageProps) {
   }, [gameState.isSubmitted, gameState.correctCoordinates]);
 
   const handleNext = async () => {
-    // Check if game should end
+    // Check if game should end - same as GamePage
     if (gameState.currentRound >= gameState.maxRounds) {
       // Submit match data to the API
       try {
@@ -244,7 +283,6 @@ export default function GamePage({ modifier }: GamePageProps) {
       if (!user) {
         setShowSaveScoreModal(true);
       } else {
-        // alert(`Game over! You scored a total of ${gameState.score} points.`);
         resetGame();
         resetImageState();
         setXCoor(null);
@@ -253,14 +291,14 @@ export default function GamePage({ modifier }: GamePageProps) {
         setYRightCoor(null);
       }
     } else {
-      // Continue to next round without showing save score modal between rounds
+      // Continue to next round
       proceedToNextRound();
     }
   };
 
   const proceedToNextRound = () => {
-    // Load next image and reset coordinates
-    loadNewImage();
+    // Load next triangle images and reset coordinates
+    loadTriangleImages();
     setXCoor(null);
     setYCoor(null);
     setXRightCoor(null);
@@ -282,7 +320,7 @@ export default function GamePage({ modifier }: GamePageProps) {
   const handleSaveScore = async () => {
     setIsSavingScore(true);
     try {
-      // Get unique daily session ID
+      // Get unique daily session ID - same as GamePage
       const dailySessionId = getDailySessionId();
       
       // Prepare data for server-side scoring
@@ -313,10 +351,9 @@ export default function GamePage({ modifier }: GamePageProps) {
       
       setShowSaveScoreModal(false);
       
-      // Show a separate toast for each achievement, with unique code and achievement type/scope
+      // Show a separate toast for each achievement
       if (result.achievements && result.achievements.length > 0) {
         result.achievements.forEach((ach: any) => {
-          // Use buildingIdentifier or uniqueCode if available
           const code = result.buildingIdentifier || result.uniqueCode || '';
           let achievementLabel = '';
           if (ach.type && ach.scope) {
@@ -388,6 +425,8 @@ export default function GamePage({ modifier }: GamePageProps) {
   const isDisabled = xRightCoor !== null && yRightCoor !== null;
   const hasSubmitted =
     gameState.isSubmitted && gameState.correctCoordinates !== null;
+
+  // Login toast - same as GamePage
   useEffect(() => {
     if (!user) {
       toast.dismiss("login-toast");
@@ -446,7 +485,7 @@ export default function GamePage({ modifier }: GamePageProps) {
       <div className="relative flex flex-col items-center justify-center w-full h-full">
         <div className="flex items-center justify-center w-full h-full">
           <div className="flex flex-row items-center justify-between w-full h-full mx-auto my-auto bg-white rounded shadow-lg overflow-hidden relative">
-            {/* Left side: controls (optional, can add more UI here) */}
+            {/* Left side: controls (same as GamePage) */}
             <div className="flex flex-col justify-center items-center w-1/3 h-full">
               <GameControls
                 onSubmit={handleSubmit}
@@ -458,9 +497,8 @@ export default function GamePage({ modifier }: GamePageProps) {
                 maxRounds={gameState.maxRounds}
                 isModalOpen={showSaveScoreModal}
               />
-              {/* You can add more info or UI here if desired */}
             </div>
-            {/* Right side: map */}
+            {/* Right side: map with triangle overlay */}
             <div
               className={`flex justify-center items-center h-full w-2/3 max-md:fixed max-md:w-screen max-md:h-screen`}
             >
@@ -471,34 +509,78 @@ export default function GamePage({ modifier }: GamePageProps) {
                 xRightCoor={xRightCoor}
                 yRightCoor={yRightCoor}
                 onCoordinateClick={handleCoordinateClick}
-                disableClickOnly={isDisabled} // Allow zoom/pan after submission, but disable coordinate clicking
-                enlarged={isEnlarged} // Pass enlarged state to GameMap
+                disableClickOnly={isDisabled}
+                enlarged={isEnlarged}
                 currentScore={
                   gameState.roundResults.length > 0
                     ? gameState.roundResults[gameState.roundResults.length - 1]
                         .points
                     : 0
-                } // Pass current round score
+                }
                 overrideZoom={zoom}
                 setOverrideZoom={setZoom}
                 overridePan={pan}
                 setOverridePan={setPan}
               />
+              
+              {/* Triangle Overlay */}
+              {triangleData && triangleData.vertices && triangleData.vertices.length === 3 && (
+                <div className="absolute inset-0 pointer-events-none z-30">
+                  <svg className="w-full h-full">
+                    <polygon
+                      points={triangleData.vertices
+                        .map((v: any) => `${v.x * 100}%,${v.y * 100}%`)
+                        .join(' ')}
+                      fill="rgba(255, 255, 0, 0.2)"
+                      stroke="rgba(255, 255, 0, 0.8)"
+                      strokeWidth="2"
+                    />
+                    
+                    {/* Vertex markers */}
+                    {triangleData.vertices.map((vertex: any, index: number) => (
+                      <circle
+                        key={index}
+                        cx={`${vertex.x * 100}%`}
+                        cy={`${vertex.y * 100}%`}
+                        r="6"
+                        fill="blue"
+                        stroke="white"
+                        strokeWidth="2"
+                      />
+                    ))}
+                    
+                    {/* Centroid marker (only show during results) */}
+                    {hasSubmitted && triangleData.centroid && (
+                      <circle
+                        cx={`${triangleData.centroid.x * 100}%`}
+                        cy={`${triangleData.centroid.y * 100}%`}
+                        r="4"
+                        fill="red"
+                        stroke="white"
+                        strokeWidth="2"
+                      />
+                    )}
+                  </svg>
+                </div>
+              )}
             </div>
           </div>
         </div>
 
-        {imageState.currentImageSrc && (
-          <ImagePreview
-            imageSrc={imageState.currentImageSrc}
+        {/* Triangle Image Preview - replace ImagePreview with custom version */}
+        {triangleImages.length > 0 && triangleImages[currentImageIndex] && (
+          <TriangleImagePreview
+            triangleImages={triangleImages}
+            currentImageIndex={currentImageIndex}
+            setCurrentImageIndex={setCurrentImageIndex}
             naturalSize={naturalSize}
-            enlarged={isEnlarged} // Pass enlarged state to ImagePreview
-            setEnlarged={setIsEnlarged} // Allow ImagePreview to update enlarged state
-            modifier={modifier} // Pass modifier prop for effects like grayscale
+            enlarged={isEnlarged}
+            setEnlarged={setIsEnlarged}
+            modifier={modifier}
           />
         )}
 
-        {/* Save Score Modal */}
+        {/* Save Score Modal - same as GamePage */}
         <SaveScoreModal
           isOpen={showSaveScoreModal}
           score={gameState.score}
@@ -509,11 +591,6 @@ export default function GamePage({ modifier }: GamePageProps) {
           onSignUp={handleSignUp}
           isLoading={isSavingScore}
         />
-
-        {/* Start Overlay - shown only at the beginning of the game */}
-        {showStartOverlay && (
-          <StartOverlay onComplete={handleStartOverlayComplete} />
-        )}
       </div>
     </div>
   );
