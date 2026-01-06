@@ -22,6 +22,7 @@ interface UseVersusSocketProps {
   setYRightCoor: (y: number | null) => void;
   setTotalPoints: (points: number) => void;
   setPartnerPoints: (points: number) => void;
+  setCurrentRoundScore: (points: number) => void;
   setShowResult: (show: boolean) => void;
   setRound: (round: number) => void;
   setShowPopup: (show: string) => void;
@@ -43,12 +44,14 @@ export function useVersusSocket({
   setYRightCoor,
   setTotalPoints,
   setPartnerPoints,
+  setCurrentRoundScore,
   setShowResult,
   setRound,
   setShowPopup,
 }: UseVersusSocketProps) {
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const currentRoundId = useRef<string | null>(null);
+  const previousRoundPoints = useRef<number>(0);
 
   // Connection handlers
   const onConnect = useCallback(() => {
@@ -100,8 +103,11 @@ export function useVersusSocket({
       setXCoor(null);
       setYCoor(null);
       setRound(data.currentRoundIndex);
+      // Update cumulative scores from server data
+      setTotalPoints(data.points);
+      setPartnerPoints(data.partnerPoints);
     },
-    [setState]
+    [setState, setIsRoundComplete, setXRightCoor, setYRightCoor, setShowResult, setHasSubmitted, setXCoor, setYCoor, setRound, setTotalPoints, setPartnerPoints]
   );
 
   const onRoundOver = useCallback(
@@ -112,9 +118,15 @@ export function useVersusSocket({
       setYRightCoor(data.answer.y);
       setTotalPoints(data.points);
       setPartnerPoints(data.partnerPoints);
+      // Calculate current round score (difference from previous total)
+      const roundScore = data.points - previousRoundPoints.current;
+      setCurrentRoundScore(roundScore);
+      console.log("[Versus] Current round score:", roundScore, "Total:", data.points, "Previous:", previousRoundPoints.current);
+      // Update previous round points for next calculation
+      previousRoundPoints.current = data.points;
       setShowResult(true);
     },
-    [setState]
+    [setIsRoundComplete, setXRightCoor, setYRightCoor, setTotalPoints, setPartnerPoints, setCurrentRoundScore, setShowResult]
   );
 
   const onPlayerPoints = useCallback(
@@ -200,6 +212,11 @@ export function useVersusSocket({
     onConnectError,
     onReconnectAttempt,
     onReconnectError,
+    onRoundStart,
+    onRoundOver,
+    onPlayerPoints,
+    onPartnerPoints,
+    onGameOver,
     setIsRoundComplete,
     setHasSubmitted,
   ]);

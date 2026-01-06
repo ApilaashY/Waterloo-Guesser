@@ -51,6 +51,7 @@ function VersusPageContent() {
   const [imageIDs, setImageIDs] = useState<string[]>([]);
   const [totalPoints, setTotalPoints] = useState(0);
   const [partnerPoints, setPartnerPoints] = useState(0);
+  const [currentRoundScore, setCurrentRoundScore] = useState(0);
   const [questionCount, setQuestionCount] = useState(0);
   const [round, setRound] = useState(0);
 
@@ -96,6 +97,7 @@ function VersusPageContent() {
     setYRightCoor,
     setTotalPoints,
     setPartnerPoints,
+    setCurrentRoundScore,
     setShowResult,
     setRound,
     setShowPopup,
@@ -208,6 +210,7 @@ function VersusPageContent() {
           onContinue={() => setShowResult(false)}
           mapContainerRef={mapContainerRef}
           disabled={isRoundComplete}
+          currentScore={currentRoundScore}
         />
 
         <GameControls
