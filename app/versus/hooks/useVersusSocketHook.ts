@@ -170,7 +170,7 @@ export function useVersusSocket({
     }
 
     console.log(`[Versus] Identifying session ${sessionId} to the server.`);
-    socket.emit("identify", sessionId);
+    socket.emit("joinedGame", { sessionId, socketId: socket.id });
 
     console.log("[Versus] Setting up socket event listeners");
 

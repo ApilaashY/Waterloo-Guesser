@@ -268,8 +268,17 @@ const GameMap = forwardRef<any, GameMapProps>(
               // newPan = mouseOffset * currentZoom - mouseOffset * newZoom + currentPan
               // newPan = mouseOffset * (currentZoom - newZoom) + currentPan
 
-              const newPanX = mouseOffsetX * (currentZoom - newZoom) + currentPan.x;
-              const newPanY = mouseOffsetY * (currentZoom - newZoom) + currentPan.y;
+              // Calculate new pan to keep the point under the cursor fixed
+              // With transform: scale(zoom) translate(pan), the translation is scaled.
+              // Formula derived: NewPan = P_i * (OldZoom/NewZoom - 1) + OldPan * (OldZoom/NewZoom)
+              // Where P_i = mouseOffset / currentZoom
+
+              const ratio = currentZoom / newZoom;
+              const pX = mouseOffsetX / currentZoom;
+              const pY = mouseOffsetY / currentZoom;
+
+              const newPanX = pX * (ratio - 1) + currentPan.x * ratio;
+              const newPanY = pY * (ratio - 1) + currentPan.y * ratio;
 
               // Clamp the new pan to valid bounds
               const clampedPan = clampPan(newPanX, newPanY, newZoom);
@@ -423,8 +432,14 @@ const GameMap = forwardRef<any, GameMapProps>(
 
                   // Calculate new pan to keep the point under the pinch center fixed
                   // Same formula as wheel zoom
-                  const newPanX = centerOffsetX * (currentZoom - clampedZoom) + currentPan.x;
-                  const newPanY = centerOffsetY * (currentZoom - clampedZoom) + currentPan.y;
+                  // Calculate new pan to keep the point under the pinch center fixed
+
+                  const ratio = currentZoom / clampedZoom;
+                  const pX = centerOffsetX / currentZoom;
+                  const pY = centerOffsetY / currentZoom;
+
+                  const newPanX = pX * (ratio - 1) + currentPan.x * ratio;
+                  const newPanY = pY * (ratio - 1) + currentPan.y * ratio;
 
                   // Clamp the new pan to valid bounds
                   const clampedPan = clampPan(newPanX, newPanY, clampedZoom);
@@ -701,12 +716,12 @@ const GameMap = forwardRef<any, GameMapProps>(
         yCoor={yCoor}
         setXCoor={
           disabled || disableClickOnly
-            ? () => {}
+            ? () => { }
             : (val: number | null) => handleCoordinateClick(val, null)
         }
         setYCoor={
           disabled || disableClickOnly
-            ? () => {}
+            ? () => { }
             : (val: number | null) => handleCoordinateClick(null, val)
         }
         xRightCoor={xRightCoor}

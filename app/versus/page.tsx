@@ -107,7 +107,7 @@ function VersusPageContent() {
     if (
       !socket?.connected ||
       !sessionId ||
-      !partnerId ||
+      !partnerId || // Require partnerId for now to be safe, logic can handle it
       hasSubmitted ||
       xCoor === null ||
       yCoor === null
@@ -143,47 +143,53 @@ function VersusPageContent() {
     }
   }
 
-  // Ensure we have a valid session ID before rendering the game
-  if (!sessionId) {
-    return (
-      <ErrorState
-        title="Session Error"
-        message="No valid game session found. Please start a new game."
-      />
-    );
-  }
+  // Retrieve player name
+  const [playerName, setPlayerName] = useState<string>("");
 
-  // Tell the server that the user has joined the game session
   useEffect(() => {
-    if (socket) {
-      console.log("SENT JOINED GAME");
-      socket.emit("joinedGame", { sessionId, socketId: socket.id });
+    const storedName = sessionStorage.getItem("versus_player_name");
+    if (storedName) {
+      setPlayerName(storedName);
     }
   }, []);
 
-  // Load natural size when image changes
+  // Calculate natural size of image when it changes
   useEffect(() => {
-    let mounted = true;
-    setNaturalSize(null);
+    if (!state.image) {
+      console.log("[Versus] No image in state yet.");
+      setNaturalSize(null);
+      return;
+    }
 
-    if (!state.image) return;
+    console.log("[Versus] Loading image:", state.image);
 
     const img = new Image();
     img.onload = () => {
-      if (!mounted) return;
+      console.log("[Versus] Image loaded. Size:", img.naturalWidth, "x", img.naturalHeight);
       setNaturalSize({ w: img.naturalWidth, h: img.naturalHeight });
     };
-    img.onerror = () => {
-      if (!mounted) return;
-      setNaturalSize(null);
+    img.onerror = (err) => {
+      console.error("[Versus] Failed to load image:", err);
     };
     img.src = state.image;
-
-    return () => {
-      mounted = false;
-    };
   }, [state.image]);
 
+  if (
+    !socket?.connected ||
+    !sessionId ||
+    // Partner ID checking relaxed for formal mode as requested
+    // (!partnerId && process.env.NODE_ENV !== 'production') || // Debug might still want it? user said "partner ID... needed for the debug version"
+    hasSubmitted ||
+    xCoor === null ||
+    yCoor === null
+  ) {
+    // ... logging ...
+  }
+
+  // ============================================
+  // DEBUG VERSION - Original Layout
+  // ============================================
+  /*
   return (
     <div className="flex flex-col items-center justify-center min-h-screen py-6 bg-gray-50">
       <div className="w-full max-w-4xl p-6 bg-white rounded-lg shadow-md flex flex-col h-[calc(100vh-3rem)]">
@@ -222,13 +228,98 @@ function VersusPageContent() {
           yCoor={yCoor}
         />
 
-        {/* Floating image display, styled like GamePage */}
         {state.image && (
           <ImagePreview
             imageSrc={state.image}
             naturalSize={naturalSize}
-            enlarged={isEnlarged} // Pass enlarged state to ImagePreview
-            setEnlarged={setIsEnlarged} // Allow ImagePreview to update enlarged state
+            enlarged={isEnlarged}
+            setEnlarged={setIsEnlarged}
+          />
+        )}
+
+        <ResultsPopup show={showPopup} setShow={setShowPopup} />
+      </div>
+    </div>
+  );
+  */
+
+  // ============================================
+  // FORMAL VERSION - New Layout
+  // ============================================
+  return (
+    <div className="fixed inset-0 flex items-center justify-center bg-gray-50 flex-wrap gap-1">
+      <div className="relative flex flex-col items-center justify-center w-full h-full">
+        {/* Toast for notifications */}
+        {toast && (
+          <div className="absolute top-4 z-50 px-4 py-2 bg-yellow-100 border border-yellow-400 text-yellow-700 rounded shadow-lg">
+            {toast}
+            <button onClick={() => setToast(null)} className="ml-2 font-bold">×</button>
+          </div>
+        )}
+
+        <div className="flex items-center justify-center w-full h-full">
+          <div className="flex flex-row items-center justify-between w-full h-full mx-auto my-auto bg-white rounded shadow-lg overflow-hidden relative">
+
+            {/* Left side: Controls (1/3) */}
+            <div className="flex flex-col justify-start items-center w-1/3 h-full bg-gray-50 border-r border-gray-200 p-4 pt-24 relative">
+
+              {/* GameControls handles all the sidebar UI now */}
+              <div className="w-full relative">
+                <GameControls
+                  onSubmit={handleSubmit}
+                  opponentHasSubmitted={opponentHasSubmitted}
+                  isRoundComplete={isRoundComplete}
+                  hasSubmitted={hasSubmitted}
+                  xCoor={xCoor}
+                  yCoor={yCoor}
+                  score={totalPoints}
+                  partnerScore={partnerPoints}
+                  round={round + 1}
+                  maxRounds={5} // Assuming 5 rounds for versus as well
+                  playerName={playerName}
+                />
+
+                {isRoundComplete && (
+                  <div className="mt-8 w-full px-4 left-0">
+                    <button
+                      onClick={() => setShowResult(false)}
+                      className="w-full px-4 py-3 bg-green-600 text-white font-bold rounded shadow-md hover:bg-green-700 transition"
+                    >
+                      Start Next Round
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Right side: Map (2/3) */}
+            <div className="flex justify-center items-center h-full w-2/3 relative z-0">
+              <GameMap
+                image={state.image}
+                xCoor={xCoor}
+                yCoor={yCoor}
+                setXCoor={isRoundComplete ? () => { } : setXCoor}
+                setYCoor={isRoundComplete ? () => { } : setYCoor}
+                xRightCoor={xRightCoor}
+                yRightCoor={yRightCoor}
+                showResult={showResult}
+                isRoundComplete={isRoundComplete}
+                onContinue={() => setShowResult(false)}
+                mapContainerRef={mapContainerRef}
+                disabled={isRoundComplete}
+                currentScore={currentRoundScore}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Floating Image Preview */}
+        {state.image && (
+          <ImagePreview
+            imageSrc={state.image}
+            naturalSize={naturalSize}
+            enlarged={isEnlarged}
+            setEnlarged={setIsEnlarged}
           />
         )}
 

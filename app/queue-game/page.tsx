@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useSocket } from "../../components/SocketProvider";
 
 export default function QueueGamePage() {
@@ -8,12 +8,36 @@ export default function QueueGamePage() {
     "idle" | "searching" | "matched" | "error"
   >("idle");
   const { socket, sessionId: contextSessionId } = useSocket();
+  const [playerName, setPlayerName] = useState("");
+
+  const generateRandomName = () => {
+    const adjectives = ["Swift", "Brave", "Clever", "Quick", "Eager", "Bright", "Sharp"];
+    const nouns = ["Goose", "Warrior", "Scholar", "Player", "Student", "Ranger", "Scout"];
+    const randomName = `${adjectives[Math.floor(Math.random() * adjectives.length)]}${nouns[Math.floor(Math.random() * nouns.length)]}`;
+    setPlayerName(randomName);
+  };
+
+  // Auto-generate name on mount so it's mandatory/pre-filled
+  useEffect(() => {
+    generateRandomName();
+  }, []);
 
   function handleJoinQueue() {
     if (!socket) {
       setStatus("error");
       return;
     }
+
+    // Validate name
+    if (!playerName.trim()) {
+      // Should not happen if auto-generated, but safety check
+      generateRandomName();
+      return;
+    }
+
+    // Save name to session storage
+    sessionStorage.setItem("versus_player_name", playerName.trim());
+
     setStatus("searching");
     socket.emit(
       "joinQueue",
@@ -50,15 +74,34 @@ export default function QueueGamePage() {
         </h1>
 
         {status === "idle" ? (
-          <button
-            className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 
-                      focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50
-                      transition-colors duration-200"
-            onClick={handleJoinQueue}
-            disabled={!socket}
-          >
-            {socket ? "Find an Opponent" : "Connecting..."}
-          </button>
+          <div className="w-full space-y-4">
+            <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder="Random Player Name"
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 focus:outline-none cursor-not-allowed"
+                value={playerName}
+                readOnly
+              />
+              <button
+                onClick={generateRandomName}
+                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                title="Generate New Random Name"
+              >
+                🎲
+              </button>
+            </div>
+
+            <button
+              className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 
+                        focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50
+                        transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={handleJoinQueue}
+              disabled={!socket || !playerName}
+            >
+              {socket ? "Find an Opponent" : "Connecting..."}
+            </button>
+          </div>
         ) : (
           <div className="py-4">
             <div className="animate-pulse flex flex-col items-center space-y-4">
