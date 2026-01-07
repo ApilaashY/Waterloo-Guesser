@@ -46,6 +46,7 @@ function VersusPageContent() {
   const [toast, setToast] = useState<string | null>(null);
   const [showResult, setShowResult] = useState(false);
   const [showPopup, setShowPopup] = useState<string | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
 
   // Game data state
   const [imageIDs, setImageIDs] = useState<string[]>([]);
@@ -102,6 +103,17 @@ function VersusPageContent() {
     setRound,
     setShowPopup,
   });
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   function handleSubmit() {
     if (
@@ -165,7 +177,12 @@ function VersusPageContent() {
 
     const img = new Image();
     img.onload = () => {
-      console.log("[Versus] Image loaded. Size:", img.naturalWidth, "x", img.naturalHeight);
+      console.log(
+        "[Versus] Image loaded. Size:",
+        img.naturalWidth,
+        "x",
+        img.naturalHeight
+      );
       setNaturalSize({ w: img.naturalWidth, h: img.naturalHeight });
     };
     img.onerror = (err) => {
@@ -253,18 +270,47 @@ function VersusPageContent() {
         {toast && (
           <div className="absolute top-4 z-50 px-4 py-2 bg-yellow-100 border border-yellow-400 text-yellow-700 rounded shadow-lg">
             {toast}
-            <button onClick={() => setToast(null)} className="ml-2 font-bold">×</button>
+            <button onClick={() => setToast(null)} className="ml-2 font-bold">
+              ×
+            </button>
           </div>
         )}
 
         <div className="flex items-center justify-center w-full h-full">
-          <div className="flex flex-row items-center justify-between w-full h-full mx-auto my-auto bg-white rounded shadow-lg overflow-hidden relative">
-
+          <style>
+            {`
+            .custom-grid {
+              display: grid;
+              grid-template-columns: 1fr 2fr;
+            }
+            
+            .controls-sidebar {
+              position: relative;
+            }
+            
+            @media (max-width: 768px) {
+              .custom-grid {
+                grid-template-columns: 1fr;
+              }
+              
+              .controls-sidebar {
+                position: absolute;
+                left: 0;
+                top: 0;
+                z-index: 10;
+              }
+            }
+          `}
+          </style>
+          <div className="custom-grid w-full h-full mx-auto my-auto bg-white rounded shadow-lg overflow-hidden relative">
             {/* Left side: Controls (1/3) */}
-            <div className="flex flex-col justify-start items-center w-1/3 h-full bg-gray-50 border-r border-gray-200 p-4 pt-24 relative">
-
+            <div className="controls-sidebar flex flex-col justify-start items-center h-fit p-4 pt-24">
               {/* GameControls handles all the sidebar UI now */}
-              <div className="w-full relative">
+              <div
+                className={`w-full relative ${
+                  isMobile ? "flex flex-wrap" : ""
+                } items-center`}
+              >
                 <GameControls
                   onSubmit={handleSubmit}
                   opponentHasSubmitted={opponentHasSubmitted}
@@ -293,13 +339,13 @@ function VersusPageContent() {
             </div>
 
             {/* Right side: Map (2/3) */}
-            <div className="flex justify-center items-center h-full w-2/3 relative z-0">
+            <div className="flex justify-center items-center h-full relative z-0">
               <GameMap
                 image={state.image}
                 xCoor={xCoor}
                 yCoor={yCoor}
-                setXCoor={isRoundComplete ? () => { } : setXCoor}
-                setYCoor={isRoundComplete ? () => { } : setYCoor}
+                setXCoor={isRoundComplete ? () => {} : setXCoor}
+                setYCoor={isRoundComplete ? () => {} : setYCoor}
                 xRightCoor={xRightCoor}
                 yRightCoor={yRightCoor}
                 showResult={showResult}

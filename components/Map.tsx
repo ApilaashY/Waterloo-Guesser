@@ -554,7 +554,7 @@ const Map = forwardRef(function Map(props: MapProps, ref) {
         style={{ position: "relative" }}
       >
         <div
-          className="relative md:rounded-2xl overflow-hidden bg-gray-200 md:border-4 md:border-black max-md:h-full"
+          className="relative md:rounded-2xl overflow-hidden bg-white md:border-4 md:border-black max-md:h-full"
           style={{}}
           tabIndex={0}
         >
