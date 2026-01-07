@@ -5,9 +5,20 @@ import { useState, useEffect } from "react";
 interface StartOverlayProps {
   onComplete: () => void;
   onCancel?: () => void;
+  title?: string;
+  subtitle?: string;
+  description?: string;
+  buttonText?: string;
 }
 
-export default function StartOverlay({ onComplete, onCancel }: StartOverlayProps) {
+export default function StartOverlay({
+  onComplete,
+  onCancel,
+  title = "READY?",
+  subtitle = "You'll have 5 rounds to guess campus locations",
+  description = "Click on the map where you think each photo was taken",
+  buttonText = "START GAME",
+}: StartOverlayProps) {
   const [countdown, setCountdown] = useState<number | null>(null);
   const [isStarting, setIsStarting] = useState(false);
 
@@ -86,13 +97,13 @@ export default function StartOverlay({ onComplete, onCancel }: StartOverlayProps
                   textShadow: "0 0 20px rgba(59, 130, 246, 0.6)",
                 }}
               >
-                READY?
+                {title}
               </h2>
               <p className="text-xl text-white/80 mb-2">
-                You'll have 5 rounds to guess campus locations
+                {subtitle}
               </p>
               <p className="text-lg text-white/60">
-                Click on the map where you think each photo was taken
+                {description}
               </p>
             </div>
 
@@ -101,7 +112,7 @@ export default function StartOverlay({ onComplete, onCancel }: StartOverlayProps
               className="group relative px-12 py-6 bg-gradient-to-br from-blue-500 to-blue-700 hover:from-blue-400 hover:to-blue-600 text-white font-bold text-2xl rounded-2xl shadow-2xl transition-all duration-300 transform hover:scale-105 active:scale-95"
               style={{ fontFamily: "Felgine, sans-serif" }}
             >
-              <span className="relative z-10">START GAME</span>
+              <span className="relative z-10">{buttonText}</span>
               <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             </button>
 

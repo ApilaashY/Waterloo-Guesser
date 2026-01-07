@@ -53,6 +53,9 @@ interface MapProps extends PropsWithChildren {
   zoom: number; // Additional styles for the score display
   pan: { x: number; y: number }; // Additional styles for the score display
   imageRef: React.RefObject<HTMLImageElement | null>; // Ref to the image element for dimension calculations
+  triangleData?: any;
+  userVertices?: (Array<{ x: number, y: number } | null>);
+  onMapClick?: (x: number, y: number) => void;
 }
 
 /**
@@ -464,8 +467,12 @@ const Map = forwardRef(function Map(props: MapProps, ref) {
       normalizedY >= 0 &&
       normalizedY <= 1
     ) {
-      props.setXCoor(normalizedX);
-      props.setYCoor(normalizedY);
+      if (props.onMapClick) {
+        props.onMapClick(normalizedX, normalizedY);
+      } else {
+        props.setXCoor(normalizedX);
+        props.setYCoor(normalizedY);
+      }
     } else {
       // Click was outside the actual image area
     }
@@ -533,13 +540,10 @@ const Map = forwardRef(function Map(props: MapProps, ref) {
         transform: `rotate(${angle}deg) translate(0, -50%)`,
         transformOrigin: "0 50%",
         height: `${3 * props.zoom}px`,
-        background: `repeating-linear-gradient(to right, black 0 ${
-          6 * props.zoom
-        }px, transparent ${6 * props.zoom}px ${12 * props.zoom}px, #febe30 ${
-          12 * props.zoom
-        }px ${18 * props.zoom}px, transparent ${18 * props.zoom}px ${
-          24 * props.zoom
-        }px)`, // or just black
+        background: `repeating-linear-gradient(to right, black 0 ${6 * props.zoom
+          }px, transparent ${6 * props.zoom}px ${12 * props.zoom}px, #febe30 ${12 * props.zoom
+          }px ${18 * props.zoom}px, transparent ${18 * props.zoom}px ${24 * props.zoom
+          }px)`, // or just black
         borderTop: "none",
       };
     }
@@ -571,9 +575,8 @@ const Map = forwardRef(function Map(props: MapProps, ref) {
           >
             <div
               onClick={handleClick}
-              className={`w-full h-full relative ${
-                props.zoom > 1 ? "cursor-grab" : "cursor-crosshair"
-              }`}
+              className={`w-full h-full relative ${props.zoom > 1 ? "cursor-grab" : "cursor-crosshair"
+                }`}
               style={{
                 cursor: props.zoom > 1 ? "grab" : "crosshair",
                 transition: "cursor 0.2s ease",
@@ -657,6 +660,102 @@ const Map = forwardRef(function Map(props: MapProps, ref) {
                   />
                 </div>
               )}
+
+              {/* User Triangle Overlay - Guesses */}
+              {props.userVertices && (
+                <div className="absolute inset-0 pointer-events-none z-10">
+                  <svg className="w-full h-full" style={{ overflow: 'visible' }}>
+                    {/* Polygon connecting user vertices */}
+                    {props.userVertices.filter(v => v !== null).length >= 2 && (
+                      <polygon
+                        points={props.userVertices
+                          .filter(v => v !== null)
+                          .map((v: any) => {
+                            const p = getMarkerPosition(v.x, v.y);
+                            return `${p.x},${p.y}`;
+                          })
+                          .join(' ')}
+                        fill="rgba(0, 0, 0, 0.1)"
+                        stroke="rgba(0, 0, 0, 0.5)"
+                        strokeWidth="2"
+                        strokeDasharray="5,5"
+                      />
+                    )}
+
+                    {/* User Vertex markers */}
+                    {props.userVertices.map((vertex, index) => {
+                      if (!vertex) return null;
+                      const p = getMarkerPosition(vertex.x, vertex.y);
+                      const colors = ["#EF4444", "#22C55E", "#3B82F6"]; // Red, Green, Blue
+                      return (
+                        <g key={`user-v-${index}`}>
+                          <circle
+                            cx={p.x}
+                            cy={p.y}
+                            r="8"
+                            fill={colors[index]}
+                            stroke="white"
+                            strokeWidth="2"
+                            style={{ filter: "drop-shadow(0 2px 3px rgba(0,0,0,0.3))" }}
+                          />
+                          <text x={p.x} y={p.y} dy="3" textAnchor="middle" fill="white" fontSize="10" fontWeight="bold">
+                            {index + 1}
+                          </text>
+                        </g>
+                      );
+                    })}
+                  </svg>
+                </div>
+              )}
+
+              {/* Correct Answer Triangle Overlay - Only rendered if triangleData is passed */}
+              {props.triangleData && props.triangleData.vertices && props.triangleData.vertices.length === 3 && (
+                <div className="absolute inset-0 pointer-events-none z-10">
+                  <svg className="w-full h-full" style={{ overflow: 'visible' }}>
+                    <polygon
+                      points={props.triangleData.vertices
+                        .map((v: any) => {
+                          const p = getMarkerPosition(v.x, v.y);
+                          return `${p.x},${p.y}`;
+                        })
+                        .join(' ')}
+                      fill="rgba(255, 255, 0, 0.2)"
+                      stroke="rgba(255, 255, 0, 0.8)"
+                      strokeWidth="2"
+                    />
+
+                    {/* Vertex markers */}
+                    {props.triangleData.vertices.map((vertex: any, index: number) => {
+                      const p = getMarkerPosition(vertex.x, vertex.y);
+                      return (
+                        <circle
+                          key={index}
+                          cx={p.x}
+                          cy={p.y}
+                          r="6"
+                          fill="blue"
+                          stroke="white"
+                          strokeWidth="2"
+                        />
+                      );
+                    })}
+
+                    {/* Centroid marker (only show if we have correct answer, i.e. current score/submission logic known by parent) */}
+                    {/* Note: Map doesn't know 'hasSubmitted', but if xRightCoor is passed, it implies submission/result state? */}
+                    {props.xRightCoor !== null && props.triangleData.centroid && (
+                      <circle
+                        cx={getMarkerPosition(props.triangleData.centroid.x, props.triangleData.centroid.y).x}
+                        cy={getMarkerPosition(props.triangleData.centroid.x, props.triangleData.centroid.y).y}
+                        r="4"
+                        fill="red"
+                        stroke="white"
+                        strokeWidth="2"
+                      />
+                    )}
+                  </svg>
+                </div>
+              )}
+
               {props.children}
             </div>
           </div>

@@ -6,7 +6,7 @@ import { useState, useEffect } from "react";
 const GAME_MODES = [
 	{ label: "Single Player", value: "normal", enabled: true },
 	{ label: "Multiplayer 1 on 1", value: "versus", enabled: true },
-	{ label: "Triangle Trouble", value: "triangle", enabled: true },
+	{ label: "It's a triangle", value: "triangle", enabled: true },
 	{ label: "Tutorial", value: "tutorial", enabled: true },
 	{ label: "Multiplayer Teams", value: "teams", enabled: false },
 	{ label: "Ranked", value: "ranked", enabled: false },
@@ -28,7 +28,7 @@ const TOOLTIP_TEXT = {
 	versus: "Challenge another player head-to-head in real-time competition.",
 	triangle: "View 3 photos forming a triangle and guess what's inside! Bonus points for identifying the triangle vertices and finding the centroid.",
 	teams: "Team up with friends and compete against other teams.",
-	ranked: "Competitive mode with rankings. Coming October 7th, 2025.",
+	ranked: "Competitive mode with rankings. Coming soon, 2026.",
 	tutorial: "Learn the basics and get familiar with the game mechanics.",
 	practice: "Improve your skills without pressure.",
 	private: "Invite friends, create your own team or play 1 on 1."
@@ -114,8 +114,8 @@ export default function ModesPage() {
 						<div key={mode.value} className="relative group">
 							<button
 								className={`w-full py-3 px-4 rounded-lg font-semibold text-lg transition relative flex items-center justify-center gap-2 ${mode.enabled
-										? "bg-yellow-600 text-white hover:bg-blue-700 cursor-pointer"
-										: "bg-gray-300 text-gray-500 cursor-not-allowed opacity-75"
+									? "bg-yellow-600 text-white hover:bg-blue-700 cursor-pointer"
+									: "bg-gray-300 text-gray-500 cursor-not-allowed opacity-75"
 									}`}
 								onClick={(e) => {
 									if (!mode.enabled) {
@@ -142,8 +142,8 @@ export default function ModesPage() {
 										{TOOLTIP_TEXT[mode.value as keyof typeof TOOLTIP_TEXT]}
 										{/* Arrow */}
 										<div className={`absolute w-0 h-0 ${isMobile
-												? 'top-full left-1/2 transform -translate-x-1/2 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900'
-												: 'left-0 top-1/2 transform -translate-y-1/2 -translate-x-full border-t-4 border-b-4 border-r-4 border-transparent border-r-gray-900'
+											? 'top-full left-1/2 transform -translate-x-1/2 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900'
+											: 'left-0 top-1/2 transform -translate-y-1/2 -translate-x-full border-t-4 border-b-4 border-r-4 border-transparent border-r-gray-900'
 											}`}></div>
 									</div>
 								</div>

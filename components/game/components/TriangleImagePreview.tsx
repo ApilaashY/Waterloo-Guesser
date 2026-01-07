@@ -49,9 +49,9 @@ export default function TriangleImagePreview({
   const vw =
     typeof window !== "undefined"
       ? Math.max(
-          document.documentElement.clientWidth || 0,
-          window.innerWidth || 0
-        )
+        document.documentElement.clientWidth || 0,
+        window.innerWidth || 0
+      )
       : 1200;
 
   // Modifier logic
@@ -78,9 +78,9 @@ export default function TriangleImagePreview({
   const vh =
     typeof window !== "undefined"
       ? Math.max(
-          document.documentElement.clientHeight || 0,
-          window.innerHeight || 0
-        )
+        document.documentElement.clientHeight || 0,
+        window.innerHeight || 0
+      )
       : 800;
   // Detect mobile devices
   const isMobile = typeof window !== "undefined" && vw < 768; // Mobile breakpoint
@@ -298,7 +298,7 @@ export default function TriangleImagePreview({
     pointersRef.current.delete(e.pointerId);
     try {
       (e.target as Element).releasePointerCapture?.(e.pointerId);
-    } catch {}
+    } catch { }
     if (pointersRef.current.size < 2) pinchRef.current = null;
     e.preventDefault();
   };
@@ -348,25 +348,25 @@ export default function TriangleImagePreview({
   const containerStyle = {
     ...(isMobile
       ? {
-          width: `${containerWidth * 1.5}px`,
-          height: `${containerHeight * 1.5 + 80}px`, // Extra height for triangle navigation
-        }
+        width: `${containerWidth * 1.5}px`,
+        height: `${containerHeight * 1.5}px`, // Adjusted height
+      }
       : {
-          width: `${containerWidth}px`,
-          height: `${containerHeight + 80}px`, // Extra height for triangle navigation
-        }),
+        width: `${containerWidth}px`,
+        height: `${containerHeight}px`, // Adjusted height
+      }),
     zIndex: 99999,
     position: "absolute" as const,
     // Center on mobile, bottom-left corner on desktop
     ...(isMobile
       ? {
-          left: "5px",
-          bottom: "5px",
-        }
+        left: "5px",
+        bottom: "5px",
+      }
       : {
-          left: "50px",
-          bottom: "50px",
-        }),
+        left: "50px",
+        bottom: "50px",
+      }),
     transition: "width 0.2s, height 0.2s",
   };
 
@@ -382,38 +382,15 @@ export default function TriangleImagePreview({
   return (
     <div
       style={containerStyle}
-      className="bg-white rounded-2xl border-4 border-black shadow-lg"
+      className="bg-white rounded-2xl border-4 border-black shadow-lg overflow-hidden"
       tabIndex={0}
     >
-      {/* Triangle Navigation */}
-      <div className="p-3 bg-gray-50 border-b border-gray-300">
-        <div className="text-center text-sm font-bold text-gray-800 mb-2">
-          Triangle Photos ({triangleImages.length}/3)
-        </div>
-        <div className="flex justify-center gap-2">
-          {triangleImages.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => setCurrentImageIndex(index)}
-              className={`px-3 py-1 rounded text-sm font-semibold transition ${
-                index === currentImageIndex
-                  ? "bg-blue-500 text-white"
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-              }`}
-            >
-              Vertex {index + 1}
-            </button>
-          ))}
-        </div>
-      </div>
+      {/* Triangle Navigation Removed - moved to GameControls */}
 
       {/* Image Container */}
       <div
         ref={containerRef}
-        className="relative rounded-b-xl overflow-hidden bg-gray-200"
-        style={{
-          height: isMobile ? `${containerHeight * 1.5}px` : `${containerHeight}px`,
-        }}
+        className="relative w-full h-full bg-gray-200"
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
@@ -444,11 +421,6 @@ export default function TriangleImagePreview({
             onPointerUp={handlePointerUp}
             onPointerCancel={handlePointerCancel}
           />
-        </div>
-        
-        {/* Vertex Label */}
-        <div className="absolute top-2 left-2 bg-blue-500 text-white px-2 py-1 rounded text-xs z-10">
-          Vertex {currentImageIndex + 1}
         </div>
       </div>
     </div>
