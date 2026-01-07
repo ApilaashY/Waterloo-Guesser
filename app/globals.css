@@ -51,6 +51,7 @@ html,
   src: url('/Dangrek/Dangrek-Regular.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
@@ -60,6 +61,7 @@ html,
        url('/Casko/Casko Luxury/CaskoLuxury-Regular.otf') format('opentype');
   font-weight: normal;
   font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
@@ -67,11 +69,15 @@ html,
   src: url('/Calista/Calista.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
   font-family: 'Felgine';
-  src: url('/Felgine/Felgine.otf') format('opentype');
+  src: url('/Felgine/Felgine.woff2') format('woff2'),
+       url('/Felgine/Felgine.woff') format('woff'),
+       url('/Felgine/Felgine.otf') format('opentype');
   font-weight: normal;
   font-style: normal;
+  font-display: swap; /* Prevent invisible text during font loading */
 }
