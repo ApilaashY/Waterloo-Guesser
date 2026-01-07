@@ -82,14 +82,14 @@ const GameMap = forwardRef<any, GameMapProps>(
     const panIntervalRef = useReactRef<NodeJS.Timeout | null>(null);
     const activeKeysRef = useReactRef<Set<string>>(new Set()); // Track all active keys
     const mapRef = useReactRef<any>(null); // Ref to access Map component
-    const [zoom, setZoom] =
-      overrideZoom !== undefined && setOverrideZoom !== undefined
-        ? [overrideZoom, setOverrideZoom]
-        : useState(1);
-    const [pan, setPan] =
-      overridePan !== undefined && setOverridePan !== undefined
-        ? [overridePan, setOverridePan]
-        : useState({ x: 0, y: 0 });
+
+    const [internalZoom, setInternalZoom] = useState(1);
+    const [internalPan, setInternalPan] = useState({ x: 0, y: 0 });
+
+    const zoom = overrideZoom !== undefined ? overrideZoom : internalZoom;
+    const setZoom = setOverrideZoom !== undefined ? setOverrideZoom : setInternalZoom;
+    const pan = overridePan !== undefined ? overridePan : internalPan;
+    const setPan = setOverridePan !== undefined ? setOverridePan : setInternalPan;
     const [containerDimensions, setContainerDimensions] = useState({
       width: DEFAULT_CONTAINER_WIDTH,
       height: DEFAULT_CONTAINER_HEIGHT,

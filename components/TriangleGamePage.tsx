@@ -16,6 +16,7 @@ import {
   GameMode,
   MatchService,
   GameService,
+  RoundResult,
 } from "./game";
 import GameStats from "./game/components/GameStats";
 import SingleGuessControls from "./game/components/SingleGuessControls";
@@ -212,9 +213,9 @@ export default function TriangleGamePage({ modifier }: TriangleGamePageProps) {
       score = Math.max(0, Math.round(5000 * (1 - distance / maxDistance)));
     }
 
-    const roundResult = {
+    const roundResult: RoundResult = {
       round: gameState.currentRound,
-      userCoordinates: null,
+      userCoordinates: { x: centroid.x, y: centroid.y },
       correctCoordinates: { x: centroid.x, y: centroid.y },
       points: score,
       distance: distance,

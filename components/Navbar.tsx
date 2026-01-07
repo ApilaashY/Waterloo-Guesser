@@ -10,15 +10,16 @@ import Logo from "./Logo";
 export default function Navbar() {
   const pathname = usePathname();
   const { user, isAuthenticated, logout } = useSession();
-
-  if (pathname && pathname.toLowerCase().endsWith("/game")) {
-    return null;
-  }
-
   const [active, setActive] = useState("home");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [visible, setVisible] = useState(true);
   const [loggingOut, setLoggingOut] = useState(false);
+  const isHomePage = pathname === "/";
+  const [animationComplete, setAnimationComplete] = useState<boolean>(false);
+
+  if (pathname && pathname.toLowerCase().endsWith("/game")) {
+    return null;
+  }
 
   useEffect(() => {
     setVisible(true);
@@ -30,9 +31,6 @@ export default function Navbar() {
     setLoggingOut(false);
     setMobileMenuOpen(false);
   };
-
-  const isHomePage = pathname === "/";
-  const [animationComplete, setAnimationComplete] = useState<boolean>(false);
 
   useEffect(() => {
     if (isHomePage) {

@@ -7,9 +7,9 @@ export default function ResultsPopup({
   show: string | null;
   setShow: (val: string | null) => void;
 }) {
-  if (!show) return null;
-
   const router = useRouter();
+
+  if (!show) return null;
 
   return (
     <>
