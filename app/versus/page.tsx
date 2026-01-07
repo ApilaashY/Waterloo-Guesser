@@ -21,6 +21,7 @@ import { LoadingState, ErrorState } from "./components/States";
 import { CldImage } from "next-cloudinary";
 import ResultsPopup from "./components/ResultsPopup";
 import ImagePreview from "@/components/game/components/ImagePreview";
+import StartOverlay from "@/components/game/components/StartOverlay";
 
 function VersusPageContent() {
   // Search params and connection state
@@ -65,6 +66,9 @@ function VersusPageContent() {
   const [yCoor, setYCoor] = useState<number | null>(null);
   const [xRightCoor, setXRightCoor] = useState<number | null>(null);
   const [yRightCoor, setYRightCoor] = useState<number | null>(null);
+
+  // Start Overlay
+  const [showStartOverlay, setShowStartOverlay] = useState(true);
 
   // Refs
   const mapContainerRef = useRef<HTMLDivElement>(null);
@@ -324,6 +328,17 @@ function VersusPageContent() {
         )}
 
         <ResultsPopup show={showPopup} setShow={setShowPopup} />
+
+        {/* Start Overlay */}
+        {showStartOverlay && (
+          <StartOverlay
+            onComplete={() => setShowStartOverlay(false)}
+            title="VERSUS MODE"
+            subtitle="Compete head-to-head!"
+            description="Guess closer than your opponent to win."
+            buttonText="I'M READY"
+          />
+        )}
       </div>
     </div>
   );

@@ -71,7 +71,7 @@ html,
 
 @font-face {
   font-family: 'Felgine';
-  src: url('/Felgine/Felgine-Regular.ttf') format('opentype');
-  font: normal;
+  src: url('/Felgine/Felgine.otf') format('opentype');
+  font-weight: normal;
   font-style: normal;
 }

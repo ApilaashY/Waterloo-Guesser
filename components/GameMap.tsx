@@ -46,6 +46,8 @@ interface GameMapProps {
   isRoundComplete?: boolean;
   onContinue?: () => void;
   mapContainerRef?: React.RefObject<HTMLDivElement | null>;
+  triangleData?: any;
+  userVertices?: (Array<{ x: number, y: number } | null>);
 }
 
 const GameMap = forwardRef<any, GameMapProps>(
@@ -72,6 +74,8 @@ const GameMap = forwardRef<any, GameMapProps>(
       isRoundComplete = false,
       onContinue,
       mapContainerRef,
+      triangleData,
+      userVertices,
     },
     ref
   ) => {
@@ -724,6 +728,11 @@ const GameMap = forwardRef<any, GameMapProps>(
             ? () => { }
             : (val: number | null) => handleCoordinateClick(null, val)
         }
+        onMapClick={
+          disabled || disableClickOnly
+            ? undefined
+            : handleCoordinateClick
+        }
         xRightCoor={xRightCoor}
         yRightCoor={yRightCoor}
         disabled={disabled}
@@ -733,6 +742,8 @@ const GameMap = forwardRef<any, GameMapProps>(
         zoom={zoom}
         pan={pan}
         imageRef={imageRef}
+        triangleData={triangleData}
+        userVertices={userVertices}
       />
     );
 
