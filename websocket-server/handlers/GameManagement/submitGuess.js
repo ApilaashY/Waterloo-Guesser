@@ -1,5 +1,12 @@
+import { GameType } from "../../types/GameType.js";
+
 // Function to calculate points based on guess accuracy
-export function calculatePoints(xCoor, yCoor, correctX, correctY) {
+export function calculatePoints(
+  xCoor,
+  yCoor,
+  correctX,
+  correctY
+) {
   // Calculate points based on distance (simple Euclidean for now)
   const dx = xCoor - correctX;
   const dy = yCoor - correctY;
@@ -44,15 +51,19 @@ export async function handleSubmitGuess(
       player2Socket.emit("partnerPoints", {
         points: game.player1Points + points,
       });
+      // Notify player 2 that player 1 has submitted
+      player2Socket.emit("partnerSubmitted");
     }
   } else if (game.player2Id == socketId) {
     game.player2Guess = { x: xCoor, y: yCoor };
 
-    // Notify both players of player 1's points
+    // Notify both players of player 2's points
     if (player1Socket) {
       player1Socket.emit("partnerPoints", {
         points: game.player2Points + points,
       });
+      // Notify player 1 that player 2 has submitted
+      player1Socket.emit("partnerSubmitted");
     }
     if (player2Socket) {
       player2Socket.emit("playerPoints", {
@@ -105,8 +116,11 @@ export async function handleSubmitGuess(
       const player1Socket = io.sockets.sockets.get(game.player1Id);
       const player2Socket = io.sockets.sockets.get(game.player2Id);
 
+      console.log(`[ROUND CHECK] Current Round Index: ${game.currentRoundIndex}`);
+
       // End the game if the round is 4 (5 rounds total)
       if (game.currentRoundIndex >= 4) {
+        console.log(`[GAME OVER] Round index ${game.currentRoundIndex} >= 4. Ending game.`);
         // Figure out the winner
         const winner =
           game.player1Points > game.player2Points
@@ -124,8 +138,12 @@ export async function handleSubmitGuess(
         return;
       }
 
+      console.log(`[NEXT ROUND] Proceeding to next round from index ${game.currentRoundIndex}`);
+
       // Reset Game
       await game.nextRound();
+
+      console.log(`[NEXT ROUND] New Round Index: ${game.currentRoundIndex}`);
 
       // Find and emit to player 1
       const player1Filtered = game.filterForPlayer({ player1: true });

@@ -176,27 +176,49 @@ export class GameType {
     // Get a random image and its answer from the image pool
     const db = await getDb();
     const collection = db.collection("base_locations");
-    const count = await collection.countDocuments();
+    // Fix: Only count approved images to ensure skip logic is correct
+    const count = await collection.countDocuments({ status: "approved" });
 
     if (count === 0) {
       console.log("[ROUND] No images found in the database");
       return;
     }
 
+    // Fix: If we've used all available images, reset the history to allow reuse
+    if (this.previousImages.length >= count) {
+      console.log("[ROUND] All images used. Resetting previousImages to allow reuse.");
+      this.previousImages = [];
+    }
+
     // Find a new image that hasn't been used in previous rounds
     let doc;
+    let attempts = 0;
+
+    // Try to find a unique image, but verify we don't loop forever
     do {
+      attempts++;
       const randomSkip = Math.floor(Math.random() * count);
       doc = await collection
         .find({ status: "approved" })
         .skip(randomSkip)
         .limit(1)
         .next();
-    } while (this.previousImages.includes(doc?.image.toString() || ""));
+
+      // Safety break to prevent infinite loops even if logic seems sound
+      if (attempts > 20) {
+        console.log("[ROUND] Could not find unique image after 20 attempts. Using current selection.");
+        break;
+      }
+    } while (doc && this.previousImages.includes(doc.image.toString()));
 
     if (!doc) {
-      console.log("[ROUND] Failed to fetch random image");
-      return;
+      console.log("[ROUND] Failed to fetch random image, trying to fetch first available.");
+      doc = await collection.find({ status: "approved" }).limit(1).next();
+
+      if (!doc) {
+        console.log("[ROUND] No approved images available at all.");
+        return;
+      }
     }
 
     // Update game information
@@ -212,6 +234,7 @@ export class GameType {
 
 export enum PlayerStatus {
   WAITING = "waiting",
+  READY = "ready",
   ACTIVE = "active",
   INACTIVE = "inactive",
 }
