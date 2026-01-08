@@ -140,6 +140,30 @@ function New-EC2Instance {
     param($SecurityGroupId)
     
     Write-ColorOutput "Launching EC2 Instance..." "Blue"
+
+    # Check for existing running instance
+    $existingInstanceJson = aws ec2 describe-instances --filters "Name=tag:Name,Values=waterloo-guesser-websocket" "Name=instance-state-name,Values=running" --region $Region --query 'Reservations[0].Instances[0]' --output json 2>$null
+    
+    if ($existingInstanceJson -and $existingInstanceJson -ne "null") {
+        try {
+            $existingInstance = $existingInstanceJson | ConvertFrom-Json
+            $instanceId = $existingInstance.InstanceId
+            $publicIp = $existingInstance.PublicIpAddress
+            
+            if ($instanceId) {
+                Write-ColorOutput "Found existing running instance: $instanceId" "Green"
+                Write-ColorOutput "Public IP: $publicIp" "Blue"
+                Write-ColorOutput "Reusing this instance. (If you want a fresh one, terminate this instance first)" "Yellow"
+                
+                return @{
+                    InstanceId = $instanceId
+                    PublicIp = $publicIp
+                }
+            }
+        } catch {
+            Write-ColorOutput "Error parsing existing instance data. Proceeding to create new one." "Yellow"
+        }
+    }
     
     # Get latest Amazon Linux 2023 AMI
     $amiId = aws ec2 describe-images --owners amazon --filters "Name=name,Values=al2023-ami-*" "Name=architecture,Values=x86_64" --query 'Images | sort_by(@, &CreationDate) | [-1].ImageId' --output text --region $Region
@@ -219,7 +243,7 @@ MONGODB_DB=$MongoDBDB
 ALLOWED_ORIGINS=$AllowedOrigins
 "@
     $envPath = "deployment.env"
-    $envContent | Out-File -FilePath $envPath -Encoding UTF8
+    $envContent | Out-File -FilePath $envPath -Encoding ASCII
     $deployFiles += $envPath
     
     # Create docker-compose.yml
@@ -243,7 +267,7 @@ services:
       retries: 3
 "@
     $composePath = "deployment-docker-compose.yml"
-    $composeContent | Out-File -FilePath $composePath -Encoding UTF8
+    $composeContent | Out-File -FilePath $composePath -Encoding ASCII
     $deployFiles += $composePath
     
     # Create deployment script
@@ -275,7 +299,8 @@ echo "Deployment complete!"
 docker-compose ps
 "@
     $scriptPath = "deploy-app.sh"
-    $deployScript | Out-File -FilePath $scriptPath -Encoding UTF8
+    $scriptPath = "deploy-app.sh"
+    $deployScript | Out-File -FilePath $scriptPath -Encoding ASCII
     $deployFiles += $scriptPath
     
     # Copy files to instance

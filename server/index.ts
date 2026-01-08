@@ -6,6 +6,8 @@ import { GameType } from "./types/GameType.js";
 import { handleJoinedGame } from "./handlers/GameManagement/joinedGame.js";
 import { handleSubmitGuess } from "./handlers/GameManagement/submitGuess.js";
 
+import { handlePlayerReady } from "./handlers/GameManagement/playerReady.js";
+
 const dev = process.env.NODE_ENV !== "production";
 const hostName = process.env.HOST || "localhost";
 const port = parseInt(process.env.PORT || "3000", 10);
@@ -43,6 +45,11 @@ app.prepare().then(() => {
     socket.on("joinedGame", (data: { sessionId: string; socketId: string }) =>
       handleJoinedGame(socket, data.sessionId, data.socketId, gameRooms)
     );
+
+    socket.on("playerReady", (data: { sessionId: string }) =>
+      handlePlayerReady(socket, data.sessionId, socket.id, gameRooms)
+    );
+
     socket.on(
       "submitGuess",
       (data: { x: number; y: number; sessionId: string }) =>

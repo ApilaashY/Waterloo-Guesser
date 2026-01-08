@@ -70,6 +70,7 @@ function VersusPageContent() {
 
   // Start Overlay
   const [showStartOverlay, setShowStartOverlay] = useState(true);
+  const [isReady, setIsReady] = useState(false);
 
   // Refs
   const mapContainerRef = useRef<HTMLDivElement>(null);
@@ -86,7 +87,9 @@ function VersusPageContent() {
     yRightCoor
   );
 
-  useVersusSocket({
+
+
+  const { emitPlayerReady } = useVersusSocket({
     socket,
     sessionId,
     partnerId,
@@ -221,9 +224,9 @@ function VersusPageContent() {
           partnerPoints={partnerPoints}
           roundNumber={round + 1}
         />
-
+  
         <Toast message={toast} />
-
+  
         <GameMap
           image={state.image}
           xCoor={xCoor}
@@ -239,7 +242,7 @@ function VersusPageContent() {
           disabled={isRoundComplete}
           currentScore={currentRoundScore}
         />
-
+  
         <GameControls
           onSubmit={handleSubmit}
           opponentHasSubmitted={opponentHasSubmitted}
@@ -248,7 +251,7 @@ function VersusPageContent() {
           xCoor={xCoor}
           yCoor={yCoor}
         />
-
+  
         {state.image && (
           <ImagePreview
             imageSrc={state.image}
@@ -257,7 +260,7 @@ function VersusPageContent() {
             setEnlarged={setIsEnlarged}
           />
         )}
-
+  
         <ResultsPopup show={showPopup} setShow={setShowPopup} />
       </div>
     </div>
@@ -311,9 +314,8 @@ function VersusPageContent() {
             <div className="controls-sidebar flex flex-col justify-start items-center h-fit p-4 pt-24">
               {/* GameControls handles all the sidebar UI now */}
               <div
-                className={`w-full relative ${
-                  isMobile ? "flex flex-wrap" : ""
-                } items-center`}
+                className={`w-full relative ${isMobile ? "flex flex-wrap" : ""
+                  } items-center`}
               >
                 <GameControls
                   onSubmit={handleSubmit}
@@ -348,8 +350,8 @@ function VersusPageContent() {
                 image={state.image}
                 xCoor={xCoor}
                 yCoor={yCoor}
-                setXCoor={isRoundComplete ? () => {} : setXCoor}
-                setYCoor={isRoundComplete ? () => {} : setYCoor}
+                setXCoor={isRoundComplete ? () => { } : setXCoor}
+                setYCoor={isRoundComplete ? () => { } : setYCoor}
                 xRightCoor={xRightCoor}
                 yRightCoor={yRightCoor}
                 showResult={showResult}
@@ -375,15 +377,34 @@ function VersusPageContent() {
 
         <ResultsPopup show={showPopup} setShow={setShowPopup} />
 
+        {/* Red Vignette Overlay (Heartbeat) */}
+        {opponentHasSubmitted && !hasSubmitted && (
+          <div className="fixed inset-0 animate-heartbeat z-40 pointer-events-none" />
+        )}
+
         {/* Start Overlay */}
         {showStartOverlay && (
           <StartOverlay
-            onComplete={() => setShowStartOverlay(false)}
+            onComplete={() => {
+              setShowStartOverlay(false);
+              setIsReady(true);
+              emitPlayerReady();
+            }}
             title="VERSUS MODE"
             subtitle="Compete head-to-head!"
             description="Guess closer than your opponent to win."
             buttonText="I'M READY"
           />
+        )}
+
+        {/* Waiting for Opponent Overlay */}
+        {!showStartOverlay && isReady && !state.image && (
+          <div className="fixed inset-0 flex items-center justify-center bg-black/80 z-50">
+            <div className="text-white text-center">
+              <div className="text-3xl font-bold animate-pulse mb-4">Waiting for opponent...</div>
+              <p className="text-gray-300">The game will start when both players are ready.</p>
+            </div>
+          </div>
         )}
       </div>
     </div>
