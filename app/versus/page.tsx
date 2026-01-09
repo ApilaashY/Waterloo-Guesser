@@ -22,6 +22,7 @@ import { CldImage } from "next-cloudinary";
 import ResultsPopup from "./components/ResultsPopup";
 import ImagePreview from "@/components/game/components/ImagePreview";
 import StartOverlay from "@/components/game/components/StartOverlay";
+import CountdownTimer from "./components/CountdownTimer";
 
 function VersusPageContent() {
   // Search params and connection state
@@ -62,6 +63,10 @@ function VersusPageContent() {
   const [opponentHasSubmitted, setOpponentHasSubmitted] = useState(false);
   const [isRoundComplete, setIsRoundComplete] = useState(false);
 
+  // Rematch and disconnect state
+  const [rematchStatus, setRematchStatus] = useState<{ player1Requested: boolean; player2Requested: boolean } | null>(null);
+  const [countdown, setCountdown] = useState<number | null>(null);
+
   // Coordinate state
   const [xCoor, setXCoor] = useState<number | null>(null);
   const [yCoor, setYCoor] = useState<number | null>(null);
@@ -89,7 +94,7 @@ function VersusPageContent() {
 
 
 
-  const { emitPlayerReady } = useVersusSocket({
+  const { emitPlayerReady, emitRematchRequest } = useVersusSocket({
     socket,
     sessionId,
     partnerId,
@@ -109,6 +114,8 @@ function VersusPageContent() {
     setShowResult,
     setRound,
     setShowPopup,
+    setRematchStatus,
+    setCountdown,
   });
 
   useEffect(() => {
@@ -198,18 +205,6 @@ function VersusPageContent() {
     img.src = state.image;
   }, [state.image]);
 
-  if (
-    !socket?.connected ||
-    !sessionId ||
-    // Partner ID checking relaxed for formal mode as requested
-    // (!partnerId && process.env.NODE_ENV !== 'production') || // Debug might still want it? user said "partner ID... needed for the debug version"
-    hasSubmitted ||
-    xCoor === null ||
-    yCoor === null
-  ) {
-    // ... logging ...
-  }
-
   // ============================================
   // DEBUG VERSION - Original Layout
   // ============================================
@@ -261,7 +256,12 @@ function VersusPageContent() {
           />
         )}
   
-        <ResultsPopup show={showPopup} setShow={setShowPopup} />
+        <ResultsPopup
+          show={showPopup}
+          setShow={setShowPopup}
+          onRematch={emitRematchRequest}
+          rematchStatus={rematchStatus}
+        />
       </div>
     </div>
   );
@@ -375,10 +375,18 @@ function VersusPageContent() {
           />
         )}
 
-        <ResultsPopup show={showPopup} setShow={setShowPopup} />
+        <ResultsPopup
+          show={showPopup}
+          setShow={setShowPopup}
+          onRematch={emitRematchRequest}
+          rematchStatus={rematchStatus}
+        />
+
+        {/* Countdown Timer */}
+        <CountdownTimer seconds={countdown} />
 
         {/* Red Vignette Overlay (Heartbeat) */}
-        {opponentHasSubmitted && !hasSubmitted && (
+        {opponentHasSubmitted && !hasSubmitted && !isRoundComplete && (
           <div className="fixed inset-0 animate-heartbeat z-40 pointer-events-none" />
         )}
 

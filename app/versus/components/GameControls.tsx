@@ -98,7 +98,7 @@ const GameControls: React.FC<GameControlsProps> = ({
       {/* Round display */}
       <div className=" z-50">
         <div className=" rounded-lg border-2 border-gray-300 shadow px-6 py-2 text-lg font-bold text-gray-800">
-          Round: {round} / {maxRounds}
+          Round: {round + 1} / {maxRounds}
         </div>
       </div>
 
