@@ -117,11 +117,12 @@ export async function handleSubmitGuess(
       const player1Socket = io.sockets.sockets.get(game.player1Id);
       const player2Socket = io.sockets.sockets.get(game.player2Id);
 
-      console.log(`[ROUND CHECK] Current Round Index: ${game.currentRoundIndex}`);
-
-      // End the game if the round is 4 (5 rounds total)
+      // End the game after 5 rounds (indices 0-4)
+      // Check happens before nextRound() increment, so end when currentRoundIndex is 4
       if (game.currentRoundIndex >= 4) {
-        console.log(`[GAME OVER] Round index ${game.currentRoundIndex} >= 4. Ending game.`);
+        console.log(
+          `[GAME OVER] Round index ${game.currentRoundIndex} >= 4. Ending game.`
+        );
         // Figure out the winner
         const winner: string =
           game.player1Points > game.player2Points
@@ -139,7 +140,9 @@ export async function handleSubmitGuess(
         return;
       }
 
-      console.log(`[NEXT ROUND] Proceeding to next round from index ${game.currentRoundIndex}`);
+      console.log(
+        `[NEXT ROUND] Proceeding to next round from index ${game.currentRoundIndex}`
+      );
 
       // Reset Game
       await game.nextRound();
