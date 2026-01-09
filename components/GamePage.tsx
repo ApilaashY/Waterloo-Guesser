@@ -15,6 +15,7 @@ import {
   MatchService,
 } from "./game";
 import SaveScoreModal from "./game/components/SaveScoreModal";
+import StartOverlay from "./game/components/StartOverlay";
 import { GameService } from "./game/services/gameService";
 import { useSession } from "./SessionProvider";
 import { Toaster, toast } from "react-hot-toast";
@@ -106,18 +107,42 @@ export default function GamePage({ modifier }: GamePageProps) {
   const [showSaveScoreModal, setShowSaveScoreModal] = useState(false);
   const [isSavingScore, setIsSavingScore] = useState(false);
 
+  // Start overlay state (for first-time game start)
+  const [showStartOverlay, setShowStartOverlay] = useState(true);
+  const [gameReady, setGameReady] = useState(false);
+
   // Timing state for server-side scoring
   const [imageLoadedAt, setImageLoadedAt] = useState<number | null>(null);
   const [guessSubmittedAt, setGuessSubmittedAt] = useState<number | null>(null);
   const [currentImageId, setCurrentImageId] = useState<string | null>(null);
 
-  // Initialize game
+  // Initialize game (but wait for start overlay)
   useEffect(() => {
-    if (!gameState.isStarted) {
+    if (!gameState.isStarted && gameReady) {
       startGame(GameMode.SinglePlayer);
       loadNewImage();
     }
-  }, [gameState.isStarted, startGame, loadNewImage]);
+  }, [gameState.isStarted, gameReady, startGame, loadNewImage]);
+
+  // Handle start overlay completion
+  const handleStartOverlayComplete = () => {
+    setShowStartOverlay(false);
+    setGameReady(true);
+  };
+
+  // Handle keyboard shortcut for start overlay
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (showStartOverlay && e.key === " ") {
+        e.preventDefault();
+        // Trigger the start button click
+        handleStartOverlayComplete();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [showStartOverlay]);
 
   // Load natural size when image changes
   useEffect(() => {
@@ -484,6 +509,11 @@ export default function GamePage({ modifier }: GamePageProps) {
           onSignUp={handleSignUp}
           isLoading={isSavingScore}
         />
+
+        {/* Start Overlay - shown only at the beginning of the game */}
+        {showStartOverlay && (
+          <StartOverlay onComplete={handleStartOverlayComplete} />
+        )}
       </div>
     </div>
   );

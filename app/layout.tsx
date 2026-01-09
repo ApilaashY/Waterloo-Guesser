@@ -44,6 +44,16 @@ export default function RootLayout({
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="/apple-icon.png" />
         <meta name="apple-mobile-web-app-title" content="UW Guesser" />
+
+        {/* Preload critical fonts to prevent FOUT/FOIT */}
+        <link
+          rel="preload"
+          href="/Felgine/Felgine.woff2"
+          as="font"
+          type="font/woff2"
+          crossOrigin="anonymous"
+        />
+
         <meta
           name="google-site-verification"
           content="-ATXFZ-e2LLTZwZsMAqDIq9LGpGzp49c4qP_pGsx4Ik"
@@ -103,6 +113,7 @@ export default function RootLayout({
             }
           `}
         </script>
+
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}

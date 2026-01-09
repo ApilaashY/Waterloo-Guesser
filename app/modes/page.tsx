@@ -6,27 +6,29 @@ import { useState, useEffect } from "react";
 const GAME_MODES = [
 	{ label: "Single Player", value: "normal", enabled: true },
 	{ label: "Multiplayer 1 on 1", value: "versus", enabled: true },
+	{ label: "It's a triangle", value: "triangle", enabled: true },
+	{ label: "Tutorial", value: "tutorial", enabled: true },
 	{ label: "Multiplayer Teams", value: "teams", enabled: false },
 	{ label: "Ranked", value: "ranked", enabled: false },
-	{ label: "Tutorial", value: "tutorial", enabled: false },
-    { label: "Practice", value: "practice", enabled: false },
-    { label: "Private", value: "private", enabled: false }
+	{ label: "Practice", value: "practice", enabled: false },
+	{ label: "Private", value: "private", enabled: false }
 ];
 
 const Modifiers = [
-    { label: "No Modifiers", value: "none" },
-    { label: "90s Style", value: "grayscale" },
-    // { label: "Flash", value: "1-second" },
-    { label: "Spectra Inversion", value: "inverted-colors" },
-    { label: "Random Modifiers", value: "random" },
-	{ label: "thanks for playing more coming soon! (sleep-deprived dev)", value: "" }
+	{ label: "No Modifiers", value: "none" },
+	{ label: "90s Style", value: "grayscale" },
+	// { label: "Flash", value: "1-second" },
+	{ label: "Spectra Inversion", value: "inverted-colors" },
+	{ label: "Random Modifiers", value: "random" },
+	// { label: "thanks for playing more coming soon! (sleep-deprived dev)", value: "" }
 ];
 
 const TOOLTIP_TEXT = {
 	normal: "Play solo and test your knowledge of the UW campus at your own pace.",
 	versus: "Challenge another player head-to-head in real-time competition.",
+	triangle: "View 3 photos forming a triangle and guess what's inside! Bonus points for identifying the triangle vertices and finding the centroid.",
 	teams: "Team up with friends and compete against other teams.",
-	ranked: "Competitive mode with rankings. Coming October 7th, 2025.",
+	ranked: "Competitive mode with rankings. Coming soon, 2026.",
 	tutorial: "Learn the basics and get familiar with the game mechanics.",
 	practice: "Improve your skills without pressure.",
 	private: "Invite friends, create your own team or play 1 on 1."
@@ -53,17 +55,24 @@ export default function ModesPage() {
 	const handleSelect = (mode: string, enabled: boolean) => {
 		if (!enabled) return;
 
-		// Build query params with modifier
+		// Build query params with modifier and mode
 		const queryParams = new URLSearchParams();
 		if (selectedModifier !== "none") {
 			queryParams.set("modifier", selectedModifier);
 		}
+		if (mode !== "normal") {
+			queryParams.set("mode", mode);
+		}
 		const queryString = queryParams.toString();
 		const queryPart = queryString ? `?${queryString}` : "";
 
-		// You can pass mode info via query string if needed
+		// Route based on mode
 		if (mode === "versus") {
 			router.push(`/queue-game${queryPart}`);
+		} else if (mode === "triangle") {
+			router.push(`/game${queryPart}`);
+		} else if (mode === "tutorial") {
+			router.push(`/tutorial`);
 		} else {
 			router.push(`/game${queryPart}`);
 		}
@@ -81,34 +90,33 @@ export default function ModesPage() {
 
 	return (
 		<div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-yellow-100 to-blue-100">
- 				<div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md relative">
- 					<h1 className="text-2xl font-bold mb-6 text-center">Select Game Mode</h1>
- 
- 					{/* Modifiers Section */}
- 					<div className="mb-6">
- 						<h2 className="text-lg font-semibold mb-3 text-center">Game Modifiers</h2>
- 						<select
- 							value={selectedModifier}
- 							onChange={(e) => setSelectedModifier(e.target.value)}
- 							className="w-full py-2 px-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
- 						>
- 							{Modifiers.map((modifier) => (
- 								<option key={modifier.value} value={modifier.value}>
- 									{modifier.label}
- 								</option>
- 							))}
- 						</select>
- 					</div>
- 
- 					<div className="space-y-4">
+			<div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md relative">
+				<h1 className="text-2xl font-bold mb-6 text-center">Select Game Mode</h1>
+
+				{/* Modifiers Section */}
+				<div className="mb-6">
+					<h2 className="text-lg font-semibold mb-3 text-center">Game Modifiers</h2>
+					<select
+						value={selectedModifier}
+						onChange={(e) => setSelectedModifier(e.target.value)}
+						className="w-full py-2 px-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+					>
+						{Modifiers.map((modifier) => (
+							<option key={modifier.value} value={modifier.value}>
+								{modifier.label}
+							</option>
+						))}
+					</select>
+				</div>
+
+				<div className="space-y-4">
 					{GAME_MODES.map((mode) => (
 						<div key={mode.value} className="relative group">
 							<button
-								className={`w-full py-3 px-4 rounded-lg font-semibold text-lg transition relative flex items-center justify-center gap-2 ${
-									mode.enabled
-										? "bg-yellow-600 text-white hover:bg-blue-700 cursor-pointer"
-										: "bg-gray-300 text-gray-500 cursor-not-allowed opacity-75"
-								}`}
+								className={`w-full py-3 px-4 rounded-lg font-semibold text-lg transition relative flex items-center justify-center gap-2 ${mode.enabled
+									? "bg-yellow-600 text-white hover:bg-blue-700 cursor-pointer"
+									: "bg-gray-300 text-gray-500 cursor-not-allowed opacity-75"
+									}`}
 								onClick={(e) => {
 									if (!mode.enabled) {
 										e.preventDefault();
@@ -133,11 +141,10 @@ export default function ModesPage() {
 									<div className="relative px-4 py-3 bg-gray-900 text-white text-sm rounded-lg shadow-lg max-w-xs whitespace-normal">
 										{TOOLTIP_TEXT[mode.value as keyof typeof TOOLTIP_TEXT]}
 										{/* Arrow */}
-										<div className={`absolute w-0 h-0 ${
-											isMobile
-												? 'top-full left-1/2 transform -translate-x-1/2 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900'
-												: 'left-0 top-1/2 transform -translate-y-1/2 -translate-x-full border-t-4 border-b-4 border-r-4 border-transparent border-r-gray-900'
-										}`}></div>
+										<div className={`absolute w-0 h-0 ${isMobile
+											? 'top-full left-1/2 transform -translate-x-1/2 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900'
+											: 'left-0 top-1/2 transform -translate-y-1/2 -translate-x-full border-t-4 border-b-4 border-r-4 border-transparent border-r-gray-900'
+											}`}></div>
 									</div>
 								</div>
 							)}
@@ -146,7 +153,7 @@ export default function ModesPage() {
 						</div>
 					))}
 				</div>
-				
+
 			</div>
 		</div>
 	);

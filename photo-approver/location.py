@@ -3,12 +3,15 @@ from dotenv import find_dotenv, load_dotenv, dotenv_values
 import cv2
 import numpy as np
 import requests
+import certifi
 
 load_dotenv(find_dotenv("../.env"))
 
+print(dotenv_values()["MONGODB_URI"])
 
 client = pymongo.MongoClient(
-    dotenv_values()["MONGODB_URI"]
+    dotenv_values()["MONGODB_URI"],
+    tlsCAFile=certifi.where()
 )
 
 collection = client.get_database("UWguesser").get_collection("base_locations")

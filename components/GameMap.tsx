@@ -46,6 +46,8 @@ interface GameMapProps {
   isRoundComplete?: boolean;
   onContinue?: () => void;
   mapContainerRef?: React.RefObject<HTMLDivElement | null>;
+  triangleData?: any;
+  userVertices?: (Array<{ x: number, y: number } | null>);
 }
 
 const GameMap = forwardRef<any, GameMapProps>(
@@ -72,20 +74,22 @@ const GameMap = forwardRef<any, GameMapProps>(
       isRoundComplete = false,
       onContinue,
       mapContainerRef,
+      triangleData,
+      userVertices,
     },
     ref
   ) => {
     const panIntervalRef = useReactRef<NodeJS.Timeout | null>(null);
     const activeKeysRef = useReactRef<Set<string>>(new Set()); // Track all active keys
     const mapRef = useReactRef<any>(null); // Ref to access Map component
-    const [zoom, setZoom] =
-      overrideZoom !== undefined && setOverrideZoom !== undefined
-        ? [overrideZoom, setOverrideZoom]
-        : useState(1);
-    const [pan, setPan] =
-      overridePan !== undefined && setOverridePan !== undefined
-        ? [overridePan, setOverridePan]
-        : useState({ x: 0, y: 0 });
+
+    const [internalZoom, setInternalZoom] = useState(1);
+    const [internalPan, setInternalPan] = useState({ x: 0, y: 0 });
+
+    const zoom = overrideZoom !== undefined ? overrideZoom : internalZoom;
+    const setZoom = setOverrideZoom !== undefined ? setOverrideZoom : setInternalZoom;
+    const pan = overridePan !== undefined ? overridePan : internalPan;
+    const setPan = setOverridePan !== undefined ? setOverridePan : setInternalPan;
     const [containerDimensions, setContainerDimensions] = useState({
       width: DEFAULT_CONTAINER_WIDTH,
       height: DEFAULT_CONTAINER_HEIGHT,
@@ -255,11 +259,30 @@ const GameMap = forwardRef<any, GameMapProps>(
               const mouseOffsetX = mouseX - imageRect.width / 2;
               const mouseOffsetY = mouseY - imageRect.height / 2;
 
-              // Calculate new pan using the zoom-to-cursor formula
-              const newPanX =
-                mouseOffsetX * (1 / newZoom - 1 / currentZoom) + currentPan.x;
-              const newPanY =
-                mouseOffsetY * (1 / newZoom - 1 / currentZoom) + currentPan.y;
+              // Calculate new pan to keep the point under the cursor fixed
+              // With transform: scale(zoom) translate(pan), a point P on the image appears at:
+              // screenPos = imageCenter + P * zoom + pan
+              //
+              // The point under the cursor in image coordinates is at mouseOffset (from center)
+              // Before zoom: screenPos = center + mouseOffset * currentZoom + currentPan
+              // After zoom:  screenPos = center + mouseOffset * newZoom + newPan
+              //
+              // For the cursor point to stay fixed:
+              // mouseOffset * currentZoom + currentPan = mouseOffset * newZoom + newPan
+              // newPan = mouseOffset * currentZoom - mouseOffset * newZoom + currentPan
+              // newPan = mouseOffset * (currentZoom - newZoom) + currentPan
+
+              // Calculate new pan to keep the point under the cursor fixed
+              // With transform: scale(zoom) translate(pan), the translation is scaled.
+              // Formula derived: NewPan = P_i * (OldZoom/NewZoom - 1) + OldPan * (OldZoom/NewZoom)
+              // Where P_i = mouseOffset / currentZoom
+
+              const ratio = currentZoom / newZoom;
+              const pX = mouseOffsetX / currentZoom;
+              const pY = mouseOffsetY / currentZoom;
+
+              const newPanX = pX * (ratio - 1) + currentPan.x * ratio;
+              const newPanY = pY * (ratio - 1) + currentPan.y * ratio;
 
               // Clamp the new pan to valid bounds
               const clampedPan = clampPan(newPanX, newPanY, newZoom);
@@ -411,13 +434,16 @@ const GameMap = forwardRef<any, GameMapProps>(
                   const centerOffsetX = centerX - imageRect.width / 2;
                   const centerOffsetY = centerY - imageRect.height / 2;
 
-                  // Calculate new pan using zoom-to-cursor formula
-                  const newPanX =
-                    centerOffsetX * (1 / clampedZoom - 1 / currentZoom) +
-                    currentPan.x;
-                  const newPanY =
-                    centerOffsetY * (1 / clampedZoom - 1 / currentZoom) +
-                    currentPan.y;
+                  // Calculate new pan to keep the point under the pinch center fixed
+                  // Same formula as wheel zoom
+                  // Calculate new pan to keep the point under the pinch center fixed
+
+                  const ratio = currentZoom / clampedZoom;
+                  const pX = centerOffsetX / currentZoom;
+                  const pY = centerOffsetY / currentZoom;
+
+                  const newPanX = pX * (ratio - 1) + currentPan.x * ratio;
+                  const newPanY = pY * (ratio - 1) + currentPan.y * ratio;
 
                   // Clamp the new pan to valid bounds
                   const clampedPan = clampPan(newPanX, newPanY, clampedZoom);
@@ -694,13 +720,18 @@ const GameMap = forwardRef<any, GameMapProps>(
         yCoor={yCoor}
         setXCoor={
           disabled || disableClickOnly
-            ? () => {}
+            ? () => { }
             : (val: number | null) => handleCoordinateClick(val, null)
         }
         setYCoor={
           disabled || disableClickOnly
-            ? () => {}
+            ? () => { }
             : (val: number | null) => handleCoordinateClick(null, val)
+        }
+        onMapClick={
+          disabled || disableClickOnly
+            ? undefined
+            : handleCoordinateClick
         }
         xRightCoor={xRightCoor}
         yRightCoor={yRightCoor}
@@ -711,6 +742,8 @@ const GameMap = forwardRef<any, GameMapProps>(
         zoom={zoom}
         pan={pan}
         imageRef={imageRef}
+        triangleData={triangleData}
+        userVertices={userVertices}
       />
     );
 

@@ -22,6 +22,7 @@ interface UseVersusSocketProps {
   setYRightCoor: (y: number | null) => void;
   setTotalPoints: (points: number) => void;
   setPartnerPoints: (points: number) => void;
+  setCurrentRoundScore: (points: number) => void;
   setShowResult: (show: boolean) => void;
   setRound: (round: number) => void;
   setShowPopup: (show: string) => void;
@@ -43,12 +44,14 @@ export function useVersusSocket({
   setYRightCoor,
   setTotalPoints,
   setPartnerPoints,
+  setCurrentRoundScore,
   setShowResult,
   setRound,
   setShowPopup,
 }: UseVersusSocketProps) {
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const currentRoundId = useRef<string | null>(null);
+  const previousRoundPoints = useRef<number>(0);
 
   // Connection handlers
   const onConnect = useCallback(() => {
@@ -97,11 +100,15 @@ export function useVersusSocket({
       setYRightCoor(null);
       setShowResult(false);
       setHasSubmitted(false);
+      setOpponentHasSubmitted(false);
       setXCoor(null);
       setYCoor(null);
       setRound(data.currentRoundIndex);
+      // Update cumulative scores from server data
+      setTotalPoints(data.points);
+      setPartnerPoints(data.partnerPoints);
     },
-    [setState]
+    [setState, setIsRoundComplete, setXRightCoor, setYRightCoor, setShowResult, setHasSubmitted, setOpponentHasSubmitted, setXCoor, setYCoor, setRound, setTotalPoints, setPartnerPoints]
   );
 
   const onRoundOver = useCallback(
@@ -112,9 +119,15 @@ export function useVersusSocket({
       setYRightCoor(data.answer.y);
       setTotalPoints(data.points);
       setPartnerPoints(data.partnerPoints);
+      // Calculate current round score (difference from previous total)
+      const roundScore = data.points - previousRoundPoints.current;
+      setCurrentRoundScore(roundScore);
+      console.log("[Versus] Current round score:", roundScore, "Total:", data.points, "Previous:", previousRoundPoints.current);
+      // Update previous round points for next calculation
+      previousRoundPoints.current = data.points;
       setShowResult(true);
     },
-    [setState]
+    [setIsRoundComplete, setXRightCoor, setYRightCoor, setTotalPoints, setPartnerPoints, setCurrentRoundScore, setShowResult]
   );
 
   const onPlayerPoints = useCallback(
@@ -130,8 +143,13 @@ export function useVersusSocket({
       console.log("[Versus] Received partner points:", data);
       setPartnerPoints(data.points);
     },
-    [setPartnerPoints, setOpponentHasSubmitted]
+    [setPartnerPoints]
   );
+
+  const onPartnerSubmitted = useCallback(() => {
+    console.log("[Versus] Partner has submitted their guess");
+    setOpponentHasSubmitted(true);
+  }, [setOpponentHasSubmitted]);
 
   const onGameOver = useCallback(
     async (data: { winner: string; tie: boolean }) => {
@@ -150,6 +168,13 @@ export function useVersusSocket({
     [setShowPopup]
   );
 
+  const emitPlayerReady = useCallback(() => {
+    if (socket && sessionId) {
+      console.log("[Versus] Emitting playerReady");
+      socket.emit("playerReady", { sessionId });
+    }
+  }, [socket, sessionId]);
+
   // Socket event setup
   useEffect(() => {
     if (!socket || !sessionId) {
@@ -158,7 +183,7 @@ export function useVersusSocket({
     }
 
     console.log(`[Versus] Identifying session ${sessionId} to the server.`);
-    socket.emit("identify", sessionId);
+    socket.emit("joinedGame", { sessionId, socketId: socket.id });
 
     console.log("[Versus] Setting up socket event listeners");
 
@@ -174,6 +199,7 @@ export function useVersusSocket({
     socket.on("roundOver", onRoundOver);
     socket.on("playerPoints", onPlayerPoints);
     socket.on("partnerPoints", onPartnerPoints);
+    socket.on("partnerSubmitted", onPartnerSubmitted);
     socket.on("gameOver", onGameOver);
 
     return () => {
@@ -189,7 +215,8 @@ export function useVersusSocket({
       socket.off("roundOver", onRoundOver);
       socket.off("playerPoints", onPlayerPoints);
       socket.off("partnerPoints", onPartnerPoints);
-      socket.off("gameOver", onGameOver); // Add this missing cleanup
+      socket.off("partnerSubmitted", onPartnerSubmitted);
+      socket.off("gameOver", onGameOver);
     };
   }, [
     socket,
@@ -200,11 +227,18 @@ export function useVersusSocket({
     onConnectError,
     onReconnectAttempt,
     onReconnectError,
+    onRoundStart,
+    onRoundOver,
+    onPlayerPoints,
+    onPartnerPoints,
+    onPartnerSubmitted,
+    onGameOver,
     setIsRoundComplete,
     setHasSubmitted,
   ]);
 
   return {
     currentRoundId: currentRoundId.current,
+    emitPlayerReady,
   };
 }

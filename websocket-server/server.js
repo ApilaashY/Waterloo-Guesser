@@ -5,10 +5,11 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 
 // Import your existing handlers
-import { handleAddToQueue } from '../server/handlers/QueueManagement/addToQueue.js';
-import { handleJoinedGame } from '../server/handlers/GameManagement/joinedGame.js';
-import { handleSubmitGuess } from '../server/handlers/GameManagement/submitGuess.js';
-import { GameType } from '../server/types/GameType.js';
+import { handleAddToQueue } from './handlers/QueueManagement/addToQueue.js';
+import { handleJoinedGame } from './handlers/GameManagement/joinedGame.js';
+import { handlePlayerReady } from './handlers/GameManagement/playerReady.js';
+import { handleSubmitGuess } from './handlers/GameManagement/submitGuess.js';
+import { GameType } from './types/GameType.js';
 
 dotenv.config();
 
@@ -16,21 +17,37 @@ const app = express();
 const port = process.env.PORT || 3001;
 
 // Enable CORS for health checks and any HTTP endpoints
-app.use(cors({
-  origin: [
-    'http://localhost:3000',
-    'https://your-vercel-domain.vercel.app', // Replace with your Vercel domain
-    'https://*.vercel.app' // Allow all Vercel preview deployments
-  ],
+// Use a function to handle dynamic origin validation
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl)
+    if (!origin) return callback(null, true);
+
+    const allowedOrigins = [
+      'http://localhost:3000',
+      'https://uwguesser.com',
+      'https://www.uwguesser.com'
+    ];
+
+    // Check if origin matches allowed list or is a Vercel deployment
+    if (allowedOrigins.indexOf(origin) !== -1 || origin.endsWith('.vercel.app')) {
+      callback(null, true);
+    } else {
+      console.log('[CORS] Rejected origin:', origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true
-}));
+};
+
+app.use(cors(corsOptions));
 
 app.use(express.json());
 
 // Health check endpoint for AWS Load Balancer
 app.get('/health', (req, res) => {
-  res.status(200).json({ 
-    status: 'healthy', 
+  res.status(200).json({
+    status: 'healthy',
     timestamp: new Date().toISOString(),
     uptime: process.uptime()
   });
@@ -46,11 +63,24 @@ const httpServer = createServer(app);
 // Configure Socket.IO with CORS
 const io = new Server(httpServer, {
   cors: {
-    origin: [
-      'http://localhost:3000',
-      'https://your-vercel-domain.vercel.app', // Replace with your Vercel domain
-      'https://*.vercel.app'
-    ],
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps or curl)
+      if (!origin) return callback(null, true);
+
+      const allowedOrigins = [
+        'http://localhost:3000',
+        'https://uwguesser.com',
+        'https://www.uwguesser.com'
+      ];
+
+      // Check if origin matches allowed list or is a Vercel deployment
+      if (allowedOrigins.indexOf(origin) !== -1 || origin.endsWith('.vercel.app')) {
+        callback(null, true);
+      } else {
+        console.log('[Socket.IO CORS] Rejected origin:', origin);
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     methods: ['GET', 'POST'],
     credentials: true,
   },
@@ -80,6 +110,11 @@ io.on('connection', (socket) => {
     handleJoinedGame(socket, data.sessionId, data.socketId, gameRooms);
   });
 
+  socket.on('playerReady', (data) => {
+    console.log(`User ${socket.id} ready in session:`, data.sessionId);
+    handlePlayerReady(socket, data.sessionId, socket.id, gameRooms);
+  });
+
   socket.on('submitGuess', (data) => {
     console.log(`User ${socket.id} submitting guess for session:`, data.sessionId);
     handleSubmitGuess(
@@ -94,7 +129,7 @@ io.on('connection', (socket) => {
 
   socket.on('disconnect', (reason) => {
     console.log(`User disconnected: ${socket.id}, reason: ${reason}`);
-    
+
     // Clean up user from queue if they were waiting
     const queueIndex = queue.findIndex(s => s.id === socket.id);
     if (queueIndex !== -1) {

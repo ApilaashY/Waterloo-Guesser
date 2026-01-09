@@ -22,10 +22,87 @@ interface ImageRecordsResponse {
   averageDistance: number;
 }
 
+// Interface for Triangle mode response
+interface TriangleResponse {
+  mode: "triangle";
+  images: Array<{
+    image: string;
+    id: string;
+    correctX: number;
+    correctY: number;
+    records: ImageRecordsResponse;
+  }>;
+  triangleData: {
+    centroid: { x: number; y: number };
+    vertices: Array<{ x: number; y: number }>;
+    area: number;
+  };
+}
+
 // Function to get current month in YYYY-MM format
 function getCurrentMonth(): string {
   const now = new Date();
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+}
+
+// Function to calculate triangle centroid
+function calculateCentroid(vertices: Array<{ x: number; y: number }>): { x: number; y: number } {
+  const sumX = vertices.reduce((sum, vertex) => sum + vertex.x, 0);
+  const sumY = vertices.reduce((sum, vertex) => sum + vertex.y, 0);
+  return {
+    x: sumX / vertices.length,
+    y: sumY / vertices.length
+  };
+}
+
+// Function to calculate triangle area using shoelace formula
+function calculateTriangleArea(vertices: Array<{ x: number; y: number }>): number {
+  if (vertices.length !== 3) return 0;
+  
+  const [a, b, c] = vertices;
+  return Math.abs((a.x * (b.y - c.y) + b.x * (c.y - a.y) + c.x * (a.y - b.y)) / 2);
+}
+
+// Function to select 3 images that form a good triangle
+async function selectTriangleImages(collection: any, previousCodes: string[]): Promise<any[]> {
+  let query: any = { status: "approved" };
+  if (previousCodes.length > 0) {
+    const objectIds = previousCodes
+      .filter((id) => ObjectId.isValid(id))
+      .map((id) => ObjectId.createFromHexString(id));
+    query = { _id: { $nin: objectIds } };
+  }
+
+  // Get all available images
+  const allDocs = await collection.find(query).toArray();
+  if (allDocs.length < 3) {
+    throw new Error("Not enough images available for triangle mode");
+  }
+
+  // Try to find 3 images that form a good triangle (not too small, not too linear)
+  const maxAttempts = 50;
+  let bestTriangle = null;
+  let bestScore = 0;
+
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    // Randomly select 3 images
+    const shuffled = allDocs.sort(() => 0.5 - Math.random());
+    const candidates = shuffled.slice(0, 3);
+    
+    const vertices = candidates.map((doc: any) => ({ x: doc.xCoordinate, y: doc.yCoordinate }));
+    const area = calculateTriangleArea(vertices);
+    
+    // Score based on area (prefer larger triangles) and avoid degenerate triangles
+    if (area > 0.01) { // Minimum area threshold
+      const score = area;
+      if (score > bestScore) {
+        bestScore = score;
+        bestTriangle = candidates;
+      }
+    }
+  }
+
+  return bestTriangle || allDocs.slice(0, 3); // Fallback to first 3 if no good triangle found
 }
 
 // Function to fetch image records from base_locations collection
@@ -73,17 +150,69 @@ export async function POST(req: NextRequest) {
     const collection = db.collection("base_locations");
     console.log("[getPhoto] DB connect:", Date.now() - dbStart, "ms");
 
-    // Optionally, filter out previously used images
+    // Parse request body
     let previousCodes: string[] = [];
     let forceId: string | undefined = undefined;
+    let mode: string = "normal"; // Default to normal mode
     let bodyParseStart = Date.now();
     try {
       const body = await req.json();
       previousCodes = body.previousCodes || [];
       forceId = body.forceId;
+      mode = body.mode || "normal";
     } catch {}
     console.log("[getPhoto] Body parse:", Date.now() - bodyParseStart, "ms");
 
+    // Handle Triangle Trouble mode
+    if (mode === "triangle") {
+      console.log("[getPhoto] Triangle mode requested");
+      const triangleStart = Date.now();
+      
+      try {
+        const triangleImages = await selectTriangleImages(collection, previousCodes);
+        console.log("[getPhoto] Triangle selection:", Date.now() - triangleStart, "ms");
+        
+        // Get records for each image and prepare response
+        const imagesWithRecords = await Promise.all(
+          triangleImages.map(async (doc: any) => {
+            const records = await getImageRecords(db, doc._id.toString());
+            return {
+              image: doc.image ?? null,
+              id: doc._id.toString(),
+              correctX: doc.xCoordinate,
+              correctY: doc.yCoordinate,
+              records: records
+            };
+          })
+        );
+
+        // Calculate triangle data
+        const vertices = triangleImages.map((doc: any) => ({ x: doc.xCoordinate, y: doc.yCoordinate }));
+        const centroid = calculateCentroid(vertices);
+        const area = calculateTriangleArea(vertices);
+
+        const triangleResponse: TriangleResponse = {
+          mode: "triangle",
+          images: imagesWithRecords,
+          triangleData: {
+            centroid,
+            vertices,
+            area
+          }
+        };
+
+        console.log("[getPhoto] Triangle mode total time:", Date.now() - start, "ms");
+        return new Response(JSON.stringify(triangleResponse), { status: 200 });
+      } catch (error) {
+        console.log("[getPhoto] Triangle mode error:", String(error));
+        return new Response(
+          JSON.stringify({ error: "Triangle mode error", details: String(error) }),
+          { status: 500 }
+        );
+      }
+    }
+
+    // Original single image logic (normal mode)
     let doc = null;
     if (forceId && ObjectId.isValid(forceId)) {
       const findStart = Date.now();
@@ -136,6 +265,7 @@ export async function POST(req: NextRequest) {
     console.log("[getPhoto] Total time:", Date.now() - start, "ms");
     return new Response(
       JSON.stringify({
+        mode: "normal",
         image: doc.image ?? null,
         id: doc._id,
         correctX: doc.xCoordinate,

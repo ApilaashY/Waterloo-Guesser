@@ -39,6 +39,7 @@ html,
 #__next {
   height: 100%;
 }
+
 /* html, body {
   width: 100%;
   height: 100%;
@@ -51,15 +52,17 @@ html,
   src: url('/Dangrek/Dangrek-Regular.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
   font-family: 'Casko';
   src: url('/Casko/Casko Luxury/CaskoLuxury-Regular.woff') format('woff'),
-       url('/Casko/Casko Luxury/CaskoLuxury-Regular.ttf') format('truetype'),
-       url('/Casko/Casko Luxury/CaskoLuxury-Regular.otf') format('opentype');
+    url('/Casko/Casko Luxury/CaskoLuxury-Regular.ttf') format('truetype'),
+    url('/Casko/Casko Luxury/CaskoLuxury-Regular.otf') format('opentype');
   font-weight: normal;
   font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
@@ -67,11 +70,48 @@ html,
   src: url('/Calista/Calista.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
   font-family: 'Felgine';
-  src: url('/Felgine/Felgine-Regular.ttf') format('opentype');
-  font: normal;
+  src: url('/Felgine/Felgine.woff2') format('woff2'),
+    url('/Felgine/Felgine.woff') format('woff'),
+    url('/Felgine/Felgine.otf') format('opentype');
+  font-weight: normal;
   font-style: normal;
+  font-display: swap;
+  /* Prevent invisible text during font loading */
+}
+
+@keyframes heartbeat {
+  0% {
+    opacity: 0.2;
+  }
+
+  15% {
+    opacity: 0.6;
+  }
+
+  30% {
+    opacity: 0.2;
+  }
+
+  45% {
+    opacity: 0.6;
+  }
+
+  60% {
+    opacity: 0.2;
+  }
+
+  100% {
+    opacity: 0.2;
+  }
+}
+
+.animate-heartbeat {
+  animation: heartbeat 1.5s infinite ease-in-out;
+  background: radial-gradient(circle, transparent 40%, rgba(255, 0, 0, 0.7) 100%);
+  pointer-events: none;
 }

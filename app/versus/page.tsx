@@ -21,6 +21,8 @@ import { LoadingState, ErrorState } from "./components/States";
 import { CldImage } from "next-cloudinary";
 import ResultsPopup from "./components/ResultsPopup";
 import ImagePreview from "@/components/game/components/ImagePreview";
+import StartOverlay from "@/components/game/components/StartOverlay";
+import CountdownTimer from "./components/CountdownTimer";
 
 function VersusPageContent() {
   // Search params and connection state
@@ -46,11 +48,13 @@ function VersusPageContent() {
   const [toast, setToast] = useState<string | null>(null);
   const [showResult, setShowResult] = useState(false);
   const [showPopup, setShowPopup] = useState<string | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
 
   // Game data state
   const [imageIDs, setImageIDs] = useState<string[]>([]);
   const [totalPoints, setTotalPoints] = useState(0);
   const [partnerPoints, setPartnerPoints] = useState(0);
+  const [currentRoundScore, setCurrentRoundScore] = useState(0);
   const [questionCount, setQuestionCount] = useState(0);
   const [round, setRound] = useState(0);
 
@@ -59,11 +63,19 @@ function VersusPageContent() {
   const [opponentHasSubmitted, setOpponentHasSubmitted] = useState(false);
   const [isRoundComplete, setIsRoundComplete] = useState(false);
 
+  // Rematch and disconnect state
+  const [rematchStatus, setRematchStatus] = useState<{ player1Requested: boolean; player2Requested: boolean } | null>(null);
+  const [countdown, setCountdown] = useState<number | null>(null);
+
   // Coordinate state
   const [xCoor, setXCoor] = useState<number | null>(null);
   const [yCoor, setYCoor] = useState<number | null>(null);
   const [xRightCoor, setXRightCoor] = useState<number | null>(null);
   const [yRightCoor, setYRightCoor] = useState<number | null>(null);
+
+  // Start Overlay
+  const [showStartOverlay, setShowStartOverlay] = useState(true);
+  const [isReady, setIsReady] = useState(false);
 
   // Refs
   const mapContainerRef = useRef<HTMLDivElement>(null);
@@ -80,7 +92,9 @@ function VersusPageContent() {
     yRightCoor
   );
 
-  useVersusSocket({
+
+
+  const { emitPlayerReady, emitRematchRequest } = useVersusSocket({
     socket,
     sessionId,
     partnerId,
@@ -96,16 +110,30 @@ function VersusPageContent() {
     setYRightCoor,
     setTotalPoints,
     setPartnerPoints,
+    setCurrentRoundScore,
     setShowResult,
     setRound,
     setShowPopup,
+    setRematchStatus,
+    setCountdown,
   });
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   function handleSubmit() {
     if (
       !socket?.connected ||
       !sessionId ||
-      !partnerId ||
+      !partnerId || // Require partnerId for now to be safe, logic can handle it
       hasSubmitted ||
       xCoor === null ||
       yCoor === null
@@ -141,47 +169,46 @@ function VersusPageContent() {
     }
   }
 
-  // Ensure we have a valid session ID before rendering the game
-  if (!sessionId) {
-    return (
-      <ErrorState
-        title="Session Error"
-        message="No valid game session found. Please start a new game."
-      />
-    );
-  }
+  // Retrieve player name
+  const [playerName, setPlayerName] = useState<string>("");
 
-  // Tell the server that the user has joined the game session
   useEffect(() => {
-    if (socket) {
-      console.log("SENT JOINED GAME");
-      socket.emit("joinedGame", { sessionId, socketId: socket.id });
+    const storedName = sessionStorage.getItem("versus_player_name");
+    if (storedName) {
+      setPlayerName(storedName);
     }
   }, []);
 
-  // Load natural size when image changes
+  // Calculate natural size of image when it changes
   useEffect(() => {
-    let mounted = true;
-    setNaturalSize(null);
+    if (!state.image) {
+      console.log("[Versus] No image in state yet.");
+      setNaturalSize(null);
+      return;
+    }
 
-    if (!state.image) return;
+    console.log("[Versus] Loading image:", state.image);
 
     const img = new Image();
     img.onload = () => {
-      if (!mounted) return;
+      console.log(
+        "[Versus] Image loaded. Size:",
+        img.naturalWidth,
+        "x",
+        img.naturalHeight
+      );
       setNaturalSize({ w: img.naturalWidth, h: img.naturalHeight });
     };
-    img.onerror = () => {
-      if (!mounted) return;
-      setNaturalSize(null);
+    img.onerror = (err) => {
+      console.error("[Versus] Failed to load image:", err);
     };
     img.src = state.image;
-
-    return () => {
-      mounted = false;
-    };
   }, [state.image]);
 
+  // ============================================
+  // DEBUG VERSION - Original Layout
+  // ============================================
+  /*
   return (
     <div className="flex flex-col items-center justify-center min-h-screen py-6 bg-gray-50">
       <div className="w-full max-w-4xl p-6 bg-white rounded-lg shadow-md flex flex-col h-[calc(100vh-3rem)]">
@@ -192,9 +219,9 @@ function VersusPageContent() {
           partnerPoints={partnerPoints}
           roundNumber={round + 1}
         />
-
+  
         <Toast message={toast} />
-
+  
         <GameMap
           image={state.image}
           xCoor={xCoor}
@@ -208,8 +235,9 @@ function VersusPageContent() {
           onContinue={() => setShowResult(false)}
           mapContainerRef={mapContainerRef}
           disabled={isRoundComplete}
+          currentScore={currentRoundScore}
         />
-
+  
         <GameControls
           onSubmit={handleSubmit}
           opponentHasSubmitted={opponentHasSubmitted}
@@ -218,18 +246,174 @@ function VersusPageContent() {
           xCoor={xCoor}
           yCoor={yCoor}
         />
-
-        {/* Floating image display, styled like GamePage */}
+  
         {state.image && (
           <ImagePreview
             imageSrc={state.image}
             naturalSize={naturalSize}
-            enlarged={isEnlarged} // Pass enlarged state to ImagePreview
-            setEnlarged={setIsEnlarged} // Allow ImagePreview to update enlarged state
+            enlarged={isEnlarged}
+            setEnlarged={setIsEnlarged}
+          />
+        )}
+  
+        <ResultsPopup
+          show={showPopup}
+          setShow={setShowPopup}
+          onRematch={emitRematchRequest}
+          rematchStatus={rematchStatus}
+        />
+      </div>
+    </div>
+  );
+  */
+
+  // ============================================
+  // FORMAL VERSION - New Layout
+  // ============================================
+  return (
+    <div className="fixed inset-0 flex items-center justify-center bg-gray-50 flex-wrap gap-1">
+      <div className="relative flex flex-col items-center justify-center w-full h-full">
+        {/* Toast for notifications */}
+        {toast && (
+          <div className="absolute top-4 z-50 px-4 py-2 bg-yellow-100 border border-yellow-400 text-yellow-700 rounded shadow-lg">
+            {toast}
+            <button onClick={() => setToast(null)} className="ml-2 font-bold">
+              ×
+            </button>
+          </div>
+        )}
+
+        <div className="flex items-center justify-center w-full h-full">
+          <style>
+            {`
+            .custom-grid {
+              display: grid;
+              grid-template-columns: 1fr 2fr;
+            }
+            
+            .controls-sidebar {
+              position: relative;
+            }
+            
+            @media (max-width: 768px) {
+              .custom-grid {
+                grid-template-columns: 1fr;
+              }
+              
+              .controls-sidebar {
+                position: absolute;
+                left: 0;
+                top: 0;
+                z-index: 10;
+              }
+            }
+          `}
+          </style>
+          <div className="custom-grid w-full h-full mx-auto my-auto bg-white rounded shadow-lg overflow-hidden relative">
+            {/* Left side: Controls (1/3) */}
+            <div className="controls-sidebar flex flex-col justify-start items-center h-fit p-4 pt-24">
+              {/* GameControls handles all the sidebar UI now */}
+              <div
+                className={`w-full relative ${isMobile ? "flex flex-wrap" : ""
+                  } items-center`}
+              >
+                <GameControls
+                  onSubmit={handleSubmit}
+                  opponentHasSubmitted={opponentHasSubmitted}
+                  isRoundComplete={isRoundComplete}
+                  hasSubmitted={hasSubmitted}
+                  xCoor={xCoor}
+                  yCoor={yCoor}
+                  score={totalPoints}
+                  partnerScore={partnerPoints}
+                  round={round + 1}
+                  maxRounds={5} // Assuming 5 rounds for versus as well
+                  playerName={playerName}
+                />
+
+                {isRoundComplete && (
+                  <div className="mt-8 w-full px-4 left-0">
+                    <button
+                      onClick={() => setShowResult(false)}
+                      className="w-full px-4 py-3 bg-green-600 text-white font-bold rounded shadow-md hover:bg-green-700 transition"
+                    >
+                      Start Next Round
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Right side: Map (2/3) */}
+            <div className="flex justify-center items-center h-full relative z-0">
+              <GameMap
+                image={state.image}
+                xCoor={xCoor}
+                yCoor={yCoor}
+                setXCoor={isRoundComplete ? () => { } : setXCoor}
+                setYCoor={isRoundComplete ? () => { } : setYCoor}
+                xRightCoor={xRightCoor}
+                yRightCoor={yRightCoor}
+                showResult={showResult}
+                isRoundComplete={isRoundComplete}
+                onContinue={() => setShowResult(false)}
+                mapContainerRef={mapContainerRef}
+                disabled={isRoundComplete}
+                currentScore={currentRoundScore}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Floating Image Preview */}
+        {state.image && (
+          <ImagePreview
+            imageSrc={state.image}
+            naturalSize={naturalSize}
+            enlarged={isEnlarged}
+            setEnlarged={setIsEnlarged}
           />
         )}
 
-        <ResultsPopup show={showPopup} setShow={setShowPopup} />
+        <ResultsPopup
+          show={showPopup}
+          setShow={setShowPopup}
+          onRematch={emitRematchRequest}
+          rematchStatus={rematchStatus}
+        />
+
+        {/* Countdown Timer */}
+        <CountdownTimer seconds={countdown} />
+
+        {/* Red Vignette Overlay (Heartbeat) */}
+        {opponentHasSubmitted && !hasSubmitted && !isRoundComplete && (
+          <div className="fixed inset-0 animate-heartbeat z-40 pointer-events-none" />
+        )}
+
+        {/* Start Overlay */}
+        {showStartOverlay && (
+          <StartOverlay
+            onComplete={() => {
+              setShowStartOverlay(false);
+              setIsReady(true);
+              emitPlayerReady();
+            }}
+            title="VERSUS MODE"
+            subtitle="Compete head-to-head!"
+            description="Guess closer than your opponent to win."
+            buttonText="I'M READY"
+          />
+        )}
+
+        {/* Waiting for Opponent Overlay */}
+        {!showStartOverlay && isReady && !state.image && (
+          <div className="fixed inset-0 flex items-center justify-center bg-black/80 z-50">
+            <div className="text-white text-center">
+              <div className="text-3xl font-bold animate-pulse mb-4">Waiting for opponent...</div>
+              <p className="text-gray-300">The game will start when both players are ready.</p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

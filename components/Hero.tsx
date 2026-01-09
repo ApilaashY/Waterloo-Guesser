@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import Head from "next/head";
 import styles from "./dialogFont.module.css";
 import bgStyles from "./dialogBg.module.css";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import Logo from "./Logo";
 import PlayButton from "./hero/PlayButton";
 import LeaderboardButton from "./hero/LeaderboardButton";
@@ -13,6 +14,7 @@ import LoreButton from "./hero/LoreButton";
 import PosterBoardButton from "./hero/PosterBoardButton";
 import AddLocationButton from "./hero/AddLocationButton";
 import HeroBackground from "./hero/HeroBackground";
+import CloudTransition from "./CloudTransition";
 
 const targetDate = new Date("2025-09-04T00:00:00");
 
@@ -25,45 +27,10 @@ function getTimeRemaining(endDate: Date) {
   return { total, days, hours, minutes, seconds };
 }
 
-// function LogoStar({
-//   x,
-//   y,
-//   color,
-//   animationComplete,
-// }: {
-//   x: number;
-//   y: number;
-//   color: string;
-//   animationComplete: boolean;
-// })
-// {
-//   // console.log("LogoStar x:", x, "y:", y);
-
-//   // Keep the same relative positioning but scale proportionally when animation completes
-//   const adjustedX = animationComplete ? (x / 4) * 0.5 : x / 4;
-//   const adjustedY = animationComplete
-//     ? (y / 3.5 - (x != 0 ? (Math.abs(y) / y) * 25 : 0)) * 0.5
-//     : y / 3.5 - (x != 0 ? (Math.abs(y) / y) * 25 : 0);
-
-//   return (
-//     <img
-//       src={"/1-spoke.png"}
-//       className={`absolute z-10 transition-all duration-1000 ${
-//         animationComplete ? "h-4 w-3" : "h-7 w-5.2"
-//       }`}
-//       style={{
-//         left: `calc(50% + ${adjustedX}px)`,
-//         top: `calc(50% + ${adjustedY}px)`,
-//         transform: "translate(-50%, -50%)",
-//         filter: color,
-//       }}
-//       alt="Spoke"
-//     />
-//   );
-// }
-
 export default function Hero() {
+  const router = useRouter();
   const [animationComplete, setAnimationComplete] = useState<boolean>(false);
+  const [showTransition, setShowTransition] = useState(false);
   const [randomImage, setRandomImage] = useState<{
     x: number;
     y: number;
@@ -126,6 +93,14 @@ export default function Hero() {
     setRandomImage((prev) => ({ ...prev, visible: false }));
     // Add any other click behavior here (e.g., play sound, show points, etc.)
   };
+
+  const handlePlayClick = () => {
+    setShowTransition(true);
+  };
+
+  const handleTransitionComplete = useCallback(() => {
+    router.push("/modes");
+  }, [router]);
 
   return (
     <>
@@ -245,6 +220,10 @@ export default function Hero() {
           }}
         />
       </Head>
+
+      {/* Cloud Transition Overlay */}
+      {showTransition && <CloudTransition onComplete={handleTransitionComplete} />}
+
       <HeroBackground>
         {/* Random popup image */}
         {randomImage.visible && (
@@ -268,11 +247,10 @@ export default function Hero() {
         {/* Mobile Layout - Vertical stack, visible only on mobile */}
         <div className="block">
           <div
-            className={`absolute z-[110] transition-all duration-500 w-screen h-screen flex justify-evenly items-center-safe flex-row flex-wrap p-5 gap-5 ${
-              animationComplete
-                ? "opacity-100 scale-100 translate-y-0"
-                : "opacity-0 scale-75 pointer-events-none translate-y-16"
-            }`}
+            className={`absolute z-[110] transition-all duration-500 w-screen h-screen flex justify-evenly items-center-safe flex-row flex-wrap p-5 gap-5 ${animationComplete
+              ? "opacity-100 scale-100 translate-y-0"
+              : "opacity-0 scale-75 pointer-events-none translate-y-16"
+              }`}
           >
             <Link href="/leaderboard">
               <button
@@ -318,35 +296,37 @@ export default function Hero() {
                 </div>
               </button>
             </Link>
-            <Link href="/modes">
-              <button
-                className={`group relative transition-all duration-500 ml-10 mr-10 max-md:ml-20 max-md:mr-20`}
-              >
-                <div className="relative flex flex-col items-center justify-center">
-                  <div className={` flex items-center justify-center`}>
-                    <svg
-                      width={84}
-                      height={84}
-                      viewBox="0 0 80 80"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                      className={`group-hover:scale-110 transition-transform duration-300 relative z-10 play-button`}
-                    >
-                      <polygon
-                        points="25,15 65,40 25,65"
-                        fill="#090C9B"
-                        className="group-hover:fill-[#d97f40] transition-colors duration-300"
-                      />
-                    </svg>
-                  </div>
-                  <div
-                    className={`md:hidden mt-2 text-[#090C9B] font-semibold transition-opacity duration-300 relative z-10`}
+
+            {/* PLAY BUTTON - INTERCEPTED */}
+            <button
+              onClick={handlePlayClick}
+              className={`group relative transition-all duration-500 ml-10 mr-10 max-md:ml-20 max-md:mr-20 cursor-pointer`}
+            >
+              <div className="relative flex flex-col items-center justify-center">
+                <div className={` flex items-center justify-center`}>
+                  <svg
+                    width={84}
+                    height={84}
+                    viewBox="0 0 80 80"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    className={`group-hover:scale-110 transition-transform duration-300 relative z-10 play-button`}
                   >
-                    Play
-                  </div>
+                    <polygon
+                      points="25,15 65,40 25,65"
+                      fill="#090C9B"
+                      className="group-hover:fill-[#d97f40] transition-colors duration-300"
+                    />
+                  </svg>
                 </div>
-              </button>
-            </Link>
+                <div
+                  className={`md:hidden mt-2 text-[#090C9B] font-semibold transition-opacity duration-300 relative z-10`}
+                >
+                  Play
+                </div>
+              </div>
+            </button>
+
             <Link href="/poster-board">
               <button
                 className={`group relative transition-all duration-500 ml-8 mr-8`}

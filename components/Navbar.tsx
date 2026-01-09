@@ -11,6 +11,7 @@ export default function Navbar() {
   const pathname = usePathname();
   const { user, isAuthenticated, logout } = useSession();
 
+  // Early return BEFORE any useState hooks
   if (pathname && pathname.toLowerCase().endsWith("/game")) {
     return null;
   }
@@ -19,6 +20,8 @@ export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [visible, setVisible] = useState(true);
   const [loggingOut, setLoggingOut] = useState(false);
+  const isHomePage = pathname === "/";
+  const [animationComplete, setAnimationComplete] = useState<boolean>(false);
 
   useEffect(() => {
     setVisible(true);
@@ -30,9 +33,6 @@ export default function Navbar() {
     setLoggingOut(false);
     setMobileMenuOpen(false);
   };
-
-  const isHomePage = pathname === "/";
-  const [animationComplete, setAnimationComplete] = useState<boolean>(false);
 
   useEffect(() => {
     if (isHomePage) {
