@@ -10,13 +10,6 @@ import Logo from "./Logo";
 export default function Navbar() {
   const pathname = usePathname();
   const { user, isAuthenticated, logout } = useSession();
-
-  // Early return BEFORE any useState hooks
-  if (pathname && pathname.toLowerCase().endsWith("/game")) {
-    return null;
-  }
-
-  const [active, setActive] = useState("home");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [visible, setVisible] = useState(true);
   const [loggingOut, setLoggingOut] = useState(false);
@@ -26,13 +19,6 @@ export default function Navbar() {
   useEffect(() => {
     setVisible(true);
   }, [pathname]);
-
-  const handleLogout = async () => {
-    setLoggingOut(true);
-    await logout();
-    setLoggingOut(false);
-    setMobileMenuOpen(false);
-  };
 
   useEffect(() => {
     if (isHomePage) {
@@ -45,6 +31,18 @@ export default function Navbar() {
       };
     }
   }, [isHomePage]);
+
+  // Early return AFTER all hooks
+  if (pathname && pathname.toLowerCase().endsWith("/game")) {
+    return null;
+  }
+
+  const handleLogout = async () => {
+    setLoggingOut(true);
+    await logout();
+    setLoggingOut(false);
+    setMobileMenuOpen(false);
+  };
 
   return (
     <nav className="w-full absolute top-4 left-0 z-50 bg-transparent px-4 py-2 mx-auto">
