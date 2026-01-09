@@ -22,6 +22,7 @@ import { CldImage } from "next-cloudinary";
 import ResultsPopup from "./components/ResultsPopup";
 import ImagePreview from "@/components/game/components/ImagePreview";
 import StartOverlay from "@/components/game/components/StartOverlay";
+import CountdownTimer from "./components/CountdownTimer";
 
 function VersusPageContent() {
   // Search params and connection state
@@ -62,6 +63,10 @@ function VersusPageContent() {
   const [opponentHasSubmitted, setOpponentHasSubmitted] = useState(false);
   const [isRoundComplete, setIsRoundComplete] = useState(false);
 
+  // Rematch and disconnect state
+  const [rematchStatus, setRematchStatus] = useState<{ player1Requested: boolean; player2Requested: boolean } | null>(null);
+  const [countdown, setCountdown] = useState<number | null>(null);
+
   // Coordinate state
   const [xCoor, setXCoor] = useState<number | null>(null);
   const [yCoor, setYCoor] = useState<number | null>(null);
@@ -70,6 +75,7 @@ function VersusPageContent() {
 
   // Start Overlay
   const [showStartOverlay, setShowStartOverlay] = useState(true);
+  const [isReady, setIsReady] = useState(false);
 
   // Refs
   const mapContainerRef = useRef<HTMLDivElement>(null);
@@ -86,7 +92,9 @@ function VersusPageContent() {
     yRightCoor
   );
 
-  useVersusSocket({
+
+
+  const { emitPlayerReady, emitRematchRequest } = useVersusSocket({
     socket,
     sessionId,
     partnerId,
@@ -106,6 +114,8 @@ function VersusPageContent() {
     setShowResult,
     setRound,
     setShowPopup,
+    setRematchStatus,
+    setCountdown,
   });
 
   useEffect(() => {
@@ -195,18 +205,6 @@ function VersusPageContent() {
     img.src = state.image;
   }, [state.image]);
 
-  if (
-    !socket?.connected ||
-    !sessionId ||
-    // Partner ID checking relaxed for formal mode as requested
-    // (!partnerId && process.env.NODE_ENV !== 'production') || // Debug might still want it? user said "partner ID... needed for the debug version"
-    hasSubmitted ||
-    xCoor === null ||
-    yCoor === null
-  ) {
-    // ... logging ...
-  }
-
   // ============================================
   // DEBUG VERSION - Original Layout
   // ============================================
@@ -221,9 +219,9 @@ function VersusPageContent() {
           partnerPoints={partnerPoints}
           roundNumber={round + 1}
         />
-
+  
         <Toast message={toast} />
-
+  
         <GameMap
           image={state.image}
           xCoor={xCoor}
@@ -239,7 +237,7 @@ function VersusPageContent() {
           disabled={isRoundComplete}
           currentScore={currentRoundScore}
         />
-
+  
         <GameControls
           onSubmit={handleSubmit}
           opponentHasSubmitted={opponentHasSubmitted}
@@ -248,7 +246,7 @@ function VersusPageContent() {
           xCoor={xCoor}
           yCoor={yCoor}
         />
-
+  
         {state.image && (
           <ImagePreview
             imageSrc={state.image}
@@ -257,8 +255,13 @@ function VersusPageContent() {
             setEnlarged={setIsEnlarged}
           />
         )}
-
-        <ResultsPopup show={showPopup} setShow={setShowPopup} />
+  
+        <ResultsPopup
+          show={showPopup}
+          setShow={setShowPopup}
+          onRematch={emitRematchRequest}
+          rematchStatus={rematchStatus}
+        />
       </div>
     </div>
   );
@@ -311,9 +314,8 @@ function VersusPageContent() {
             <div className="controls-sidebar flex flex-col justify-start items-center h-fit p-4 pt-24">
               {/* GameControls handles all the sidebar UI now */}
               <div
-                className={`w-full relative ${
-                  isMobile ? "flex flex-wrap" : ""
-                } items-center`}
+                className={`w-full relative ${isMobile ? "flex flex-wrap" : ""
+                  } items-center`}
               >
                 <GameControls
                   onSubmit={handleSubmit}
@@ -348,8 +350,8 @@ function VersusPageContent() {
                 image={state.image}
                 xCoor={xCoor}
                 yCoor={yCoor}
-                setXCoor={isRoundComplete ? () => {} : setXCoor}
-                setYCoor={isRoundComplete ? () => {} : setYCoor}
+                setXCoor={isRoundComplete ? () => { } : setXCoor}
+                setYCoor={isRoundComplete ? () => { } : setYCoor}
                 xRightCoor={xRightCoor}
                 yRightCoor={yRightCoor}
                 showResult={showResult}
@@ -373,17 +375,44 @@ function VersusPageContent() {
           />
         )}
 
-        <ResultsPopup show={showPopup} setShow={setShowPopup} />
+        <ResultsPopup
+          show={showPopup}
+          setShow={setShowPopup}
+          onRematch={emitRematchRequest}
+          rematchStatus={rematchStatus}
+        />
+
+        {/* Countdown Timer */}
+        <CountdownTimer seconds={countdown} />
+
+        {/* Red Vignette Overlay (Heartbeat) */}
+        {opponentHasSubmitted && !hasSubmitted && !isRoundComplete && (
+          <div className="fixed inset-0 animate-heartbeat z-40 pointer-events-none" />
+        )}
 
         {/* Start Overlay */}
         {showStartOverlay && (
           <StartOverlay
-            onComplete={() => setShowStartOverlay(false)}
+            onComplete={() => {
+              setShowStartOverlay(false);
+              setIsReady(true);
+              emitPlayerReady();
+            }}
             title="VERSUS MODE"
             subtitle="Compete head-to-head!"
             description="Guess closer than your opponent to win."
             buttonText="I'M READY"
           />
+        )}
+
+        {/* Waiting for Opponent Overlay */}
+        {!showStartOverlay && isReady && !state.image && (
+          <div className="fixed inset-0 flex items-center justify-center bg-black/80 z-50">
+            <div className="text-white text-center">
+              <div className="text-3xl font-bold animate-pulse mb-4">Waiting for opponent...</div>
+              <p className="text-gray-300">The game will start when both players are ready.</p>
+            </div>
+          </div>
         )}
       </div>
     </div>
