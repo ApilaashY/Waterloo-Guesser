@@ -4,8 +4,8 @@ COPY package*.json ./
 RUN npm ci
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED 1
-ENV MONGODB_URI "mongodb://mock_build_uri"
-ENV MONGODB_DB "mock_build_db"
+ENV MONGODB_URI="mongodb://mock_build_uri"
+ENV MONGODB_DB="mock_build_db"
 
 # Build Next.js app
 RUN npm run build
@@ -14,13 +14,13 @@ RUN npx tsc -p tsconfig.server.json
 
 FROM node:20-alpine AS runner
 WORKDIR /app
-ENV NODE_ENV production
-ENV NEXT_TELEMETRY_DISABLED 1
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/package*.json ./
 
 # Install only production dependencies
 RUN npm ci --only=production
