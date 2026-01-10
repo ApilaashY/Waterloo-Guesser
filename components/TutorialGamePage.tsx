@@ -56,7 +56,7 @@ const TUTORIAL_STEPS: TutorialStep[] = [
     title: "Submit Your Answer",
     description: "Once you've placed your marker, click the Submit button to see how you did. The closer you are to the actual location, the more points you earn!",
     highlightElement: "submit-button",
-    position: "left",
+    position: "right",
     action: "click-submit",
     requiredAction: true,
   },

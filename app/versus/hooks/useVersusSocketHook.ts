@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef } from "react";
 import { Socket } from "socket.io-client";
-import { GameState, RoundData, ValidationResult } from "../types";
+import { GameState } from "../types";
 import {
   FilteredClientGameType,
   UnfilteredClientGameType,
@@ -9,7 +9,6 @@ import {
 interface UseVersusSocketProps {
   socket: Socket | null;
   sessionId: string | null;
-  partnerId: string | null;
   state: GameState;
   setToast: (toast: string | null) => void;
   setState: React.Dispatch<React.SetStateAction<GameState>>;
@@ -25,13 +24,19 @@ interface UseVersusSocketProps {
   setCurrentRoundScore: (points: number) => void;
   setShowResult: (show: boolean) => void;
   setRound: (round: number) => void;
-  setShowPopup: (show: string) => void;
+  setShowPopup: (show: string | null) => void;
+  setRematchStatus: (status: { player1Requested: boolean; player2Requested: boolean } | null) => void;
+  setCountdown: (countdown: number | null) => void;
+  setPartnerIsReady: (ready: boolean) => void;
+  setOpponentSubmitTime?: (time: number | null) => void;
+  setOpponentLeft: (left: boolean) => void;
+  setIsReady: (ready: boolean) => void;
+  setShowStartOverlay: (show: boolean) => void;
 }
 
 export function useVersusSocket({
   socket,
   sessionId,
-  partnerId,
   state,
   setToast,
   setState,
@@ -48,8 +53,14 @@ export function useVersusSocket({
   setShowResult,
   setRound,
   setShowPopup,
+  setRematchStatus,
+  setCountdown,
+  setPartnerIsReady,
+  setOpponentSubmitTime,
+  setOpponentLeft,
+  setIsReady,
+  setShowStartOverlay,
 }: UseVersusSocketProps) {
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const currentRoundId = useRef<string | null>(null);
   const previousRoundPoints = useRef<number>(0);
 
@@ -107,8 +118,12 @@ export function useVersusSocket({
       // Update cumulative scores from server data
       setTotalPoints(data.points);
       setPartnerPoints(data.partnerPoints);
+
+      if (setOpponentSubmitTime) {
+        setOpponentSubmitTime(null);
+      }
     },
-    [setState, setIsRoundComplete, setXRightCoor, setYRightCoor, setShowResult, setHasSubmitted, setOpponentHasSubmitted, setXCoor, setYCoor, setRound, setTotalPoints, setPartnerPoints]
+    [setState, setIsRoundComplete, setXRightCoor, setYRightCoor, setShowResult, setHasSubmitted, setOpponentHasSubmitted, setXCoor, setYCoor, setRound, setTotalPoints, setPartnerPoints, setOpponentSubmitTime]
   );
 
   const onRoundOver = useCallback(
@@ -126,8 +141,12 @@ export function useVersusSocket({
       // Update previous round points for next calculation
       previousRoundPoints.current = data.points;
       setShowResult(true);
+
+      if (setOpponentSubmitTime) {
+        setOpponentSubmitTime(null);
+      }
     },
-    [setIsRoundComplete, setXRightCoor, setYRightCoor, setTotalPoints, setPartnerPoints, setCurrentRoundScore, setShowResult]
+    [setIsRoundComplete, setXRightCoor, setYRightCoor, setTotalPoints, setPartnerPoints, setCurrentRoundScore, setShowResult, setOpponentSubmitTime]
   );
 
   const onPlayerPoints = useCallback(
@@ -135,7 +154,7 @@ export function useVersusSocket({
       console.log("[Versus] Received player points:", data);
       setTotalPoints(data.points);
     },
-    [setTotalPoints, setHasSubmitted]
+    [setTotalPoints]
   );
 
   const onPartnerPoints = useCallback(
@@ -146,10 +165,20 @@ export function useVersusSocket({
     [setPartnerPoints]
   );
 
-  const onPartnerSubmitted = useCallback(() => {
-    console.log("[Versus] Partner has submitted their guess");
+  const onPartnerSubmitted = useCallback((data?: { submittedAt?: number }) => {
+    console.log("[Versus] Partner has submitted their guess", data);
     setOpponentHasSubmitted(true);
-  }, [setOpponentHasSubmitted]);
+    if (data?.submittedAt && setOpponentSubmitTime) {
+      setOpponentSubmitTime(data.submittedAt);
+    }
+  }, [setOpponentHasSubmitted, setOpponentSubmitTime]);
+
+  const onPartnerReady = useCallback(() => {
+    console.log("[Versus] Partner is ready");
+    if (setPartnerIsReady) {
+      setPartnerIsReady(true);
+    }
+  }, [setPartnerIsReady]);
 
   const onGameOver = useCallback(
     async (data: { winner: string; tie: boolean }) => {
@@ -200,7 +229,46 @@ export function useVersusSocket({
     socket.on("playerPoints", onPlayerPoints);
     socket.on("partnerPoints", onPartnerPoints);
     socket.on("partnerSubmitted", onPartnerSubmitted);
+    socket.on("partnerReady", onPartnerReady);
     socket.on("gameOver", onGameOver);
+    socket.on("rematchStatus", (status: { player1Requested: boolean; player2Requested: boolean }) => {
+      console.log("[Versus] Rematch status update:", status);
+      setRematchStatus(status);
+      
+      // Show toast when opponent requests rematch
+      if ((status.player1Requested || status.player2Requested) && !(status.player1Requested && status.player2Requested)) {
+        setToast("Opponent wants a rematch! Click Rematch to accept.");
+      }
+    });
+    socket.on("rematchStarting", () => {
+      console.log("[Versus] Rematch starting!");
+      setRematchStatus(null);
+      setCountdown(null);
+      setShowPopup(null);
+      setToast(null);
+      setOpponentLeft(false);
+      setIsReady(false);
+      setPartnerIsReady(false);
+      setHasSubmitted(false);
+      setOpponentHasSubmitted(false);
+      setIsRoundComplete(false);
+      setShowResult(false);
+      setShowStartOverlay(false); // Prevent start overlay from showing again
+      // Let roundStart handle the rest
+    });
+    socket.on("opponentDisconnected", () => {
+      console.log("[Versus] Opponent disconnected during rematch");
+      setOpponentLeft(true);
+      setToast("Opponent left. Rematch cancelled.");
+      setRematchStatus(null);
+    });
+    socket.on("roomClosingCountdown", (data: { seconds: number }) => {
+      setCountdown(data.seconds);
+    });
+    socket.on("roomClosed", (data: { message: string }) => {
+      setToast(data.message);
+      setShowPopup(data.message);
+    });
 
     return () => {
       console.debug("[useEffect] Cleaning up...");
@@ -216,12 +284,17 @@ export function useVersusSocket({
       socket.off("playerPoints", onPlayerPoints);
       socket.off("partnerPoints", onPartnerPoints);
       socket.off("partnerSubmitted", onPartnerSubmitted);
+      socket.off("partnerReady", onPartnerReady);
       socket.off("gameOver", onGameOver);
+      socket.off("rematchStatus");
+      socket.off("rematchStarting");
+      socket.off("opponentDisconnected");
+      socket.off("roomClosingCountdown");
+      socket.off("roomClosed");
     };
   }, [
     socket,
     sessionId,
-    state.image,
     onConnect,
     onDisconnect,
     onConnectError,
@@ -232,13 +305,20 @@ export function useVersusSocket({
     onPlayerPoints,
     onPartnerPoints,
     onPartnerSubmitted,
+    onPartnerReady,
     onGameOver,
-    setIsRoundComplete,
-    setHasSubmitted,
   ]);
+
+  const emitRematchRequest = useCallback(() => {
+    if (socket && sessionId) {
+      console.log("[Versus] Emitting requestRematch");
+      socket.emit("requestRematch", { sessionId });
+    }
+  }, [socket, sessionId]);
 
   return {
     currentRoundId: currentRoundId.current,
     emitPlayerReady,
+    emitRematchRequest,
   };
 }

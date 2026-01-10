@@ -9,6 +9,7 @@ import { handleAddToQueue } from './handlers/QueueManagement/addToQueue.js';
 import { handleJoinedGame } from './handlers/GameManagement/joinedGame.js';
 import { handlePlayerReady } from './handlers/GameManagement/playerReady.js';
 import { handleSubmitGuess } from './handlers/GameManagement/submitGuess.js';
+import { handleRematch } from './handlers/GameManagement/handleRematch.js';
 import { GameType } from './types/GameType.js';
 
 dotenv.config();
@@ -95,13 +96,44 @@ const io = new Server(httpServer, {
 const queue = [];
 const gameRooms = {};
 
+// Function to broadcast player stats to all clients
+function broadcastPlayerStats() {
+  const inQueue = queue.length;
+  const inMatch = Object.keys(gameRooms).length * 2; // Each game has 2 players
+  io.emit('playerStats', { inQueue, inMatch });
+  console.log(`[STATS] Broadcasting: ${inQueue} in queue, ${inMatch} in match`);
+}
+
 io.on('connection', (socket) => {
   console.log(`User connected: ${socket.id} at ${new Date().toISOString()}`);
 
+  // Send initial player stats to the newly connected client
+  const inQueue = queue.length;
+  const inMatch = Object.keys(gameRooms).length * 2;
+  socket.emit('playerStats', { inQueue, inMatch });
+
+  // Handle request for player stats
+  socket.on('requestPlayerStats', () => {
+    const inQueue = queue.length;
+    const inMatch = Object.keys(gameRooms).length * 2;
+    socket.emit('playerStats', { inQueue, inMatch });
+  });
+
   // Queue management
   socket.on('joinQueue', (data) => {
-    console.log(`User ${socket.id} joining queue`);
-    handleAddToQueue(queue, socket, gameRooms);
+    console.log(`User ${socket.id} joining queue with modifier: ${data?.modifier || 'none'}`);
+    handleAddToQueue(queue, socket, gameRooms, io, data?.modifier);
+    broadcastPlayerStats();
+  });
+
+  // Leave queue handler
+  socket.on('leaveQueue', () => {
+    const index = queue.findIndex(entry => entry.socket.id === socket.id);
+    if (index !== -1) {
+      queue.splice(index, 1);
+      console.log(`[QUEUE] User ${socket.id} left queue. Queue length: ${queue.length}`);
+      broadcastPlayerStats();
+    }
   });
 
   // Game management
@@ -127,6 +159,12 @@ io.on('connection', (socket) => {
     );
   });
 
+  // Rematch handling
+  socket.on('requestRematch', (data) => {
+    console.log(`User ${socket.id} requesting rematch for session: ${data.sessionId}`);
+    handleRematch(socket, io, data.sessionId, socket.id, gameRooms);
+  });
+
   socket.on('disconnect', (reason) => {
     console.log(`User disconnected: ${socket.id}, reason: ${reason}`);
 
@@ -137,6 +175,33 @@ io.on('connection', (socket) => {
       console.log(`Removed ${socket.id} from queue`);
     }
 
+    // Check if the disconnected user was in a game
+    Object.entries(gameRooms).forEach(([sessionId, game]) => {
+      const isPlayer1 = game.player1Id === socket.id;
+      const isPlayer2 = game.player2Id === socket.id;
+      
+      if (isPlayer1 || isPlayer2) {
+        console.log(`[DISCONNECT] Player ${socket.id} disconnected from session ${sessionId}`);
+        
+        // Notify the other player
+        const otherPlayerId = isPlayer1 ? game.player2Id : game.player1Id;
+        const otherPlayerSocket = io.sockets.sockets.get(otherPlayerId);
+        
+        if (otherPlayerSocket) {
+          // Check if game is in specific states that need notification
+          if (game.rematchRequested && (game.rematchRequested.player1 || game.rematchRequested.player2)) {
+            // During rematch request
+            otherPlayerSocket.emit('opponentDisconnected');
+            console.log(`[DISCONNECT] Notified ${otherPlayerId} that opponent left during rematch`);
+          } else if (game.currentRoundIndex >= 4) {
+            // After game over (waiting in results screen)
+            otherPlayerSocket.emit('opponentDisconnected');
+            console.log(`[DISCONNECT] Notified ${otherPlayerId} that opponent left after game`);
+          }
+        }
+      }
+    });
+
     // Clean up game rooms if needed
     Object.keys(gameRooms).forEach(sessionId => {
       const game = gameRooms[sessionId];
@@ -145,6 +210,9 @@ io.on('connection', (socket) => {
         console.log(`Cleaned up game room: ${sessionId}`);
       }
     });
+    
+    // Broadcast updated stats after disconnect
+    broadcastPlayerStats();
   });
 
   socket.on('error', (error) => {

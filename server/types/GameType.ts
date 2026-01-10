@@ -11,6 +11,9 @@ export interface FilteredClientGameType {
   guess: { x: number; y: number } | null;
   status: PlayerStatus;
   partnerStatus: PlayerStatus;
+  timedMode?: boolean;
+  roundStartTime?: number;
+  opponentSubmitTime?: number | null;
 }
 
 export interface UnfilteredClientGameType extends FilteredClientGameType {
@@ -33,6 +36,11 @@ interface GameTypeProps {
   player2Status: PlayerStatus;
   started: boolean;
   previousImages: string[];
+  imageId: string;
+  timedMode?: boolean;
+  roundStartTime?: number;
+  player1SubmitTime?: number | null;
+  player2SubmitTime?: number | null;
 }
 
 export class GameType {
@@ -50,6 +58,11 @@ export class GameType {
   player2Status: PlayerStatus;
   started: boolean;
   previousImages: string[];
+  imageId: string;
+  timedMode: boolean;
+  roundStartTime: number;
+  player1SubmitTime: number | null;
+  player2SubmitTime: number | null;
 
   // Constructor to initialize the GameType object
   constructor({
@@ -67,6 +80,11 @@ export class GameType {
     player2Status,
     started,
     previousImages,
+    imageId,
+    timedMode = false,
+    roundStartTime = Date.now(),
+    player1SubmitTime = null,
+    player2SubmitTime = null,
   }: GameTypeProps) {
     this.sessionId = sessionId;
     this.player1Id = player1Id;
@@ -82,13 +100,19 @@ export class GameType {
     this.player2Status = player2Status;
     this.started = started;
     this.previousImages = previousImages;
+    this.imageId = imageId;
+    this.timedMode = timedMode;
+    this.roundStartTime = roundStartTime;
+    this.player1SubmitTime = player1SubmitTime;
+    this.player2SubmitTime = player2SubmitTime;
   }
 
   // Static method to generate new Game of GameType
   static async generateNewGame(
     sessionId: string,
     player1Id: string,
-    player2Id: string
+    player2Id: string,
+    timedMode: boolean = false
   ): Promise<GameType | undefined> {
     // Get a random image and its answer from the image pool
     const db = await getDb();
@@ -127,6 +151,11 @@ export class GameType {
       player2Status: PlayerStatus.WAITING,
       started: false,
       previousImages: [],
+      imageId: doc._id.toString(),
+      timedMode,
+      roundStartTime: Date.now(),
+      player1SubmitTime: null,
+      player2SubmitTime: null,
     });
   }
 
@@ -144,6 +173,9 @@ export class GameType {
         guess: this.player1Guess,
         status: this.player1Status,
         partnerStatus: this.player2Status,
+        timedMode: this.timedMode,
+        roundStartTime: this.roundStartTime,
+        opponentSubmitTime: this.player2SubmitTime,
       };
     } else {
       return {
@@ -157,6 +189,9 @@ export class GameType {
         guess: this.player2Guess,
         status: this.player2Status,
         partnerStatus: this.player1Status,
+        timedMode: this.timedMode,
+        roundStartTime: this.roundStartTime,
+        opponentSubmitTime: this.player1SubmitTime,
       };
     }
   }
@@ -227,9 +262,125 @@ export class GameType {
     this.player2Guess = null;
     this.imageUrl = doc.image.toString();
     this.answer = { x: doc.xCoordinate, y: doc.yCoordinate };
+    // Reset timing for new round
+    this.roundStartTime = Date.now();
+    this.player1SubmitTime = null;
+    this.player2SubmitTime = null;
+    this.imageId = doc._id.toString();
 
     console.log(this);
   }
+
+  // Rematch and Spectator specific properties
+  rematchRequested: { player1: boolean; player2: boolean } = {
+    player1: false,
+    player2: false,
+  };
+  roomCloseTimeout: NodeJS.Timeout | null = null;
+  spectatorIds: string[] = [];
+
+  // Methods
+  clearRoomCloseTimeout() {
+    if (this.roomCloseTimeout) {
+      clearTimeout(this.roomCloseTimeout);
+      this.roomCloseTimeout = null;
+    }
+  }
+
+  async resetForRematch(): Promise<void> {
+    this.currentRoundIndex = 0;
+    this.player1Points = 0;
+    this.player2Points = 0;
+    this.player1Guess = null;
+    this.player2Guess = null;
+    this.player1Status = PlayerStatus.WAITING;
+    this.player2Status = PlayerStatus.WAITING;
+    this.rematchRequested = { player1: false, player2: false };
+    this.previousImages = [];
+    // Reset timing for rematch
+    this.roundStartTime = Date.now();
+    this.player1SubmitTime = null;
+    this.player2SubmitTime = null;
+
+    // Get a new image for the first round
+    const db = await getDb();
+    const collection = db.collection("base_locations");
+    const count = await collection.countDocuments({ status: "approved" });
+
+    if (count > 0) {
+      const randomSkip = Math.floor(Math.random() * count);
+      const doc = await collection
+        .find({ status: "approved" })
+        .skip(randomSkip)
+        .limit(1)
+        .next();
+
+      if (doc) {
+        this.imageUrl = doc.image.toString();
+        this.answer = { x: doc.xCoordinate, y: doc.yCoordinate };
+      }
+    }
+  }
+
+  addSpectator(socketId: string) {
+    if (!this.spectatorIds.includes(socketId)) {
+      this.spectatorIds.push(socketId);
+    }
+  }
+
+  removeSpectator(socketId: string) {
+    this.spectatorIds = this.spectatorIds.filter((id) => id !== socketId);
+  }
+
+  getSpectatorView(): SpectatorGameView {
+    return {
+      sessionId: this.sessionId,
+      player1Id: this.player1Id,
+      player2Id: this.player2Id,
+      currentRoundIndex: this.currentRoundIndex,
+      player1Points: this.player1Points,
+      player2Points: this.player2Points,
+      imageUrl: this.imageUrl,
+      player1Status: this.player1Status,
+      player2Status: this.player2Status,
+      player1Guess: this.player1Guess,
+      player2Guess: this.player2Guess,
+      answer: this.answer,
+    };
+  }
+
+  getMatchSummary(): MatchSummary {
+    return {
+      sessionId: this.sessionId,
+      player1Id: this.player1Id,
+      player2Id: this.player2Id,
+      currentRoundIndex: this.currentRoundIndex,
+      started: this.started,
+    };
+  }
+}
+
+export interface SpectatorGameView {
+  sessionId: string;
+  player1Id: string;
+  player2Id: string;
+  currentRoundIndex: number;
+  player1Points: number;
+  player2Points: number;
+  imageUrl: string;
+  player1Status: PlayerStatus;
+  player2Status: PlayerStatus;
+  player1Guess: { x: number; y: number } | null;
+  player2Guess: { x: number; y: number } | null;
+  answer: { x: number; y: number };
+}
+
+export interface MatchSummary {
+  sessionId: string;
+  player1Id: string;
+  player2Id: string;
+  currentRoundIndex: number;
+  started: boolean;
 }
 
 export enum PlayerStatus {

@@ -1,0 +1,91 @@
+name: Deploy WebSocket Server to EC2
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'websocket-server/**'
+      - '.github/workflows/deploy-websocket.yml'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: websocket-server/package-lock.json
+        
+    - name: Test websocket-server
+      run: |
+        cd websocket-server
+        npm ci
+        # Add any tests here if you have them
+        # npm test
+        
+    - name: Configure SSH
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+        
+    - name: Deploy to EC2
+      run: |
+        # Create deployment script
+        cat > deploy.sh << 'EOF'
+        #!/bin/bash
+        set -e
+        
+        echo "🚀 Starting deployment..."
+        cd waterloo-guesser-ws
+        
+        echo "📦 Pulling latest changes..."
+        git pull origin main
+        
+        echo "📋 Installing dependencies..."
+        cd websocket-server && npm ci
+        
+        echo "🔄 Restarting Docker containers..."
+        docker-compose -f deployment-docker-compose.yml down
+        docker-compose -f deployment-docker-compose.yml up -d
+        
+        echo "⏳ Waiting for containers to start..."
+        sleep 10
+        
+        echo "🔍 Checking container status..."
+        docker-compose -f deployment-docker-compose.yml ps
+        
+        echo "📊 Checking health endpoint..."
+        if curl -f https://ws.uwguesser.com/health; then
+          echo "✅ Deployment successful! Health check passed."
+        else
+          echo "❌ Health check failed!"
+          docker-compose -f deployment-docker-compose.yml logs
+          exit 1
+        fi
+        EOF
+        
+        # Make script executable and run on EC2
+        chmod +x deploy.sh
+        scp -i ~/.ssh/id_rsa deploy.sh ec2-user@${{ secrets.EC2_HOST }}:/home/ec2-user/
+        ssh -i ~/.ssh/id_rsa ec2-user@${{ secrets.EC2_HOST }} 'bash /home/ec2-user/deploy.sh'
+        
+    - name: Notify success
+      if: success()
+      run: |
+        echo "🎉 WebSocket server deployed successfully!"
+        echo "🌐 Health endpoint: https://ws.uwguesser.com/health"
+        
+    - name: Notify failure
+      if: failure()
+      run: |
+        echo "💥 Deployment failed! Check the logs above."
+        echo "🔧 You may need to SSH into the server manually to debug."

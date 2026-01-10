@@ -16,6 +16,10 @@ export class GameType {
     player2Status,
     started,
     previousImages,
+    timedMode = false,
+    roundStartTime = Date.now(),
+    player1SubmitTime = null,
+    player2SubmitTime = null,
   }) {
     this.sessionId = sessionId;
     this.player1Id = player1Id;
@@ -31,10 +35,14 @@ export class GameType {
     this.player2Status = player2Status;
     this.started = started;
     this.previousImages = previousImages;
+    this.timedMode = timedMode;
+    this.roundStartTime = roundStartTime;
+    this.player1SubmitTime = player1SubmitTime;
+    this.player2SubmitTime = player2SubmitTime;
   }
 
   // Static method to generate new Game of GameType
-  static async generateNewGame(sessionId, player1Id, player2Id) {
+  static async generateNewGame(sessionId, player1Id, player2Id, timedMode = false) {
     try {
       // Get a random image and its answer from the image pool
       const db = await getDb();
@@ -74,6 +82,10 @@ export class GameType {
         player2Status: PlayerStatus.WAITING,
         started: false,
         previousImages: [],
+        timedMode,
+        roundStartTime: Date.now(),
+        player1SubmitTime: null,
+        player2SubmitTime: null,
       });
     } catch (error) {
       console.error("[GAME] Error generating new game:", error);
@@ -95,6 +107,9 @@ export class GameType {
         guess: this.player1Guess,
         status: this.player1Status,
         partnerStatus: this.player2Status,
+        timedMode: this.timedMode,
+        roundStartTime: this.roundStartTime,
+        opponentSubmitTime: this.player2SubmitTime,
       };
     } else {
       return {
@@ -108,7 +123,9 @@ export class GameType {
         guess: this.player2Guess,
         status: this.player2Status,
         partnerStatus: this.player1Status,
-        partnerStatus: this.player1Status,
+        timedMode: this.timedMode,
+        roundStartTime: this.roundStartTime,
+        opponentSubmitTime: this.player1SubmitTime,
       };
     }
   }
@@ -179,6 +196,10 @@ export class GameType {
       this.player2Guess = null;
       this.imageUrl = doc.image.toString();
       this.answer = { x: doc.xCoordinate, y: doc.yCoordinate };
+      // Reset timing for new round
+      this.roundStartTime = Date.now();
+      this.player1SubmitTime = null;
+      this.player2SubmitTime = null;
 
       console.log("[ROUND] Next round initialized:", this.currentRoundIndex);
     } catch (error) {

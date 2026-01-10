@@ -96,12 +96,7 @@ export default function Navbar() {
           ) : (
             <Link
               href="/login"
-              className={`text-sm font-semibold px-4 py-2 rounded transition shadow-xs ${
-                isHomePage ? "text-white" : "text-yellow-900"
-              }`}
-              style={{
-                backgroundColor: isHomePage ? "#3D52D5" : "#FFD600",
-              }}
+              className="text-sm font-semibold px-4 py-2 rounded transition shadow-xs bg-accent-primary text-white hover:bg-accent-primary/80"
             >
               Log in →
             </Link>
@@ -124,9 +119,8 @@ export default function Navbar() {
       {/* Mobile menu */}
       <div className="md:hidden">
         <div
-          className={`fixed inset-y-0 left-0 z-50 w-3/4 overflow-y-auto bg-gray-900 p-6 sm:max-w-sm sm:ring-1 sm:ring-gray-100/10 transform transition-transform duration-500 ease-in-out ${
-            mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
-          }`}
+          className={`fixed inset-y-0 left-0 z-50 w-3/4 overflow-y-auto bg-gray-900 p-6 sm:max-w-sm sm:ring-1 sm:ring-gray-100/10 transform transition-transform duration-500 ease-in-out ${mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+            }`}
         >
           <div className="flex items-center justify-between">
             <Link
@@ -180,12 +174,7 @@ export default function Navbar() {
                 ) : (
                   <Link
                     href="/login"
-                    className={`-mx-3 block rounded-lg px-3 py-2.5 text-base font-semibold ${
-                      isHomePage ? "text-white" : "text-yellow-900"
-                    }`}
-                    style={{
-                      backgroundColor: isHomePage ? "#3D52D5" : "#FFD600",
-                    }}
+                    className="-mx-3 block rounded-lg px-3 py-2.5 text-base font-semibold text-white bg-accent-primary hover:bg-accent-primary/80"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     Log in →
@@ -197,9 +186,8 @@ export default function Navbar() {
         </div>
 
         <div
-          className={`fixed inset-0 bg-black/50 z-40 transition-opacity duration-500 ease-in-out ${
-            mobileMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
-          }`}
+          className={`fixed inset-0 bg-black/50 z-40 transition-opacity duration-500 ease-in-out ${mobileMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+            }`}
           onClick={() => setMobileMenuOpen(false)}
         >
           {" "}

@@ -55,9 +55,16 @@ export async function handlePlayerReady(
         const isPlayer1 = game.player1Id == socketId;
         const partnerId = isPlayer1 ? game.player2Id : game.player1Id;
         const partnerSocket = io.sockets.sockets.get(partnerId);
+        const partnerStatus = isPlayer1 ? game.player2Status : game.player1Status;
 
+        // Notify partner that this player is ready
         if (partnerSocket) {
             partnerSocket.emit("partnerReady", { ready: true });
+        }
+
+        // If partner was already ready, notify this player
+        if (partnerStatus === 'ready') {
+            socket.emit("partnerReady", { ready: true });
         }
     }
 }

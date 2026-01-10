@@ -6,6 +6,7 @@ import Head from "next/head";
 import styles from "./dialogFont.module.css";
 import bgStyles from "./dialogBg.module.css";
 import Link from "next/link";
+import { Trophy } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Logo from "./Logo";
 import PlayButton from "./hero/PlayButton";
@@ -257,17 +258,18 @@ export default function Hero() {
                 className={`group relative transition-all duration-500 ml-10 mr-10`}
               >
                 <div className="relative flex flex-col items-center justify-center">
-                  <div className={`flex items-center justify-center`}>
+                  {/* Floating Icon - No Box */}
+                  <div className={`flex items-center justify-center w-20 h-20 transition-all duration-300 group-hover:scale-110`}>
                     <Image
                       src="/laurel icon.png"
                       alt="Leaderboard Icon"
-                      width={84}
-                      height={84}
-                      className="max-w-full max-h-full hue-rotate-[220deg] brightness-[1.2] contrast-[1.1] group-hover:scale-110 transition-transform duration-300 relative z-10"
+                      width={48}
+                      height={48}
+                      className="max-w-full max-h-full brightness-0 invert opacity-60 group-hover:opacity-100 group-hover:drop-shadow-[0_0_15px_var(--accent-primary)] transition-all duration-300 relative z-10"
                     />
                   </div>
                   <div
-                    className={`md:hidden mt-2 text-[#090C9B]  font-semibold transition-opacity duration-300 relative z-10`}
+                    className={`md:hidden mt-3 text-secondary text-sm font-medium transition-opacity duration-300 relative z-10 group-hover:text-primary group-hover:text-glow`}
                   >
                     Leaderboard
                   </div>
@@ -279,17 +281,17 @@ export default function Hero() {
                 className={`group relative transition-all duration-500 ml-10 mr-10`}
               >
                 <div className="relative flex flex-col items-center justify-center">
-                  <div className={`flex items-center justify-center`}>
+                  <div className={`flex items-center justify-center w-20 h-20 transition-all duration-300 group-hover:scale-110`}>
                     <Image
                       src="/book icon.png"
                       alt="Book Icon"
-                      width={84}
-                      height={84}
-                      className="max-w-full max-h-full hue-rotate-[220deg] brightness-[1.2] contrast-[1.1] group-hover:scale-110 transition-transform duration-300 relative z-10"
+                      width={48}
+                      height={48}
+                      className="max-w-full max-h-full brightness-0 invert opacity-60 group-hover:opacity-100 group-hover:drop-shadow-[0_0_15px_var(--accent-primary)] transition-all duration-300 relative z-10"
                     />
                   </div>
                   <div
-                    className={`md:hidden mt-2 text-[#090C9B] font-semibold transition-opacity duration-300 relative z-10`}
+                    className={`md:hidden mt-3 text-secondary text-sm font-medium transition-opacity duration-300 relative z-10 group-hover:text-primary group-hover:text-glow`}
                   >
                     Lore
                   </div>
@@ -297,30 +299,46 @@ export default function Hero() {
               </button>
             </Link>
 
-            {/* PLAY BUTTON - INTERCEPTED */}
+            <Link href="/hall-of-fame">
+              <button
+                className={`group relative transition-all duration-500 ml-10 mr-10`}
+              >
+                <div className="relative flex flex-col items-center justify-center">
+                  <div className={`flex items-center justify-center w-20 h-20 transition-all duration-300 group-hover:scale-110`}>
+                    <Trophy className="w-12 h-12 text-white/60 group-hover:text-white group-hover:drop-shadow-[0_0_15px_var(--accent-primary)] transition-all duration-300 relative z-10" />
+                  </div>
+                  <div
+                    className={`md:hidden mt-3 text-secondary text-sm font-medium transition-opacity duration-300 relative z-10 group-hover:text-primary group-hover:text-glow`}
+                  >
+                    Hall of Fame
+                  </div>
+                </div>
+              </button>
+            </Link>
+
+            {/* PLAY BUTTON - Floating Icon */}
             <button
               onClick={handlePlayClick}
               className={`group relative transition-all duration-500 ml-10 mr-10 max-md:ml-20 max-md:mr-20 cursor-pointer`}
             >
               <div className="relative flex flex-col items-center justify-center">
-                <div className={` flex items-center justify-center`}>
+                <div className={`flex items-center justify-center w-24 h-24 transition-all duration-300 group-hover:scale-110`}>
                   <svg
-                    width={84}
-                    height={84}
+                    width={80}
+                    height={80}
                     viewBox="0 0 80 80"
                     fill="none"
                     xmlns="http://www.w3.org/2000/svg"
-                    className={`group-hover:scale-110 transition-transform duration-300 relative z-10 play-button`}
+                    className={`group-hover:scale-110 transition-transform duration-300 relative z-10 play-button drop-shadow-[0_0_15px_var(--accent-primary)]`}
                   >
                     <polygon
-                      points="25,15 65,40 25,65"
-                      fill="#090C9B"
-                      className="group-hover:fill-[#d97f40] transition-colors duration-300"
+                      points="28,18 62,40 28,62"
+                      className="fill-white/80 group-hover:fill-white transition-colors duration-300"
                     />
                   </svg>
                 </div>
                 <div
-                  className={`md:hidden mt-2 text-[#090C9B] font-semibold transition-opacity duration-300 relative z-10`}
+                  className={`md:hidden mt-3 text-primary text-sm font-semibold transition-opacity duration-300 relative z-10 text-glow`}
                 >
                   Play
                 </div>
@@ -332,17 +350,17 @@ export default function Hero() {
                 className={`group relative transition-all duration-500 ml-8 mr-8`}
               >
                 <div className="relative flex flex-col items-center justify-center">
-                  <div className={`flex items-center justify-center`}>
+                  <div className={`flex items-center justify-center w-20 h-20 transition-all duration-300 group-hover:scale-110`}>
                     <Image
                       src="/Globe.png"
                       alt="Globe Icon"
-                      width={84}
-                      height={84}
-                      className="max-w-full max-h-full hue-rotate-[220deg] brightness-[1.2] contrast-[1.1] group-hover:scale-110 transition-transform duration-300 relative z-10"
+                      width={48}
+                      height={48}
+                      className="max-w-full max-h-full brightness-0 invert opacity-60 group-hover:opacity-100 group-hover:drop-shadow-[0_0_15px_var(--accent-primary)] transition-all duration-300 relative z-10"
                     />
                   </div>
                   <div
-                    className={`md:hidden mt-2 text-[#090C9B] font-semibold transition-opacity duration-300 relative z-10`}
+                    className={`md:hidden mt-3 text-secondary text-sm font-medium transition-opacity duration-300 relative z-10 group-hover:text-primary group-hover:text-glow`}
                   >
                     Poster Board
                   </div>
@@ -354,17 +372,17 @@ export default function Hero() {
                 className={`group relative transition-all duration-500 ml-8 mr-8`}
               >
                 <div className="relative flex flex-col items-center justify-center">
-                  <div className={`flex items-center justify-center`}>
+                  <div className={`flex items-center justify-center w-20 h-20 transition-all duration-300 group-hover:scale-110`}>
                     <Image
                       src="/camera icon clean.png"
                       alt="Camera Icon"
-                      width={84}
-                      height={84}
-                      className="max-w-full max-h-full hue-rotate-[220deg] brightness-[1.2] contrast-[1.1] group-hover:scale-110 transition-transform duration-300 relative z-10"
+                      width={48}
+                      height={48}
+                      className="max-w-full max-h-full brightness-0 invert opacity-60 group-hover:opacity-100 group-hover:drop-shadow-[0_0_15px_var(--accent-primary)] transition-all duration-300 relative z-10"
                     />
                   </div>
                   <div
-                    className={`md:hidden mt-2 text-[#090C9B] font-semibold transition-opacity duration-300 relative z-10`}
+                    className={`md:hidden mt-3 text-secondary text-sm font-medium transition-opacity duration-300 relative z-10 group-hover:text-primary group-hover:text-glow`}
                   >
                     Add Location
                   </div>

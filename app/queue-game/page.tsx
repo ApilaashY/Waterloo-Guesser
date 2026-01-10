@@ -1,14 +1,20 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useSocket } from "../../components/SocketProvider";
+import Link from "next/link";
+import { ArrowLeft, Users, Zap, Search } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import { LoadingState } from "../versus/components/States";
 
-export default function QueueGamePage() {
+function QueueGameContent() {
   const [status, setStatus] = useState<
     "idle" | "searching" | "matched" | "error"
   >("idle");
   const { socket, sessionId: contextSessionId } = useSocket();
   const [playerName, setPlayerName] = useState("");
+  const searchParams = useSearchParams();
+  const modifier = searchParams.get("modifier") || undefined;
 
   const generateRandomName = () => {
     const adjectives = ["Swift", "Brave", "Clever", "Quick", "Eager", "Bright", "Sharp"];
@@ -21,6 +27,16 @@ export default function QueueGamePage() {
   useEffect(() => {
     generateRandomName();
   }, []);
+
+  // Leave queue when component unmounts or user navigates away
+  useEffect(() => {
+    return () => {
+      if (socket && status === "searching") {
+        console.log("[Queue] Leaving queue on unmount");
+        socket.emit("leaveQueue");
+      }
+    };
+  }, [socket, status]);
 
   function handleJoinQueue() {
     if (!socket) {
@@ -41,7 +57,7 @@ export default function QueueGamePage() {
     setStatus("searching");
     socket.emit(
       "joinQueue",
-      { sessionId: contextSessionId },
+      { sessionId: contextSessionId, modifier },
       (response: any) => {
         console.log("[Queue] joinQueue response:", response);
         if (response?.error) {
@@ -67,56 +83,126 @@ export default function QueueGamePage() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
-      <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full text-center">
-        <h1 className="text-2xl font-bold mb-6 text-gray-800">
-          Multiplayer Game
-        </h1>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-root text-primary selection:bg-accent-primary/30 relative overflow-hidden">
+      {/* Background Effects */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-accent-primary/5 rounded-full blur-[120px]" />
+        <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-accent-soft/5 rounded-full blur-[100px]" />
+        <div className="absolute inset-0 opacity-[0.03] bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48ZmlsdGVyIGlkPSJhIiB4PSIwIiB5PSIwIj48ZmVUdXJidWxlbmNlIGJhc2VGcmVxdWVuY3k9Ii43NSIgc3RpdGNoVGlsZXM9InN0aXRjaCIgdHlwZT0iZnJhY3RhbE5vaXNlIi8+PC9maWx0ZXI+PHJlY3Qgd2lkdGg9IjMwMCIgaGVpZ2h0PSIzMDAiIGZpbHRlcj0idXJsKCNhKSIgb3BhY2l0eT0iMSIvPjwvc3ZnPg==')]" />
+      </div>
 
-        {status === "idle" ? (
-          <div className="w-full space-y-4">
-            <div className="flex gap-2">
-              <input
-                type="text"
-                placeholder="Random Player Name"
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 focus:outline-none cursor-not-allowed"
-                value={playerName}
-                readOnly
-              />
-              <button
-                onClick={generateRandomName}
-                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
-                title="Generate New Random Name"
-              >
-                🎲
-              </button>
+      <div className="relative z-10 w-full max-w-md p-6">
+        <Link
+          href="/modes"
+          className="inline-flex items-center gap-2 text-secondary hover:text-primary transition-colors mb-8 group"
+        >
+          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+          Back to Modes
+        </Link>
+
+        {/* Card */}
+        <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-2xl">
+          <div className="text-center mb-8">
+            <div className="w-16 h-16 bg-accent-primary/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-accent-primary/20">
+              <Users className="w-8 h-8 text-accent-primary" />
             </div>
-
-            <button
-              className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 
-                        focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50
-                        transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-              onClick={handleJoinQueue}
-              disabled={!socket || !playerName}
-            >
-              {socket ? "Find an Opponent" : "Connecting..."}
-            </button>
+            <h1 className="text-2xl font-heading font-bold text-primary mb-2 text-glow">
+              Multiplayer Game
+            </h1>
+            <p className="text-secondary font-data text-sm">
+              Enter the arena and test your skills
+            </p>
+            {modifier && modifier !== "normal" && (
+              <div className="mt-3">
+                <span className="inline-block px-3 py-1 text-xs font-bold rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                  {modifier === "timed" ? "⏱️ TIMED MODE" : modifier === "grayscale" ? "🎨 90s MODE" : modifier.toUpperCase()}
+                </span>
+              </div>
+            )}
           </div>
-        ) : (
-          <div className="py-4">
-            <div className="animate-pulse flex flex-col items-center space-y-4">
-              <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-              <p className="text-gray-700">{getStatusMessage()}</p>
+
+          {status === "idle" ? (
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-secondary uppercase tracking-wider block">Your Alias</label>
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-secondary">
+                      <Zap className="w-4 h-4" />
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="Random Player Name"
+                      className="w-full pl-10 pr-4 py-3 bg-black/20 border border-white/10 rounded-xl text-primary font-medium focus:outline-none cursor-not-allowed opacity-70"
+                      value={playerName}
+                      readOnly
+                    />
+                  </div>
+                  <button
+                    onClick={generateRandomName}
+                    className="px-4 bg-white/5 hover:bg-white/10 text-primary rounded-xl border border-white/10 transition-colors flex items-center justify-center"
+                    title="Generate New Random Name"
+                  >
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-white/5">
+                <button
+                  className="w-full py-4 bg-accent-primary hover:bg-accent-primary/80 text-white rounded-xl shadow-lg shadow-accent-primary/20 hover:shadow-accent-primary/40 font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed group"
+                  onClick={handleJoinQueue}
+                  disabled={!socket || !playerName}
+                >
+                  <span className="flex items-center justify-center gap-2 group-hover:scale-105 transition-transform">
+                    {socket ? (
+                      <>
+                        <Search className="w-5 h-5" />
+                        Find an Opponent
+                      </>
+                    ) : (
+                      "Connecting..."
+                    )}
+                  </span>
+                </button>
+              </div>
             </div>
-          </div>
-        )}
+          ) : (
+            <div className="py-8">
+              <div className="flex flex-col items-center space-y-6">
+                <div className="relative">
+                  <div className="w-20 h-20 border-4 border-accent-primary/30 border-t-accent-primary rounded-full animate-spin" />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <Users className="w-8 h-8 text-accent-primary/50" />
+                  </div>
+                </div>
+                <div className="text-center space-y-2">
+                  <p className="text-primary font-bold text-lg animate-pulse">{getStatusMessage()}</p>
+                  <p className="text-sm text-secondary">Good luck!</p>
+                </div>
+              </div>
+            </div>
+          )}
 
-        {status === "idle" && (
-          <p className="mt-4 text-sm text-gray-600">
-            Play against another player in real-time!
-          </p>
-        )}
+          {status === "idle" && (
+            <div className="mt-8 pt-6 border-t border-white/5 text-center">
+              <p className="text-xs text-secondary/60">
+                Play against another player in real-time!
+              </p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
+  );
+}
+
+export default function QueueGamePage() {
+  return (
+    <Suspense fallback={<LoadingState />}>
+      <QueueGameContent />
+    </Suspense>
   );
 }

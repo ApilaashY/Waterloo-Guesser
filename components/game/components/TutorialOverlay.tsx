@@ -98,7 +98,7 @@ export default function TutorialOverlay({
     // Note: Submit button moved to left edge of map (33.333%)
     const highlights: Record<string, { top?: string; left?: string; right?: string; width: string; height: string; bottom?: string }> = {
       "game-map": { top: "0", left: "33.333%", width: "66.667%", height: "100%" },
-      "submit-button": { top: "5rem", left: "33.333%", width: "100px", height: "42px" },
+      "submit-button": { top: "9.25rem", left: "7rem", width: "100px", height: "42px" },
       "score-display": { top: "1rem", left: "1rem", width: "180px", height: "42px" },
       "round-display": { top: "5rem", left: "1rem", width: "180px", height: "42px" },
     };

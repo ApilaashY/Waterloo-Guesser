@@ -1,93 +1,23 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-// components/LocationUploader.tsx
-
 import { useState, useEffect, useRef } from "react";
 import { Combobox } from "@headlessui/react";
 import { ChevronUpDownIcon, CheckIcon } from "@heroicons/react/20/solid";
 import Map from "../../components/Map";
 import Image from "next/image";
+import Link from "next/link";
+import { ArrowLeft, Upload, MapPin, Search, ZoomIn, ZoomOut, RotateCcw, X } from "lucide-react";
 
 // Building list for dropdown
 const buildings = [
-  "Outdoors",
-  "AL",
-  "AVR",
-  "B1",
-  "B2",
-  "BMH",
-  "BRH",
-  "BSC",
-  "C2",
-  "CGR",
-  "CIF",
-  "CIM",
-  "CLN",
-  "CLV",
-  "CMH",
-  "COG",
-  "COM",
-  "CPH",
-  "CSB",
-  "DC",
-  "DWE",
-  "E2",
-  "E3",
-  "E5",
-  "E6",
-  "E7",
-  "EC1",
-  "EC2",
-  "EC3",
-  "EC4",
-  "EC5",
-  "ECH",
-  "EIT",
-  "ERC",
-  "ESC",
-  "EV1",
-  "EV2",
-  "EV3",
-  "EXP",
-  "FED",
-  "GH",
-  "GSC",
-  "HH",
-  "HS",
-  "IOG",
-  "LHI",
-  "LIB",
-  "M3",
-  "MC",
-  "MKV",
-  "ML",
-  "NH",
-  "OPT",
-  "PAC",
-  "PAS",
-  "PHY",
-  "QNC",
-  "RA2",
-  "RAC",
-  "RCH",
-  "REN",
-  "REV",
-  "SCH",
-  "SLC",
-  "STC",
-  "STJ",
-  "TC",
-  "TH",
-  "TJB",
-  "UC",
-  "UTD",
-  "UWP",
-  "V1",
+  "Outdoors", "AL", "AVR", "B1", "B2", "BMH", "BRH", "BSC", "C2", "CGR", "CIF", "CIM", "CLN", "CLV",
+  "CMH", "COG", "COM", "CPH", "CSB", "DC", "DWE", "E2", "E3", "E5", "E6", "E7", "EC1", "EC2", "EC3",
+  "EC4", "EC5", "ECH", "EIT", "ERC", "ESC", "EV1", "EV2", "EV3", "EXP", "FED", "GH", "GSC", "HH",
+  "HS", "IOG", "LHI", "LIB", "M3", "MC", "MKV", "ML", "NH", "OPT", "PAC", "PAS", "PHY", "QNC", "RA2",
+  "RAC", "RCH", "REN", "REV", "SCH", "SLC", "STC", "STJ", "TC", "TH", "TJB", "UC", "UTD", "UWP", "V1"
 ];
 
-// This page can be placed in app/upload/page.tsx for Next.js routing
-// and will be accessible at /upload
 export default function LocationUploader() {
   const router = useRouter();
   // Secret passcode popup logic
@@ -196,8 +126,8 @@ export default function LocationUploader() {
     buildingQuery === ""
       ? buildings
       : buildings.filter((building) =>
-          building.toLowerCase().includes(buildingQuery.toLowerCase())
-        );
+        building.toLowerCase().includes(buildingQuery.toLowerCase())
+      );
 
   // Handles file selection and preview (local only)
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -270,418 +200,341 @@ export default function LocationUploader() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-gray-50 flex flex-col items-center justify-start overflow-auto">
-      <div className="relative flex flex-col items-center justify-center w-full">
-        {/* <div className="flex flex-row justify-center w-full p-2 flex-wrap gap-2 top-0 left-0 absolute">
+    <div className="min-h-screen w-full bg-root text-primary selection:bg-accent-primary/30 flex flex-col items-center justify-start overflow-hidden relative">
+      {/* Background Effects */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-accent-primary/5 rounded-full blur-[120px]" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-accent-soft/5 rounded-full blur-[100px]" />
+        <div className="absolute inset-0 opacity-[0.03] bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48ZmlsdGVyIGlkPSJhIiB4PSIwIiB5PSIwIj48ZmVUdXJidWxlbmNlIGJhc2VGcmVxdWVuY3k9Ii43NSIgc3RpdGNoVGlsZXM9InN0aXRjaCIgdHlwZT0iZnJhY3RhbE5vaXNlIi8+PC9maWx0ZXI+PHJlY3Qgd2lkdGg9IjMwMCIgaGVpZ2h0PSIzMDAiIGZpbHRlcj0idXJsKCNhKSIgb3BhY2l0eT0iMSIvPjwvc3ZnPg==')]" />
+      </div>
+
+      <div className="relative z-10 flex flex-col items-center justify-center w-full p-6 max-w-7xl mx-auto h-screen">
+        {/* Header & Back Link */}
+        <div className="w-full flex justify-between items-center mb-6">
           <Link
-            href="/game"
-            className="px-4 py-2 bg-blue-600 text-white rounded shadow hover:bg-blue-700 cursor-pointer"
+            href="/"
+            className="inline-flex items-center gap-2 text-secondary hover:text-primary transition-colors group"
           >
-            Back to Game
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+            Back to Campus
           </Link>
-        </div> */}
-        <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4 w-full">
-          {/* Passcode Popup */}
-          {showPasscode && (
-            <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-              <div className="bg-white rounded-lg shadow-lg p-8 flex flex-col items-center">
-                <h2 className="text-xl font-bold mb-4">Enter Passcode</h2>
-                <input
-                  type="password"
-                  value={passcode}
-                  onChange={(e) => setPasscode(e.target.value)}
-                  className="border rounded px-4 py-2 mb-4 text-lg"
-                  autoFocus
-                />
-                <div className="flex gap-4">
-                  <button
-                    className="px-4 py-2 bg-blue-600 text-white rounded shadow hover:bg-blue-700"
-                    onClick={() => setShowPasscode(false)}
-                  >
-                    Close
-                  </button>
-                  <button
-                    className="px-4 py-2 bg-green-600 text-white rounded shadow hover:bg-green-700"
-                    onClick={() => {
-                      if (passcode === envPasscode) {
-                        setToast("Welcome devs!");
-                        setTimeout(() => setToast(null), 2500);
-                        router.push("/manual-dot-placer");
-                        setShowPasscode(false);
-                      } else {
-                        setToast("Incorrect passcode");
-                        setTimeout(() => setToast(null), 2500);
-                      }
-                    }}
-                  >
-                    Submit
-                  </button>
-                </div>
+        </div>
+
+        {/* Passcode Popup */}
+        {showPasscode && (
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[60]">
+            <div className="bg-surface border border-white/10 rounded-2xl shadow-2xl p-8 flex flex-col items-center w-full max-w-sm">
+              <h2 className="text-xl font-heading font-bold mb-4 text-glow">Dev Access</h2>
+              <input
+                type="password"
+                value={passcode}
+                onChange={(e) => setPasscode(e.target.value)}
+                className="w-full bg-black/20 border border-white/10 rounded-lg px-4 py-2 mb-6 text-lg text-primary focus:border-accent-primary outline-none text-center"
+                placeholder="Enter passcode"
+                autoFocus
+              />
+              <div className="flex gap-4 w-full">
+                <button
+                  className="flex-1 px-4 py-2 bg-white/5 hover:bg-white/10 text-secondary rounded-lg transition-colors border border-white/5"
+                  onClick={() => setShowPasscode(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="flex-1 px-4 py-2 bg-accent-primary hover:bg-accent-primary/80 text-white rounded-lg transition-colors font-bold shadow-lg shadow-accent-primary/20"
+                  onClick={() => {
+                    if (passcode === envPasscode) {
+                      setToast("Welcome devs!");
+                      setTimeout(() => setToast(null), 2500);
+                      router.push("/manual-dot-placer");
+                      setShowPasscode(false);
+                    } else {
+                      setToast("Incorrect passcode");
+                      setTimeout(() => setToast(null), 2500);
+                    }
+                  }}
+                >
+                  Unlock
+                </button>
               </div>
             </div>
-          )}
-          <form
-            className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-7xl w-full"
-            onSubmit={handleSubmit}
-          >
-            <div className="flex flex-col items-start bg-white p-6 rounded-lg shadow w-full">
-              {toast && (
-                <div
-                  className={`fixed top-6 right-6 z-50 px-6 py-3 rounded-lg shadow font-bold text-white ${
-                    toast === success ? "bg-green-600" : "bg-red-600"
-                  }`}
-                >
-                  {toast}
-                </div>
-              )}
-              {/* ...existing code... */}
-              <h2 className="text-2xl font-bold mb-2 text-gray-800">
-                Upload Campus Location
-              </h2>
-              <label className="block font-medium text-gray-700">
-                Image File
-              </label>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleFileChange}
-                className="mb-2"
-              />
-              <label className="block font-medium text-gray-700">
-                Building
-              </label>
-              <Combobox
-                value={building}
-                onChange={(value: string | null) => setBuilding(value || "")}
-              >
-                <div className="relative">
-                  <Combobox.Input
-                    className="w-full border rounded px-3 py-2 pr-10"
-                    displayValue={(building: string) => building}
-                    onChange={(event) => setBuildingQuery(event.target.value)}
-                    placeholder="Select or type building"
-                  />
-                  <Combobox.Button className="absolute inset-y-0 right-0 flex items-center pr-3">
-                    <ChevronUpDownIcon
-                      className="h-5 w-5 text-gray-400"
-                      aria-hidden="true"
-                    />
-                  </Combobox.Button>
-                  <Combobox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                    {filteredBuildings.length === 0 && buildingQuery !== "" ? (
-                      <div className="relative cursor-default select-none py-2 px-4 text-gray-700">
-                        Nothing found.
-                      </div>
-                    ) : (
-                      filteredBuildings.map((building) => (
-                        <Combobox.Option
-                          key={building}
-                          className={({ active }) =>
-                            `relative cursor-default select-none py-2 pl-10 pr-4 ${
-                              active
-                                ? "bg-yellow-600 text-white"
-                                : "text-gray-900"
-                            }`
-                          }
-                          value={building}
-                        >
-                          {({ selected, active }) => (
-                            <>
-                              <span
-                                className={`block truncate ${
-                                  selected ? "font-medium" : "font-normal"
-                                }`}
-                              >
-                                {building}
-                              </span>
-                              {selected ? (
-                                <span
-                                  className={`absolute inset-y-0 left-0 flex items-center pl-3 ${
-                                    active ? "text-white" : "text-yellow-600"
-                                  }`}
-                                >
-                                  <CheckIcon
-                                    className="h-5 w-5"
-                                    aria-hidden="true"
-                                  />
-                                </span>
-                              ) : null}
-                            </>
-                          )}
-                        </Combobox.Option>
-                      ))
-                    )}
-                  </Combobox.Options>
-                </div>
-              </Combobox>
-              {previewUrl && (
-                <Image
-                  src={previewUrl}
-                  alt="Preview"
-                  className="max-w-xs rounded shadow mb-2 flex-1"
-                  width={896}
-                  height={683}
-                  style={{
-                    width: "100%",
-                    height: "auto",
-                  }}
-                />
-              )}
+          </div>
+        )}
 
+        <form
+          className="flex flex-col lg:flex-row gap-6 w-full h-full overflow-hidden"
+          onSubmit={handleSubmit}
+        >
+          {/* Left Panel: Form */}
+          <div className="flex flex-col bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 shadow-2xl p-6 w-full lg:w-1/3 overflow-y-auto">
+            {toast && (
+              <div
+                className={`fixed top-6 right-6 z-[100] px-6 py-3 rounded-lg shadow-xl font-bold text-white border border-white/10 backdrop-blur-md ${toast === success ? "bg-emerald-500/90" : "bg-red-500/90"
+                  }`}
+              >
+                {toast}
+              </div>
+            )}
+
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-3 rounded-xl bg-accent-primary/10 text-accent-primary">
+                <Upload className="w-6 h-6" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-heading font-bold text-primary">Upload Location</h2>
+                <p className="text-xs text-secondary font-data">Contribute to the campus map</p>
+              </div>
+            </div>
+
+            <div className="space-y-4 flex-1">
+              <div>
+                <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-2">Image File</label>
+                <div className="relative group">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    className="w-full text-sm text-secondary file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-bold file:bg-accent-primary/10 file:text-accent-primary hover:file:bg-accent-primary/20 cursor-pointer"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-2">Building</label>
+                <Combobox
+                  value={building}
+                  onChange={(value: string | null) => setBuilding(value || "")}
+                >
+                  <div className="relative">
+                    <div className="relative w-full cursor-default overflow-hidden rounded-lg bg-black/20 text-left border border-white/10 focus-within:border-accent-primary transition-colors">
+                      <div className="flex items-center pl-3">
+                        <Search className="w-4 h-4 text-secondary mr-2" />
+                        <Combobox.Input
+                          className="w-full border-none py-2.5 pr-10 text-sm leading-5 text-primary bg-transparent focus:ring-0 outline-none placeholder-secondary/50 font-data"
+                          displayValue={(building: string) => building}
+                          onChange={(event) => setBuildingQuery(event.target.value)}
+                          placeholder="Search buildings..."
+                        />
+                      </div>
+                      <Combobox.Button className="absolute inset-y-0 right-0 flex items-center pr-2">
+                        <ChevronUpDownIcon className="h-5 w-5 text-secondary" aria-hidden="true" />
+                      </Combobox.Button>
+                    </div>
+                    <Combobox.Options className="absolute mt-1 max-h-60 w-full overflow-auto rounded-md bg-surface border border-white/10 py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm z-50">
+                      {filteredBuildings.length === 0 && buildingQuery !== "" ? (
+                        <div className="relative cursor-default select-none py-2 px-4 text-secondary font-data">
+                          Nothing found.
+                        </div>
+                      ) : (
+                        filteredBuildings.map((building) => (
+                          <Combobox.Option
+                            key={building}
+                            className={({ active }) =>
+                              `relative cursor-default select-none py-2 pl-10 pr-4 transition-colors font-data ${active ? "bg-accent-primary text-white" : "text-primary"
+                              }`
+                            }
+                            value={building}
+                          >
+                            {({ selected, active }) => (
+                              <>
+                                <span className={`block truncate ${selected ? "font-medium" : "font-normal"}`}>
+                                  {building}
+                                </span>
+                                {selected ? (
+                                  <span className={`absolute inset-y-0 left-0 flex items-center pl-3 ${active ? "text-white" : "text-accent-primary"}`}>
+                                    <CheckIcon className="h-5 w-5" aria-hidden="true" />
+                                  </span>
+                                ) : null}
+                              </>
+                            )}
+                          </Combobox.Option>
+                        ))
+                      )}
+                    </Combobox.Options>
+                  </div>
+                </Combobox>
+              </div>
+
+              {previewUrl && (
+                <div className="relative rounded-lg overflow-hidden border border-white/10 aspect-video bg-black/40">
+                  <Image
+                    src={previewUrl}
+                    alt="Preview"
+                    fill
+                    className="object-contain"
+                  />
+                </div>
+              )}
+            </div>
+
+            <div className="pt-6 mt-4 border-t border-white/10 space-y-3">
               <button
                 type="submit"
                 disabled={uploading}
-                className="px-4 py-2 bg-yellow-600 text-white rounded shadow hover:bg-yellow-700 disabled:opacity-50"
+                className="w-full px-4 py-3 bg-accent-primary hover:bg-accent-primary/80 text-white rounded-xl shadow-lg shadow-accent-primary/20 hover:shadow-accent-primary/40 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-bold flex items-center justify-center gap-2"
               >
-                {uploading ? "Uploading..." : "Submit Location"}
+                {uploading ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <span>Uploading...</span>
+                  </>
+                ) : (
+                  <>
+                    <Upload className="w-5 h-5" />
+                    <span>Submit Location</span>
+                  </>
+                )}
               </button>
+
               {success && (
-                <>
-                  <div className="text-green-600 font-semibold">{success}</div>
-                  <button
-                    type="button"
-                    className="mt-2 px-4 py-2 bg-yellow-600 text-white rounded shadow hover:bg-yellow-700"
-                    onClick={() => {
-                      setImageFile(null);
-                      setPreviewUrl(null);
-                      setXCoor(null);
-                      setYCoor(null);
-                      setName("");
-                      setBuilding("");
-                      setLatitude("");
-                      setLongitude("");
-                      setPasscode("");
-                      setShowPasscode(false);
-                      setSuccess(null);
-                      setError(null);
-                    }}
-                  >
-                    Add Another Location
-                  </button>
-                </>
-              )}
-              {error && (
-                <div className="text-red-600 font-semibold">{error}</div>
+                <button
+                  type="button"
+                  className="w-full px-4 py-3 bg-white/5 hover:bg-white/10 text-secondary rounded-xl border border-white/10 transition-colors font-medium flex items-center justify-center gap-2"
+                  onClick={() => {
+                    setImageFile(null);
+                    setPreviewUrl(null);
+                    setXCoor(null);
+                    setYCoor(null);
+                    setName("");
+                    setBuilding("");
+                    setLatitude("");
+                    setLongitude("");
+                    setPasscode("");
+                    setShowPasscode(false);
+                    setSuccess(null);
+                    setError(null);
+                  }}
+                >
+                  <RotateCcw className="w-4 h-4" />
+                  Add Another Location
+                </button>
               )}
             </div>
+          </div>
+
+          {/* Right Panel: Map */}
+          <div className="flex-1 bg-black/20 rounded-2xl border border-white/10 shadow-2xl overflow-hidden relative backdrop-blur-sm">
             <div
-              className="flex items-center justify-center w-full"
-              style={{ width: "100%", margin: 0, padding: 0 }}
+              className="w-full h-full relative bg-[#eaeaea]"
+              onWheel={handleWheel}
+              onMouseDown={handleMouseDown}
+              onMouseMove={handleMouseMove}
+              onMouseUp={handleMouseUp}
+              onMouseLeave={handleMouseUp}
             >
-              <div
-                style={{
-                  width: "90vw",
-                  maxWidth: 1200,
-                  aspectRatio: "896/683",
-                  position: "relative",
-                  background: "#eaeaea",
-                  borderRadius: 12,
-                  overflow: "hidden",
-                  margin: 0,
-                  padding: 0,
-                }}
-                onWheel={handleWheel}
-                onMouseDown={handleMouseDown}
-                onMouseMove={handleMouseMove}
-                onMouseUp={handleMouseUp}
-                onMouseLeave={handleMouseUp}
-              >
-                {/* Zoom Controls */}
-                <div className="absolute top-4 left-4 z-50 flex flex-col gap-2">
-                  <button
-                    type="button"
-                    onClick={handleZoomIn}
-                    className="w-10 h-10 bg-white hover:bg-gray-100 border border-gray-300 rounded-lg shadow-md flex items-center justify-center text-gray-700 font-bold text-lg transition-colors"
-                    title="Zoom In"
-                  >
-                    +
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleZoomOut}
-                    className="w-10 h-10 bg-white hover:bg-gray-100 border border-gray-300 rounded-lg shadow-md flex items-center justify-center text-gray-700 font-bold text-lg transition-colors"
-                    title="Zoom Out"
-                  >
-                    −
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleResetZoom}
-                    className="w-10 h-10 bg-white hover:bg-gray-100 border border-gray-300 rounded-lg shadow-md flex items-center justify-center text-gray-700 font-bold text-xs transition-colors"
-                    title="Reset Zoom"
-                  >
-                    ⌂
-                  </button>
-                </div>
+              {/* Zoom Controls */}
+              <div className="absolute top-4 left-4 z-50 flex flex-col gap-2">
+                <button
+                  type="button"
+                  onClick={handleZoomIn}
+                  className="w-10 h-10 bg-surface/90 hover:bg-accent-primary hover:text-white border border-white/10 rounded-lg shadow-lg flex items-center justify-center text-primary transition-all"
+                  title="Zoom In"
+                >
+                  <ZoomIn className="w-5 h-5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={handleZoomOut}
+                  className="w-10 h-10 bg-surface/90 hover:bg-accent-primary hover:text-white border border-white/10 rounded-lg shadow-lg flex items-center justify-center text-primary transition-all"
+                  title="Zoom Out"
+                >
+                  <ZoomOut className="w-5 h-5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={handleResetZoom}
+                  className="w-10 h-10 bg-surface/90 hover:bg-accent-primary hover:text-white border border-white/10 rounded-lg shadow-lg flex items-center justify-center text-primary transition-all"
+                  title="Reset Zoom"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                </button>
+              </div>
 
-                {/* Zoom Level Indicator */}
-                <div className="absolute top-4 right-4 z-50 bg-black bg-opacity-60 text-white px-3 py-1 rounded-lg text-sm font-medium">
-                  {Math.round(zoom * 100)}%
-                </div>
+              {/* Zoom Level Indicator */}
+              <div className="absolute top-4 right-4 z-50 bg-black/70 backdrop-blur-md text-white px-3 py-1 rounded-lg text-xs font-mono border border-white/10">
+                {Math.round(zoom * 100)}%
+              </div>
 
-                <Map
-                  xCoor={xCoor}
-                  yCoor={yCoor}
-                  setXCoor={setXCoor}
-                  setYCoor={setYCoor}
-                  xRightCoor={null}
-                  yRightCoor={null}
-                  currentScore={0}
-                  zoom={zoom}
-                  pan={pan}
-                  imageRef={imageRef}
-                />
+              <Map
+                xCoor={xCoor}
+                yCoor={yCoor}
+                setXCoor={setXCoor}
+                setYCoor={setYCoor}
+                xRightCoor={null}
+                yRightCoor={null}
+                currentScore={0}
+                zoom={zoom}
+                pan={pan}
+                imageRef={imageRef}
+              />
 
-                {/* Precision Controls Overlay - Only show if coordinates are selected */}
-                {xCoor !== null && yCoor !== null && (
-                  <div className="absolute inset-0 pointer-events-none">
-                    {/* Minimal Circular Fine Adjust UI */}
-                    <div className="absolute bottom-6 right-6 pointer-events-auto">
-                      <div className="flex flex-col items-center">
-                        <div className="relative w-32 h-32 flex items-center justify-center bg-white bg-opacity-80 backdrop-blur-md rounded-full shadow-2xl border border-gray-200">
-                          {/* Up Arrow */}
-                          <button
-                            type="button"
-                            className="absolute top-2 left-1/2 -translate-x-1/2 w-10 h-10 flex items-center justify-center bg-yellow-600 hover:bg-yellow-700 text-white rounded-full shadow transition"
-                            style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.10)" }}
-                            onClick={() => {
-                              const newY = Math.max(0, (yCoor || 0) - 0.002);
-                              setYCoor(newY);
-                            }}
-                            aria-label="Move up"
-                          >
-                            <svg
-                              width="22"
-                              height="22"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            >
-                              <polyline points="18 15 12 9 6 15"></polyline>
-                            </svg>
-                          </button>
-                          {/* Left Arrow */}
-                          <button
-                            type="button"
-                            className="absolute left-2 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center bg-yellow-600 hover:bg-yellow-700 text-white rounded-full shadow transition"
-                            style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.10)" }}
-                            onClick={() => {
-                              const newX = Math.max(0, (xCoor || 0) - 0.002);
-                              setXCoor(newX);
-                            }}
-                            aria-label="Move left"
-                          >
-                            <svg
-                              width="22"
-                              height="22"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            >
-                              <polyline points="15 18 9 12 15 6"></polyline>
-                            </svg>
-                          </button>
-                          {/* Right Arrow */}
-                          <button
-                            type="button"
-                            className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center bg-yellow-600 hover:bg-yellow-700 text-white rounded-full shadow transition"
-                            style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.10)" }}
-                            onClick={() => {
-                              const newX = Math.min(1, (xCoor || 0) + 0.002);
-                              setXCoor(newX);
-                            }}
-                            aria-label="Move right"
-                          >
-                            <svg
-                              width="22"
-                              height="22"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            >
-                              <polyline points="9 18 15 12 9 6"></polyline>
-                            </svg>
-                          </button>
-                          {/* Down Arrow */}
-                          <button
-                            type="button"
-                            className="absolute bottom-2 left-1/2 -translate-x-1/2 w-10 h-10 flex items-center justify-center bg-yellow-600 hover:bg-yellow-700 text-white rounded-full shadow transition"
-                            style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.10)" }}
-                            onClick={() => {
-                              const newY = Math.min(1, (yCoor || 0) + 0.002);
-                              setYCoor(newY);
-                            }}
-                            aria-label="Move down"
-                          >
-                            <svg
-                              width="22"
-                              height="22"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            >
-                              <polyline points="6 9 12 15 18 9"></polyline>
-                            </svg>
-                          </button>
-                          {/* Center Reset Button */}
-                          <button
-                            type="button"
-                            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center bg-gray-400 hover:bg-gray-500 text-white rounded-full shadow transition"
-                            style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.10)" }}
-                            onClick={() => {
-                              setXCoor(null);
-                              setYCoor(null);
-                            }}
-                            title="Clear selection"
-                            aria-label="Clear selection"
-                          >
-                            <svg
-                              width="18"
-                              height="18"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            >
-                              <line x1="18" y1="6" x2="6" y2="18"></line>
-                              <line x1="6" y1="6" x2="18" y2="18"></line>
-                            </svg>
-                          </button>
-                          {/* Coordinate display inside circle */}
-                          <div
-                            className="absolute left-1/2 bottom-3 -translate-x-1/2 text-xs text-gray-700 bg-white bg-opacity-70 rounded px-2 py-1 shadow"
-                            style={{ fontWeight: 500 }}
-                          >
-                            ({(xCoor || 0).toFixed(3)},{" "}
-                            {(yCoor || 0).toFixed(3)})
-                          </div>
+              {/* Precision Controls Overlay */}
+              {xCoor !== null && yCoor !== null && (
+                <div className="absolute inset-0 pointer-events-none">
+                  <div className="absolute bottom-6 right-6 pointer-events-auto">
+                    <div className="flex flex-col items-center">
+                      <div className="relative w-32 h-32 flex items-center justify-center bg-surface/80 backdrop-blur-md rounded-full shadow-2xl border border-white/10">
+                        {/* Up Arrow */}
+                        <button
+                          type="button"
+                          className="absolute top-2 left-1/2 -translate-x-1/2 w-8 h-8 flex items-center justify-center bg-accent-primary hover:bg-accent-primary/80 text-white rounded-full shadow-lg transition-colors"
+                          onClick={() => setYCoor(Math.max(0, (yCoor || 0) - 0.002))}
+                        >
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                          </svg>
+                        </button>
+                        {/* Left Arrow */}
+                        <button
+                          type="button"
+                          className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center bg-accent-primary hover:bg-accent-primary/80 text-white rounded-full shadow-lg transition-colors"
+                          onClick={() => setXCoor(Math.max(0, (xCoor || 0) - 0.002))}
+                        >
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                          </svg>
+                        </button>
+                        {/* Right Arrow */}
+                        <button
+                          type="button"
+                          className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center bg-accent-primary hover:bg-accent-primary/80 text-white rounded-full shadow-lg transition-colors"
+                          onClick={() => setXCoor(Math.min(1, (xCoor || 0) + 0.002))}
+                        >
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
+                        </button>
+                        {/* Down Arrow */}
+                        <button
+                          type="button"
+                          className="absolute bottom-2 left-1/2 -translate-x-1/2 w-8 h-8 flex items-center justify-center bg-accent-primary hover:bg-accent-primary/80 text-white rounded-full shadow-lg transition-colors"
+                          onClick={() => setYCoor(Math.min(1, (yCoor || 0) + 0.002))}
+                        >
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </button>
+                        {/* Center Reset */}
+                        <button
+                          type="button"
+                          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors border border-white/10"
+                          onClick={() => { setXCoor(null); setYCoor(null); }}
+                          title="Clear selection"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                        {/* Coordinate Label */}
+                        <div className="absolute left-1/2 bottom-[-24px] -translate-x-1/2 text-[10px] font-mono text-secondary bg-black/80 px-2 py-0.5 rounded border border-white/10 whitespace-nowrap">
+                          {(xCoor || 0).toFixed(3)}, {(yCoor || 0).toFixed(3)}
                         </div>
                       </div>
                     </div>
                   </div>
-                )}
-              </div>
-              {/* {xCoor != null && yCoor != null && (
-            <div className="mt-2 text-sm text-gray-700">Selected Coordinates: ({xCoor.toFixed(4)}, {yCoor.toFixed(4)})</div>
-          )} */}
+                </div>
+              )}
             </div>
-          </form>
-          {/* ManualDotPlacer is now only accessible via redirect, not rendered here */}
-        </div>
+          </div>
+        </form>
       </div>
     </div>
   );

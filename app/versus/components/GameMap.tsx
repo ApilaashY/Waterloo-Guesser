@@ -66,22 +66,6 @@ const GameMap = forwardRef<any, GameMapProps>(
           overridePan={overridePan}
           setOverridePan={setOverridePan}
         />
-
-        {/* Result overlay for versus mode */}
-        {showResult && isRoundComplete && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-            <div className="bg-white p-6 rounded-lg shadow-lg text-center">
-              <h2 className="text-2xl font-bold mb-4">Round Complete!</h2>
-              <p className="mb-4">Score: {currentScore}</p>
-              <button
-                onClick={onContinue}
-                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-              >
-                Continue
-              </button>
-            </div>
-          </div>
-        )}
       </div>
     );
   }

@@ -109,20 +109,20 @@ export default function StartOverlay({
 
             <button
               onClick={handleStart}
-              className="group relative px-12 py-6 bg-gradient-to-br from-blue-500 to-blue-700 hover:from-blue-400 hover:to-blue-600 text-white font-bold text-2xl rounded-2xl shadow-2xl transition-all duration-300 transform hover:scale-105 active:scale-95"
+              className="group relative px-12 py-6 bg-gradient-to-br from-yellow-400 to-yellow-600 hover:from-yellow-300 hover:to-yellow-500 text-black font-bold text-2xl rounded-2xl shadow-2xl transition-all duration-300 transform hover:scale-105 active:scale-95 border-2 border-yellow-200"
               style={{ fontFamily: "Felgine, sans-serif" }}
             >
               <span className="relative z-10">{buttonText}</span>
-              <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             </button>
 
-            <div className="text-white/40 text-sm">
+            {/* <div className="text-white/40 text-sm">
               Press{" "}
               <kbd className="px-2 py-1 bg-white/10 rounded border border-white/20">
                 Space
               </kbd>{" "}
               to start
-            </div>
+            </div> */}
           </div>
         )}
       </div>

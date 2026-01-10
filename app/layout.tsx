@@ -3,7 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { SocketProvider } from "../components/SocketProvider";
 import { SessionProvider } from "../components/SessionProvider";
-import Navbar from "../components/Navbar";
+import ConditionalNavbar from "../components/ConditionalNavbar";
 import Script from "next/script";
 
 const geistSans = Geist({
@@ -121,7 +121,7 @@ export default function RootLayout({
       >
         <SessionProvider>
           <SocketProvider>
-            <Navbar />
+            <ConditionalNavbar />
             {children}
           </SocketProvider>
         </SessionProvider>

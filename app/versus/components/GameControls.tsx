@@ -12,6 +12,7 @@ interface GameControlsProps {
   round: number;
   maxRounds: number;
   playerName: string; // Add playerName prop for display
+  modifier?: string; // Game modifier (e.g., "timed", "grayscale")
 }
 
 const GameControls: React.FC<GameControlsProps> = ({
@@ -26,6 +27,7 @@ const GameControls: React.FC<GameControlsProps> = ({
   round,
   maxRounds,
   playerName,
+  modifier,
 }) => {
   const [showShortcuts, setShowShortcuts] = useState(false);
 

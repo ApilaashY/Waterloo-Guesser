@@ -128,6 +128,8 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
       partnerId: string;
       matchId: string;
       isReconnect?: boolean;
+      timedMode?: boolean;
+      modifier?: string;
     }) => {
       console.log("[Socket] Queue matched:", data);
       // Store the session ID for reconnection
@@ -144,9 +146,12 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
       if (!data.isReconnect) {
         // Only trigger navigation for new matches, not reconnects
         // The round data will be sent separately for reconnects
+        // Determine modifier from timedMode or explicit modifier field
+        const modifier = data.modifier || (data.timedMode ? "timed" : "normal");
+        
         // Use Next.js router for client-side navigation to preserve socket connection
         router.push(
-          `/versus?sessionId=${data.sessionId}&partnerId=${data.partnerId}`
+          `/versus?sessionId=${data.sessionId}&partnerId=${data.partnerId}&modifier=${modifier}`
         );
       }
     };

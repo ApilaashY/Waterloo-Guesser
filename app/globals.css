@@ -9,30 +9,154 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    /* --foreground: #ededed; */
+    /* Scheme 3 Raw Variables */
+    --twilight-indigo: #26395b;
+    --ink-black: #0f151b;
+    --onyx: #070c0f;
+    --twilight-indigo-2: #38405d;
+    --space-indigo: #1e2940;
+
+    /* Scheme 1 Raw Variables */
+    --ink-base: #021828;
+    --deep-space: #092a42;
+    --pale-sky: #cbe5f1;
+    --peach-glow: #f1b08c;
+
+    /* DEFAULT THEME: Scheme 3 (Twilight Indigo) */
+    --bg-root: var(--onyx);
+    --bg-surface: var(--ink-black);
+    --bg-elevated: var(--space-indigo);
+
+    --text-primary: #e2e8f0;
+    --text-secondary: #94a3b8;
+
+    --accent-primary: var(--twilight-indigo-2);
+    --accent-soft: rgba(56, 64, 93, 0.3);
+
+    /* Remap legacy */
+    --color-void: var(--bg-root);
+    --color-abyss: var(--bg-surface);
+    --color-stark: var(--text-primary);
+    --color-ethereal: var(--accent-primary);
+
+    --background: var(--bg-root);
+    --foreground: var(--text-primary);
+
+    --font-heading: 'Felgine', 'Times New Roman', serif;
+    --font-data: 'Courier New', monospace;
+  }
+
+  /* Optional Scheme 1 (Ink & Peach) Override */
+  [data-theme='ink'] {
+    --bg-root: var(--ink-base);
+    --bg-surface: var(--deep-space);
+    --bg-elevated: #0e3a5c;
+
+    --text-primary: var(--pale-sky);
+    --text-secondary: #8fb3c7;
+
+    --accent-primary: var(--peach-glow);
+    --accent-soft: rgba(241, 176, 140, 0.25);
+
+    /* Remap legacy */
+    --color-void: var(--bg-root);
+    --color-abyss: var(--bg-surface);
+    --color-stark: var(--text-primary);
+    --color-ethereal: var(--accent-primary);
   }
 }
 
+:root {
+  /* Fallback for non-dark mode / Force Dark Mode aesthetic */
+  /* Scheme 3 Raw Variables */
+  --twilight-indigo: #26395b;
+  --ink-black: #0f151b;
+  --onyx: #070c0f;
+  --twilight-indigo-2: #38405d;
+  --space-indigo: #1e2940;
+
+  /* Scheme 1 Raw Variables */
+  --ink-base: #021828;
+  --deep-space: #092a42;
+  --pale-sky: #cbe5f1;
+  --peach-glow: #f1b08c;
+
+  /* DEFAULT THEME: Scheme 3 (Twilight Indigo) */
+  --bg-root: var(--onyx);
+  --bg-surface: var(--ink-black);
+  --bg-elevated: var(--space-indigo);
+
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
+
+  --accent-primary: var(--twilight-indigo-2);
+  --accent-soft: rgba(56, 64, 93, 0.3);
+
+  /* Remap legacy */
+  --color-void: var(--bg-root);
+  --color-abyss: var(--bg-surface);
+  --color-stark: var(--text-primary);
+  --color-ethereal: var(--accent-primary);
+
+  --background: var(--bg-root);
+  --foreground: var(--text-primary);
+
+  --font-heading: 'Felgine', 'Times New Roman', serif;
+  --font-data: 'Courier New', monospace;
+}
+
+/* Optional Scheme 1 (Ink & Peach) Override */
+[data-theme='ink'] {
+  --bg-root: var(--ink-base);
+  --bg-surface: var(--deep-space);
+  --bg-elevated: #0e3a5c;
+
+  --text-primary: var(--pale-sky);
+  --text-secondary: #8fb3c7;
+
+  --accent-primary: var(--peach-glow);
+  --accent-soft: rgba(241, 176, 140, 0.25);
+
+  /* Remap legacy */
+  --color-void: var(--bg-root);
+  --color-abyss: var(--bg-surface);
+  --color-stark: var(--text-primary);
+  --color-ethereal: var(--accent-primary);
+}
+
 body {
-  /* background-image: radial-gradient(
-      1200px 600px at 10% 10%,
-      rgba(148, 75, 255, 0.1),
-      transparent 15%
-    ),
-    radial-gradient(
-      900px 500px at 90% 80%,
-      rgba(88, 35, 198, 0.08),
-      transparent 18%
-    ),
-    linear-gradient(180deg, rgba(12, 10, 15, 0.92), rgba(18, 12, 30, 0.96)); */
-  background-color: transparent;
+  background-color: var(--bg-root);
+  /* The Spotlight Engine: Updated for Deep Space Blue depths */
+  background-image:
+    radial-gradient(circle at 15% 50%, var(--bg-surface) 0%, transparent 50%),
+    radial-gradient(circle at 85% 30%, var(--accent-soft) 0%, transparent 40%),
+    radial-gradient(circle at 50% 80%, var(--bg-elevated) 0%, transparent 50%);
   background-attachment: fixed;
-  color: var(--foreground);
-  font-family: "Roboto", sans-serif;
+
+  color: var(--text-primary);
+  font-family: var(--font-data);
+  /* Default to mechanical/data look */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Amplified Noise/Grain (adapted for blue depth) */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 9999;
+  /* Harder, grittier noise */
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.5'/%3E%3C/svg%3E");
+  opacity: 0.12;
+  mix-blend-mode: overlay;
 }
 
 html,
@@ -82,6 +206,66 @@ html,
   font-style: normal;
   font-display: swap;
   /* Prevent invisible text during font loading */
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-heading);
+  letter-spacing: -0.02em;
+}
+
+/* Ethereal Border Utility */
+.ethereal-border {
+  position: relative;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid transparent;
+}
+
+.ethereal-border::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.4), transparent 40%, rgba(46, 91, 240, 0.4) 100%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* Bloom/Glow Utility */
+.bloom {
+  box-shadow: 0 0 30px -5px var(--color-ethereal);
+  transition: box-shadow 0.3s ease;
+}
+
+.bloom:hover {
+  box-shadow: 0 0 50px -10px var(--color-ethereal), 0 0 20px 0px rgba(255, 255, 255, 0.4);
+}
+
+/* Text Glow */
+.text-glow {
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.5), 0 0 20px var(--color-ethereal);
+}
+
+/* Custom Scrollbar for the Noir feel */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-void);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-abyss);
+  border: 1px solid var(--color-ethereal);
 }
 
 @keyframes heartbeat {

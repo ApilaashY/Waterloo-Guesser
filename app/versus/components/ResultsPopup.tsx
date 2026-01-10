@@ -3,13 +3,23 @@ import { useRouter } from "next/navigation";
 export default function ResultsPopup({
   show,
   setShow,
+  onRematch,
+  rematchStatus,
+  opponentLeft,
 }: {
   show: string | null;
   setShow: (val: string | null) => void;
+  onRematch?: () => void;
+  rematchStatus?: { player1Requested: boolean; player2Requested: boolean } | null;
+  opponentLeft?: boolean;
 }) {
   const router = useRouter();
 
   if (!show) return null;
+
+  const bothPlayersWantRematch = rematchStatus?.player1Requested && rematchStatus?.player2Requested;
+  const currentPlayerRequestedRematch = rematchStatus?.player1Requested || rematchStatus?.player2Requested;
+  const rematchDisabled = bothPlayersWantRematch || opponentLeft;
 
   return (
     <>
@@ -27,6 +37,26 @@ export default function ResultsPopup({
           >
             Start New Game
           </button>
+
+          {onRematch && (
+            <button
+              onClick={onRematch}
+              disabled={rematchDisabled}
+              className={`mt-4 ml-2 px-4 py-2 rounded text-white ${
+                rematchDisabled
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-blue-600 hover:bg-blue-700"
+              }`}
+            >
+              {opponentLeft
+                ? "Opponent Left"
+                : bothPlayersWantRematch
+                ? "Starting Rematch..."
+                : currentPlayerRequestedRematch
+                ? "Waiting for opponent..."
+                : "Request Rematch"}
+            </button>
+          )}
         </div>{" "}
       </div>
     </>

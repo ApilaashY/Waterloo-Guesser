@@ -5,13 +5,13 @@
   "type": "module",
   "scripts": {
     "dev": "next dev --turbopack",
-    "dev:socket": "cross-env NODE_OPTIONS=\"--loader ts-node/esm --trace-warnings --no-warnings\" ts-node server.mts",
+    "dev:socket": "tsx server.mts",
     "build": "next build",
-    "build:socket": "cross-env NODE_OPTIONS=\"--loader ts-node/esm\" ts-node server.mts",
+    "build:socket": "tsx server.mts",
     "start": "next start",
     "lint": "next lint",
     "migrate:building-identifiers": "node scripts/populate-building-identifiers.js",
-    "db:create-indexes": "ts-node scripts/create-indexes.ts"
+    "db:create-indexes": "tsx scripts/create-indexes.ts"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
@@ -19,10 +19,13 @@
     "@heroicons/react": "^2.2.0",
     "@tweenjs/tween.js": "^25.0.0",
     "@types/dotenv": "^6.1.1",
+    "@types/leaflet": "^1.9.21",
     "cloudinary": "^2.7.0",
     "cloudinary-build-url": "^0.2.4",
     "dotenv": "^17.2.2",
     "gsap": "^3.13.0",
+    "leaflet": "^1.9.4",
+    "lucide-react": "^0.562.0",
     "mongodb": "^6.18.0",
     "next": "^16.1.1",
     "next-cloudinary": "^6.16.0",
@@ -31,6 +34,7 @@
     "react-dom": "^19.1.0",
     "react-hot-toast": "^2.6.0",
     "react-icons": "^5.5.0",
+    "react-leaflet": "^5.0.0",
     "react-zoom-pan-pinch": "^3.7.0",
     "realfavicon": "^0.4.18",
     "socket.io": "^4.8.1",
@@ -50,6 +54,7 @@
     "eslint": "^9",
     "eslint-config-next": "15.4.4",
     "tailwindcss": "^4",
+    "tsx": "^4.21.0",
     "typescript": "^5"
   }
 }
