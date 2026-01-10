@@ -92,7 +92,8 @@ export default function Hero() {
 
   const handleRandomImageClick = () => {
     setRandomImage((prev) => ({ ...prev, visible: false }));
-    // Add any other click behavior here (e.g., play sound, show points, etc.)
+    // Navigate to the secret Greg page
+    router.push("/greg");
   };
 
   const handlePlayClick = () => {
@@ -276,7 +277,7 @@ export default function Hero() {
                 </div>
               </button>
             </Link>
-            <Link href="/lore">
+            {/* <Link href="/lore">
               <button
                 className={`group relative transition-all duration-500 ml-10 mr-10`}
               >
@@ -297,7 +298,7 @@ export default function Hero() {
                   </div>
                 </div>
               </button>
-            </Link>
+            </Link> */}
 
             <Link href="/hall-of-fame">
               <button
@@ -305,7 +306,12 @@ export default function Hero() {
               >
                 <div className="relative flex flex-col items-center justify-center">
                   <div className={`flex items-center justify-center w-20 h-20 transition-all duration-300 group-hover:scale-110`}>
-                    <Trophy className="w-12 h-12 text-white/60 group-hover:text-white group-hover:drop-shadow-[0_0_15px_var(--accent-primary)] transition-all duration-300 relative z-10" />
+                    <Trophy
+                      className="w-12 h-12 text-white/60 group-hover:text-white group-hover:drop-shadow-[0_0_15px_var(--accent-primary)] transition-all duration-300 relative z-10"
+                      strokeWidth={1.5}
+                      strokeLinejoin="round"
+                      strokeLinecap="round"
+                    />
                   </div>
                   <div
                     className={`md:hidden mt-3 text-secondary text-sm font-medium transition-opacity duration-300 relative z-10 group-hover:text-primary group-hover:text-glow`}

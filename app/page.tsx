@@ -163,7 +163,7 @@ export default async function Page() {
                 Discover iconic buildings across campus.
               </p>
             </div>
-            <Link
+            {/* <Link
               href="/poster-board"
               className="bloom inline-flex items-center gap-3 px-8 py-3 text-primary bg-root/40 border border-accent-primary/30 hover:bg-accent-primary/10 transition-all duration-300 group font-data font-medium tracking-wider"
             >
@@ -171,7 +171,7 @@ export default async function Page() {
               <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform text-accent-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
-            </Link>
+            </Link> */}
           </header>
 
           {/* Carousel with Ethereal Border */}

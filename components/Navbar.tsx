@@ -59,7 +59,7 @@ export default function Navbar() {
               <img
                 src="/6-UWGuesser logo-colored.png"
                 alt="UW Guesser Logo"
-                className="h-20 w-auto"
+                className="h-20 w-auto ml-2"
               />
             )}
             <span className="sr-only">UW Guesser</span>
@@ -70,7 +70,7 @@ export default function Navbar() {
         <div className="flex-1"></div>
 
         {/* Auth section - desktop, always right-aligned */}
-        <div className="hidden md:flex flex-shrink-0 items-center gap-4">
+        <div className="hidden md:flex flex-shrink-0 items-center gap-4 mr-2">
           {isAuthenticated ? (
             <>
               <span className="text-sm text-white/80">
@@ -148,6 +148,58 @@ export default function Navbar() {
           </div>
           <div className="mt-6 flow-root">
             <div className="-my-6 divide-y divide-white/10">
+              {/* Navigation Links */}
+              <div className="py-6">
+                <Link
+                  href="/modes"
+                  className="-mx-3 block rounded-lg px-3 py-2.5 text-base font-semibold text-white hover:bg-white/10"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Play
+                </Link>
+                <Link
+                  href="/leaderboard"
+                  className="-mx-3 block rounded-lg px-3 py-2.5 text-base font-semibold text-white hover:bg-white/10"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Leaderboard
+                </Link>
+                <Link
+                  href="/versus"
+                  className="-mx-3 block rounded-lg px-3 py-2.5 text-base font-semibold text-white hover:bg-white/10"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Versus Mode
+                </Link>
+                <Link
+                  href="/poster-board"
+                  className="-mx-3 block rounded-lg px-3 py-2.5 text-base font-semibold text-white hover:bg-white/10"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Poster Board
+                </Link>
+                {/* <Link
+                  href="/lore"
+                  className="-mx-3 block rounded-lg px-3 py-2.5 text-base font-semibold text-white hover:bg-white/10"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Lore
+                </Link> */}
+                <Link
+                  href="/hall-of-fame"
+                  className="-mx-3 block rounded-lg px-3 py-2.5 text-base font-semibold text-white hover:bg-white/10"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Hall of Fame
+                </Link>
+                <Link
+                  href="/add-location"
+                  className="-mx-3 block rounded-lg px-3 py-2.5 text-base font-semibold text-white hover:bg-white/10"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Submit Photo
+                </Link>
+              </div>
               <div className="py-6">
                 {isAuthenticated ? (
                   <>

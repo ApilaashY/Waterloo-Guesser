@@ -141,6 +141,9 @@ body {
   min-height: 100vh;
   position: relative;
   overflow-x: hidden;
+
+  /* Aesthetic Figma-like Cursor */
+  cursor: url("data:image/svg+xml,%3Csvg width='24' height='24' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5 2l11 11-4.5 1 2.5 5.5-2.5 1-2.5-5.5-3.5 3.5V2z' fill='black' stroke='white' stroke-width='1.5' stroke-linejoin='round'/%3E%3C/svg%3E") 2 2, auto;
 }
 
 /* Amplified Noise/Grain (adapted for blue depth) */

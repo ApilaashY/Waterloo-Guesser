@@ -112,7 +112,7 @@ export default function Logo({
   } as const;
 
   // Final left offset in pixels (smaller value moves the logo further left)
-  const finalLeftOffset = 24; // was 40
+  const finalLeftOffset = 32; // was 24, moved right slightly
 
   return (
     <div

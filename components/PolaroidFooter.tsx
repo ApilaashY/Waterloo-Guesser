@@ -4,20 +4,27 @@ import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 
-const FOOTER_LINKS = {
+interface FooterGroup {
+    name: string;
+    href: string;
+}
+
+const FOOTER_LINKS: { features: FooterGroup[]; explore: FooterGroup[]; socials: FooterGroup[] } = {
     features: [
         { name: "Play", href: "/" },
         { name: "Versus", href: "/versus" },
         { name: "Leaderboard", href: "/leaderboard" },
-        { name: "Lore", href: "/lore" },
+        { name: "About", href: "/about" },
+        // { name: "Lore", href: "/lore" },
     ],
     explore: [
         { name: "Poster Board", href: "/poster-board" },
         { name: "Submit Photo", href: "/add-location" },
         { name: "Tutorial", href: "/tutorial" },
+        { name: "Hall of Fame", href: "/hall-of-fame" },
     ],
     socials: [
-        { name: "Github", href: "https://github.com/ApilaashY/Waterloo-Guesser" },
+        // { name: "Github", href: "https://github.com/ApilaashY/Waterloo-Guesser" },
     ],
 };
 

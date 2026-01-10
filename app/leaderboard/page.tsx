@@ -23,7 +23,7 @@ export default function Page() {
   const [userLeaderboard, setUserLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Faculty configuration
+  // Faculty configuration with homepage color scheme
   const facultySymbols: Record<
     string,
     {
@@ -36,51 +36,51 @@ export default function Page() {
   > = {
     Engineering: {
       imagePath: "/Engineering-Symbol.png",
-      color: "from-green-400 to-green-600",
-      bgColor: "#6e469c",
-      hueColor: "rgba(110, 70, 156, 0.2)", // Purple hue
+      color: "from-accent-primary to-accent-primary/80",
+      bgColor: "var(--accent-primary)",
+      hueColor: "var(--accent-soft)",
       iconFilter:
-        "brightness(0) saturate(100%) invert(31%) sepia(54%) saturate(1289%) hue-rotate(242deg) brightness(85%) contrast(91%)", // Purple
+        "brightness(0) saturate(100%) invert(31%) sepia(54%) saturate(1289%) hue-rotate(242deg) brightness(85%) contrast(91%)",
     },
     Health: {
       imagePath: "/Health.png",
-      color: "from-red-400 to-red-600",
-      bgColor: "#009c9e",
-      hueColor: "rgba(0, 156, 158, 0.2)", // Teal hue
+      color: "from-accent-primary/90 to-accent-primary/70",
+      bgColor: "var(--accent-primary)",
+      hueColor: "var(--accent-soft)",
       iconFilter:
-        "brightness(0) saturate(100%) invert(41%) sepia(89%) saturate(1067%) hue-rotate(139deg) brightness(97%) contrast(101%)", // Teal
+        "brightness(0) saturate(100%) invert(41%) sepia(89%) saturate(1067%) hue-rotate(139deg) brightness(97%) contrast(101%)",
     },
     Mathematics: {
       imagePath: "/Math.png",
-      color: "from-blue-400 to-blue-600",
-      bgColor: "#e357cd",
-      hueColor: "rgba(227, 87, 205, 0.2)", // Magenta hue
+      color: "from-accent-primary/80 to-accent-primary/60",
+      bgColor: "var(--accent-primary)",
+      hueColor: "var(--accent-soft)",
       iconFilter:
-        "brightness(0) saturate(100%) invert(50%) sepia(86%) saturate(2618%) hue-rotate(285deg) brightness(101%) contrast(84%)", // Magenta
+        "brightness(0) saturate(100%) invert(50%) sepia(86%) saturate(2618%) hue-rotate(285deg) brightness(101%) contrast(84%)",
     },
     Environment: {
       imagePath: "/Environment-Symbol.png",
-      color: "from-yellow-400 to-yellow-600",
-      bgColor: "#34584a",
-      hueColor: "rgba(52, 88, 74, 0.2)", // Green hue
+      color: "from-accent-primary/70 to-accent-primary/50",
+      bgColor: "var(--accent-primary)",
+      hueColor: "var(--accent-soft)",
       iconFilter:
-        "brightness(0) saturate(100%) invert(29%) sepia(17%) saturate(1183%) hue-rotate(109deg) brightness(93%) contrast(88%)", // Dark green
+        "brightness(0) saturate(100%) invert(29%) sepia(17%) saturate(1183%) hue-rotate(109deg) brightness(93%) contrast(88%)",
     },
     Arts: {
       imagePath: "/Art-Symbol.png",
-      color: "from-purple-400 to-purple-600",
-      bgColor: "#ff5945",
-      hueColor: "rgba(255, 89, 69, 0.2)", // Red-orange hue
+      color: "from-accent-primary/85 to-accent-primary/65",
+      bgColor: "var(--accent-primary)",
+      hueColor: "var(--accent-soft)",
       iconFilter:
-        "brightness(0) saturate(100%) invert(54%) sepia(82%) saturate(4851%) hue-rotate(343deg) brightness(100%) contrast(101%)", // Red-orange
+        "brightness(0) saturate(100%) invert(54%) sepia(82%) saturate(4851%) hue-rotate(343deg) brightness(100%) contrast(101%)",
     },
     Science: {
       imagePath: "/Science-Symbol.png",
-      color: "from-cyan-400 to-cyan-600",
-      bgColor: "#0049b4",
-      hueColor: "rgba(0, 73, 180, 0.2)", // Deep blue hue
+      color: "from-accent-primary/75 to-accent-primary/55",
+      bgColor: "var(--accent-primary)",
+      hueColor: "var(--accent-soft)",
       iconFilter:
-        "brightness(0) saturate(100%) invert(16%) sepia(98%) saturate(3176%) hue-rotate(212deg) brightness(92%) contrast(104%)", // Deep blue
+        "brightness(0) saturate(100%) invert(16%) sepia(98%) saturate(3176%) hue-rotate(212deg) brightness(92%) contrast(104%)",
     },
   };
 
@@ -119,36 +119,36 @@ export default function Page() {
     <div
       className="min-h-screen w-full flex items-center justify-center relative overflow-hidden"
       style={{
-        backgroundImage: `radial-gradient(
+        background: `radial-gradient(
           1200px 600px at 10% 10%,
-          rgba(144, 205, 244, 0.3),
+          var(--accent-soft),
           transparent 15%
         ),
         radial-gradient(
           900px 500px at 90% 80%,
-          rgba(59, 130, 246, 0.2),
+          var(--accent-primary)/20,
           transparent 18%
         ),
-        linear-gradient(180deg, rgba(191, 219, 254, 0.6), rgba(147, 197, 253, 0.7))`,
-        backgroundColor: "#bfdbfe",
+        linear-gradient(180deg, var(--bg-surface), var(--bg-root))`,
+        backgroundColor: "var(--bg-root)",
       }}
     >
       {/* Decorative background elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-24 -left-24 w-96 h-96 bg-blue-300/20 rounded-full blur-3xl" />
-        <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-blue-400/15 rounded-full blur-3xl" />
+        <div className="absolute -top-24 -left-24 w-96 h-96 bg-accent-primary/20 rounded-full blur-3xl" />
+        <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-accent-primary/15 rounded-full blur-3xl" />
       </div>
 
       <div className="w-full max-w-6xl mx-auto p-6 relative z-20">
-        {/* Main container with hero styling */}
-        <div className="relative rounded-3xl bg-white/40 backdrop-blur-md border-2 border-[#090C9B]/20 p-6 sm:p-8 shadow-2xl overflow-hidden">
+        {/* Main container with homepage theme styling */}
+        <div className="relative rounded-3xl bg-root/40 backdrop-blur-md border-2 border-primary/20 p-6 sm:p-8 shadow-2xl overflow-hidden">
           {/* Decorative gradient overlays */}
-          <div className="absolute inset-0 bg-gradient-to-tr from-blue-200/20 via-transparent to-blue-400/10 pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-tr from-accent-primary/20 via-transparent to-accent-primary/10 pointer-events-none" />
 
           <div className="relative z-10">
             <div className="flex items-center justify-center mb-8 mt-6">
               <h2
-                className="text-3xl sm:text-4xl font-bold text-[#090C9B]"
+                className="text-3xl sm:text-4xl font-bold text-primary"
                 style={{ fontFamily: "Felgine, sans-serif" }}
               >
                 FACULTY LEADERBOARD
@@ -156,7 +156,7 @@ export default function Page() {
             </div>
 
             {/* Faculty Symbols Horizontal Row */}
-            <div className="flex items-center justify-center gap-8 sm:gap-16 mb-10 px-4 py-6 bg-white/30 backdrop-blur-sm rounded-2xl border-2 border-[#090C9B]/20 transition-all duration-300">
+            <div className="flex items-center justify-center gap-8 sm:gap-16 mb-10 px-4 py-6 bg-surface/30 backdrop-blur-sm rounded-2xl border-2 border-primary/20 transition-all duration-300">
               {Object.entries(facultySymbols).map(
                 ([name, { imagePath, bgColor, iconFilter }]) => {
                   const isSelected = selectedFaculty === name;
@@ -211,16 +211,16 @@ export default function Page() {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
               {/* Left: Faculty Totals */}
-              <div className="rounded-2xl bg-white/50 backdrop-blur-md border border-[#090C9B]/10 p-6 shadow-lg">
+              <div className="rounded-2xl bg-surface/50 backdrop-blur-md border border-primary/10 p-6 shadow-lg">
                 <div className="flex items-center justify-between mb-5">
-                  <h3 className="text-xl font-bold text-[#090C9B]">By Faculty</h3>
-                  <span className="text-sm text-[#090C9B]/70 font-medium">
+                  <h3 className="text-xl font-bold text-primary">By Faculty</h3>
+                  <span className="text-sm text-secondary font-medium">
                     Top {facultyData.length}
                   </span>
                 </div>
                 {loading ? (
                   <div className="flex items-center justify-center py-12">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#090C9B]" />
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent-primary" />
                   </div>
                 ) : (
                   <ol className="space-y-3">
@@ -228,25 +228,25 @@ export default function Page() {
                       <li
                         key={faculty.department}
                         className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all duration-300 ${selectedFaculty === faculty.department
-                            ? "bg-gradient-to-r from-[#090C9B]/20 to-blue-300/30 scale-105 shadow-md"
-                            : "hover:bg-white/40 hover:scale-102"
+                            ? "bg-accent-primary/20 border border-accent-primary/30 scale-105 shadow-md"
+                            : "hover:bg-primary/5 hover:scale-102"
                           }`}
                         onClick={() => setSelectedFaculty(faculty.department)}
                       >
                         <div
                           className={`flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br ${facultySymbols[faculty.department]?.color ||
-                            "from-gray-400 to-gray-600"
+                            "from-accent-primary/40 to-accent-primary/60"
                             } text-white font-bold text-lg shadow-md`}
                         >
                           {idx + 1}
                         </div>
                         <div className="flex-1">
-                          <div className="font-bold text-[#090C9B]">
+                          <div className="font-bold text-primary">
                             {faculty.department}
                           </div>
                         </div>
                         <div className="text-right">
-                          <div className="font-mono font-bold text-[#090C9B] text-lg">
+                          <div className="font-mono font-bold text-primary text-lg">
                             {faculty.totalPoints.toLocaleString()}
                           </div>
                         </div>
@@ -262,21 +262,21 @@ export default function Page() {
               </div>
 
               {/* Right: Selected Faculty Players */}
-              <div className="rounded-2xl bg-white/50 backdrop-blur-md border border-[#090C9B]/10 p-6 shadow-lg">
+              <div className="rounded-2xl bg-surface/50 backdrop-blur-md border border-primary/10 p-6 shadow-lg">
                 <div className="flex items-center justify-between mb-5">
-                  <h3 className="text-xl font-bold text-[#090C9B]">
+                  <h3 className="text-xl font-bold text-primary">
                     {selectedFaculty} Players
                   </h3>
-                  <span className="text-sm text-[#090C9B]/70 font-medium">
+                  <span className="text-sm text-secondary font-medium">
                     Top Players
                   </span>
                 </div>
                 {loading ? (
                   <div className="flex items-center justify-center py-12">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#090C9B]" />
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent-primary" />
                   </div>
                 ) : selectedFacultyPlayers.length === 0 ? (
-                  <div className="text-center py-12 text-[#090C9B]/60">
+                  <div className="text-center py-12 text-secondary">
                     <p className="text-sm font-medium">No players yet</p>
                     <p className="text-xs mt-1">Be the first from {selectedFaculty}!</p>
                   </div>
@@ -289,29 +289,29 @@ export default function Page() {
                       >
                         <div
                           className={`flex h-12 w-12 items-center justify-center rounded-lg font-bold text-lg shadow-md ${idx === 0
-                              ? "bg-gradient-to-br from-blue-400 to-yellow-600 text-white"
+                              ? "bg-gradient-to-br from-accent-primary to-accent-primary/80 text-root"
                               : idx === 1
-                                ? "bg-gradient-to-br from-gray-300 to-gray-500 text-white"
+                                ? "bg-gradient-to-br from-primary/60 to-primary/40 text-root"
                                 : idx === 2
-                                  ? "bg-gradient-to-br from-orange-400 to-orange-600 text-white"
-                                  : "bg-gradient-to-br from-blue-200 to-blue-400 text-[#090C9B]"
+                                  ? "bg-gradient-to-br from-accent-primary/60 to-accent-primary/40 text-primary"
+                                  : "bg-gradient-to-br from-surface/60 to-surface/40 text-primary"
                             }`}
                         >
                           {idx + 1}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="font-bold text-[#090C9B] truncate">
+                          <div className="font-bold text-primary truncate">
                             {playerData.username}
                           </div>
                           {playerData.gamesPlayed && (
-                            <div className="text-xs text-[#090C9B]/60">
+                            <div className="text-xs text-secondary">
                               {playerData.gamesPlayed} game
                               {playerData.gamesPlayed !== 1 ? "s" : ""}
                             </div>
                           )}
                         </div>
                         <div className="text-right">
-                          <div className="font-mono font-bold text-[#090C9B] text-lg">
+                          <div className="font-mono font-bold text-primary text-lg">
                             {playerData.totalPoints.toLocaleString()}
                           </div>
                         </div>

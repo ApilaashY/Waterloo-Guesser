@@ -5,6 +5,7 @@ import { SocketProvider } from "../components/SocketProvider";
 import { SessionProvider } from "../components/SessionProvider";
 import ConditionalNavbar from "../components/ConditionalNavbar";
 import Script from "next/script";
+import { Toaster } from "react-hot-toast";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -123,6 +124,13 @@ export default function RootLayout({
           <SocketProvider>
             <ConditionalNavbar />
             {children}
+            <Toaster position="bottom-center" toastOptions={{
+              style: {
+                background: '#333',
+                color: '#fff',
+                fontFamily: 'var(--font-data)',
+              },
+            }} />
           </SocketProvider>
         </SessionProvider>
       </body>
