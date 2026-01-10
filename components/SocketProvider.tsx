@@ -148,7 +148,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
         // The round data will be sent separately for reconnects
         // Determine modifier from timedMode or explicit modifier field
         const modifier = data.modifier || (data.timedMode ? "timed" : "normal");
-        
+
         // Use Next.js router for client-side navigation to preserve socket connection
         router.push(
           `/versus?sessionId=${data.sessionId}&partnerId=${data.partnerId}&modifier=${modifier}`
