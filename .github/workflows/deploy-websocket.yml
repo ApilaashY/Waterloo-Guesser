@@ -51,6 +51,9 @@ jobs:
           # Create directory on server
           ssh -i ~/.ssh/id_rsa ec2-user@${{ secrets.EC2_HOST }} "mkdir -p $TARGET_DIR"
 
+          # Install rsync on server if missing
+          ssh -i ~/.ssh/id_rsa ec2-user@${{ secrets.EC2_HOST }} "if ! command -v rsync &> /dev/null; then echo 'Installing rsync...'; sudo yum install -y rsync || sudo apt-get install -y rsync; fi"
+
           # Sync files to EC2
           # Using rsync avoids git issues and ensures exact state match
           rsync -avz -e "ssh -i ~/.ssh/id_rsa" \
