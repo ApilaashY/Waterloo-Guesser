@@ -10,6 +10,7 @@ on:
       - "package-lock.json"
       - "Dockerfile"
       - "docker-compose.prod.yml"
+      - "docker-compose.deploy.yml"
       - ".github/workflows/deploy-websocket.yml"
   workflow_dispatch: # Allow manual trigger
 
@@ -36,6 +37,14 @@ jobs:
           MONGODB_URI: "mongodb://localhost:27017"
           MONGODB_DB: "test_db"
 
+      - name: Build Docker Image
+        run: |
+          docker build -t waterloo-guesser:latest .
+
+      - name: Save Docker Image
+        run: |
+          docker save waterloo-guesser:latest | gzip > waterloo-guesser.tar.gz
+
       - name: Configure SSH
         run: |
           mkdir -p ~/.ssh
@@ -51,18 +60,15 @@ jobs:
           # Create directory on server
           ssh -i ~/.ssh/id_rsa ec2-user@${{ secrets.EC2_HOST }} "mkdir -p $TARGET_DIR"
 
-          # Install rsync on server if missing
+          # Install rsync on server if missing (keeping this for safe file transfer)
           ssh -i ~/.ssh/id_rsa ec2-user@${{ secrets.EC2_HOST }} "if ! command -v rsync &> /dev/null; then echo 'Installing rsync...'; sudo yum install -y rsync || sudo apt-get install -y rsync; fi"
 
-          # Sync files to EC2
-          # Using rsync avoids git issues and ensures exact state match
+          # Sync Deployment Files
+          # We only need the image and the compose file now
           rsync -avz -e "ssh -i ~/.ssh/id_rsa" \
-            --exclude '.git' \
-            --exclude '.github' \
-            --exclude 'node_modules' \
-            --exclude '.next' \
-            --exclude 'photos' \
-            ./ ec2-user@${{ secrets.EC2_HOST }}:$TARGET_DIR/
+            ./waterloo-guesser.tar.gz \
+            ./docker-compose.deploy.yml \
+            ec2-user@${{ secrets.EC2_HOST }}:$TARGET_DIR/
             
           # Execute deployment on server
           ssh -i ~/.ssh/id_rsa ec2-user@${{ secrets.EC2_HOST }} "bash -s" << 'EOF'
@@ -71,15 +77,22 @@ jobs:
 
           echo "🚀 Starting deployment..."
 
-          echo "🔄 Rebuilding and restarting containers..."
-          docker-compose -f docker-compose.prod.yml down
-          docker-compose -f docker-compose.prod.yml up -d --build
+          echo "📦 Loading Docker image (this may take a moment)..."
+          gunzip -c waterloo-guesser.tar.gz | docker load
+
+          echo "🔄 Restarting containers..."
+          # Use the deployment compose file which points to the image we just loaded
+          docker-compose -f docker-compose.deploy.yml down
+          docker-compose -f docker-compose.deploy.yml up -d
+
+          echo "🧹 Cleaning up..."
+          rm waterloo-guesser.tar.gz
 
           echo "⏳ Waiting for containers to start..."
           sleep 20
 
           echo "🔍 Checking container status..."
-          docker-compose -f docker-compose.prod.yml ps
+          docker-compose -f docker-compose.deploy.yml ps
 
           echo "📊 Checking health endpoint..."
           # Check internal health first
@@ -94,7 +107,7 @@ jobs:
             echo "✅ Deployment successful! Public health check passed."
           else
             echo "❌ Public health check failed!"
-            docker-compose -f docker-compose.prod.yml logs --tail=50
+            docker-compose -f docker-compose.deploy.yml logs --tail=50
             exit 1
           fi
           EOF
