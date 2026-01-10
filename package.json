@@ -11,7 +11,11 @@
     "start": "next start",
     "lint": "next lint",
     "migrate:building-identifiers": "node scripts/populate-building-identifiers.js",
-    "db:create-indexes": "tsx scripts/create-indexes.ts"
+    "db:create-indexes": "tsx scripts/create-indexes.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
@@ -61,6 +65,8 @@
     "jsdom": "^27.4.0",
     "tailwindcss": "^4",
     "tsx": "^4.21.0",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^2.1.8",
+    "vitest-fetch-mock": "^0.4.5"
   }
 }
