@@ -81,6 +81,9 @@ jobs:
           gunzip -c waterloo-guesser.tar.gz | docker load
 
           echo "🔄 Restarting containers..."
+          # Force remove the old container if it exists to ensure port 3001 is freed
+          docker rm -f waterloo-guesser-web || true
+
           # Use the deployment compose file which points to the image we just loaded
           docker-compose -f docker-compose.deploy.yml down
           docker-compose -f docker-compose.deploy.yml up -d
