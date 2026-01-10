@@ -4,6 +4,9 @@ COPY package*.json ./
 RUN npm ci
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED 1
+ENV MONGODB_URI "mongodb://mock_build_uri"
+ENV MONGODB_DB "mock_build_db"
+
 # Build Next.js app
 RUN npm run build
 # Build custom server
