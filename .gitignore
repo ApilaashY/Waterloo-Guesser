@@ -35,3 +35,6 @@ aws-credentials.json
 
 # Terraform files
 terraform-guesser/
+
+# DS Stpre
+.DS_Store

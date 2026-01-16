@@ -9,42 +9,57 @@
 
 <url>
   <loc>https://www.uwguesser.com/</loc>
-  <lastmod>2025-09-25T21:50:11+00:00</lastmod>
+  <lastmod>2026-01-16T21:03:20+00:00</lastmod>
   <priority>1.00</priority>
 </url>
 <url>
   <loc>https://www.uwguesser.com/login</loc>
-  <lastmod>2025-09-25T21:50:11+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
-  <loc>https://www.uwguesser.com/lore</loc>
-  <lastmod>2025-09-25T21:50:11+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
-  <loc>https://www.uwguesser.com/leaderboard</loc>
-  <lastmod>2025-09-25T21:50:11+00:00</lastmod>
+  <lastmod>2026-01-16T21:03:20+00:00</lastmod>
   <priority>0.80</priority>
 </url>
 <url>
   <loc>https://www.uwguesser.com/modes</loc>
-  <lastmod>2025-09-25T21:50:11+00:00</lastmod>
+  <lastmod>2026-01-16T21:03:20+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://www.uwguesser.com/leaderboard</loc>
+  <lastmod>2026-01-16T21:03:20+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://www.uwguesser.com/versus</loc>
+  <lastmod>2026-01-16T21:03:20+00:00</lastmod>
   <priority>0.80</priority>
 </url>
 <url>
   <loc>https://www.uwguesser.com/poster-board</loc>
-  <lastmod>2025-09-25T21:50:11+00:00</lastmod>
+  <lastmod>2026-01-16T21:03:20+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://www.uwguesser.com/hall-of-fame</loc>
+  <lastmod>2026-01-16T21:03:20+00:00</lastmod>
   <priority>0.80</priority>
 </url>
 <url>
   <loc>https://www.uwguesser.com/add-location</loc>
-  <lastmod>2025-09-25T21:50:11+00:00</lastmod>
+  <lastmod>2026-01-16T21:03:20+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://www.uwguesser.com/about</loc>
+  <lastmod>2026-01-16T21:03:20+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://www.uwguesser.com/tutorial</loc>
+  <lastmod>2026-01-16T21:03:20+00:00</lastmod>
   <priority>0.80</priority>
 </url>
 <url>
   <loc>https://www.uwguesser.com/register</loc>
-  <lastmod>2025-09-25T21:50:11+00:00</lastmod>
+  <lastmod>2026-01-16T21:03:20+00:00</lastmod>
   <priority>0.64</priority>
 </url>
 
